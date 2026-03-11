@@ -7,7 +7,7 @@ export class UIScene extends Phaser.Scene {
 
   // Header element refs (repositioned on resize)
   private headerBg!: Phaser.GameObjects.Graphics;
-  private titleText!: Phaser.GameObjects.Text;
+  private timerText!: Phaser.GameObjects.Text;
   private movesText!: Phaser.GameObjects.Text;
   private pairsText!: Phaser.GameObjects.Text;
   private menuBtnBg!: Phaser.GameObjects.Graphics;
@@ -15,8 +15,8 @@ export class UIScene extends Phaser.Scene {
   private menuBtnZone!: Phaser.GameObjects.Zone;
 
   private totalPairs = 8;
-  private currentMoves = 0;
-  private currentPairs = 0;
+  private elapsedSeconds = 0;
+  private timerEvent?: Phaser.Time.TimerEvent;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -28,21 +28,34 @@ export class UIScene extends Phaser.Scene {
   }
 
   create() {
-    this.currentMoves = 0;
-    this.currentPairs = 0;
+    this.elapsedSeconds = 0;
 
     this.createHeader(this.scale.width, this.scale.height);
 
+    // Start timer
+    this.timerEvent = this.time.addEvent({
+      delay: 1000,
+      repeat: -1,
+      callback: () => {
+        this.elapsedSeconds++;
+        this.timerText.setText(formatTime(this.elapsedSeconds));
+      },
+    });
+
     // Game event listeners (cleaned up on shutdown)
-    const onMoves   = (n: number)  => { this.currentMoves = n; this.movesText.setText(`Ходов: ${n}`); };
-    const onMatch   = (n: number)  => { this.currentPairs = n; this.updatePairsText(n); };
-    const onComplete = (n: number) => this.showVictory(n);
+    const onMoves    = (n: number) => this.movesText.setText(`Ходов: ${n}`);
+    const onMatch    = (n: number) => this.updatePairsText(n);
+    const onComplete = (n: number) => {
+      this.timerEvent?.remove();
+      this.showVictory(n, this.elapsedSeconds);
+    };
 
     this.gameScene.events.on('moves-updated', onMoves,    this);
     this.gameScene.events.on('match-found',   onMatch,    this);
     this.gameScene.events.on('game-complete', onComplete, this);
 
     this.events.once('shutdown', () => {
+      this.timerEvent?.remove();
       this.gameScene.events.off('moves-updated', onMoves,    this);
       this.gameScene.events.off('match-found',   onMatch,    this);
       this.gameScene.events.off('game-complete', onComplete, this);
@@ -59,8 +72,8 @@ export class UIScene extends Phaser.Scene {
 
     const cy = HEADER_H / 2;
 
-    this.titleText = this.add.text(W / 2, cy, 'НАЙДИ ПАРУ', {
-      fontSize: '17px',
+    this.timerText = this.add.text(W / 2, cy, '0:00', {
+      fontSize: '18px',
       color: '#ade8f4',
       fontFamily: 'Arial',
       fontStyle: 'bold',
@@ -135,14 +148,14 @@ export class UIScene extends Phaser.Scene {
     const cy = HEADER_H / 2;
 
     this.drawHeaderBg(W);
-    this.titleText.setPosition(W / 2, cy);
+    this.timerText.setPosition(W / 2, cy);
     this.movesText.setPosition(Math.max(70, W * 0.1), cy);
     this.pairsText.setPosition(W - Math.max(80, W * 0.18), cy);
     this.drawMenuBtn(W, false);
   }
 
   // ── Victory overlay ──────────────────────────────────────────────────────────
-  private showVictory(moves: number) {
+  private showVictory(moves: number, seconds: number) {
     const W = this.scale.width;
     const H = this.scale.height;
     const cx = W / 2;
@@ -173,16 +186,22 @@ export class UIScene extends Phaser.Scene {
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
-    this.add.text(cx, cy + pH * 0.1, `Ходов: ${moves}`, {
-      fontSize: `${Math.min(28, Math.floor(pW * 0.1))}px`,
-      color: C.gold.toString(16).padStart(6, '0'),
+    const statFontSize = `${Math.min(22, Math.floor(pW * 0.085))}px`;
+    this.add.text(cx, cy + pH * 0.06, `Ходов: ${moves}`, {
+      fontSize: statFontSize,
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5).setColor(`#${C.gold.toString(16).padStart(6, '0')}`);
 
+    this.add.text(cx, cy + pH * 0.2, `Время: ${formatTime(seconds)}`, {
+      fontSize: statFontSize,
+      fontFamily: 'Arial',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setColor(`#${C.foam.toString(16).padStart(6, '0')}`);
+
     const btnW = Math.min(pW * 0.46, 150);
     const btnH = Math.min(pH * 0.15, 42);
-    const btnY = cy + pH * 0.31;
+    const btnY = cy + pH * 0.38;
 
     this.victoryBtn(cx - btnW * 0.56, btnY, btnW, btnH, 'ЗАНОВО', C.teal, () => {
       this.scene.stop();
@@ -226,4 +245,10 @@ export class UIScene extends Phaser.Scene {
     zone.on('pointerout',  () => draw(false));
     zone.on('pointerdown', onClick);
   }
+}
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
