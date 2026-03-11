@@ -1,73 +1,113 @@
-# React + TypeScript + Vite
+# Найди пару
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Браузерная карточная игра на память в морской тематике. Переворачивай карточки и находи совпадающие пары.
 
-Currently, two official plugins are available:
+## Геймплей
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Поле состоит из карточек, перевёрнутых лицом вниз
+- За один ход можно перевернуть две карточки
+- Если символы совпадают — пара найдена, карточки остаются открытыми
+- Цель — найти все пары, совершив как можно меньше ходов
 
-## React Compiler
+## Уровни сложности
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Уровень | Сетка | Пар |
+|---------|-------|-----|
+| Легко   | 3 × 4 | 6  |
+| Средне  | 4 × 4 | 8  |
+| Сложно  | 5 × 4 | 10 |
 
-## Expanding the ESLint configuration
+## Запуск
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # режим разработки
+npm run build    # сборка для продакшена
+npm run preview  # предпросмотр сборки
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Добавление своих ассетов
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Все настройки кастомных изображений находятся в `src/game/assets-config.ts`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Фон
+
+Установи флаг и добавь файл:
+
+```typescript
+// src/game/assets-config.ts
+CUSTOM_ASSETS.bg = true
+```
+
+```
+public/assets/bg.png   ← любое разрешение, будет масштабироваться
+```
+
+### 2. Рубашка карточки
+
+```typescript
+CUSTOM_ASSETS.cardBack = true
+```
+
+```
+public/assets/cards/back.png   ← рекомендуемый размер: 270×360 px
+```
+
+### 3. Лицевые стороны карточек
+
+```typescript
+CUSTOM_ASSETS.cardFaces = true
+```
+
+```
+public/assets/cards/
+  star.png      ← лёгкий + средний + сложный
+  heart.png
+  diamond.png
+  moon.png
+  sun.png
+  cloud.png
+  bolt.png
+  leaf.png
+  circle.png    ← только сложный уровень
+  cross.png     ← только сложный уровень
+```
+
+Рекомендуемый размер всех карточек: **270 × 360 px** (пропорция 3:4).
+Если флаг отключён — используются процедурно сгенерированные изображения.
+
+## Цветовая схема
+
+Тема и цвета настраиваются в `src/game/constants.ts`:
+
+```typescript
+export const C = {
+  bgDark:  0x071528, // основной фон
+  bgMid:   0x0d2137, // панели, рубашки карточек
+  ocean:   0x1b4965, // неактивные кнопки, границы
+  teal:    0x00b4d8, // выделение, акценты
+  foam:    0xade8f4, // текст заголовков
+  coral:   0xff6b6b, // главный акцент
+  gold:    0xffd166, // счёт, победный экран
+  dim:     0x4d6680, // вспомогательный текст
+};
+```
+
+## Структура проекта
+
+```
+src/
+  game/
+    assets-config.ts   ← флаги и пути кастомных ассетов
+    constants.ts       ← цвета, размеры, константы
+    config.ts          ← конфигурация движка
+    scenes/
+      BootScene.ts     ← загрузка ассетов, генерация текстур
+      MenuScene.ts     ← главное меню, настройки
+      GameScene.ts     ← игровая логика
+      UIScene.ts       ← интерфейс поверх игры
+  components/
+    Game.tsx           ← монтирование игры в страницу
+public/
+  assets/              ← папка для кастомных изображений
 ```
