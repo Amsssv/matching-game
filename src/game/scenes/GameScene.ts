@@ -2,21 +2,24 @@ import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
+type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
 const DIFF_CONFIG: Record<Difficulty, { cols: number; rows: number; pairs: number }> = {
-  easy:   { cols: 3, rows: 4, pairs: 6  },
-  medium: { cols: 4, rows: 4, pairs: 8  },
-  hard:   { cols: 5, rows: 4, pairs: 10 },
+  easy:   { cols: 3, rows: 4, pairs: 6  }, // 12 cards
+  medium: { cols: 4, rows: 5, pairs: 10 }, // 20 cards
+  hard:   { cols: 4, rows: 6, pairs: 12 }, // 24 cards
+  expert: { cols: 5, rows: 6, pairs: 15 }, // 30 cards — all symbols
 };
 
-// Min card size (px) — prevents cards from becoming unplayably small
+
 const MIN_CARD_W = 54;
+const CARD_RADIUS = 12;
 
 interface Card {
   container: Phaser.GameObjects.Container;
   back: Phaser.GameObjects.Image;
   front: Phaser.GameObjects.Image;
+  maskGfx: Phaser.GameObjects.Graphics;
   symbol: string;
   index: number;
   isFlipped: boolean;
@@ -71,14 +74,17 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300, 7, 21, 40);
 
     this.scale.on('resize', this.onResize, this);
-    this.events.once('shutdown', () => this.scale.off('resize', this.onResize, this));
+    this.events.once('shutdown', () => {
+      this.scale.off('resize', this.onResize, this);
+      this.cards.forEach(card => card.maskGfx.destroy());
+    });
   }
 
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(W: number, H: number) {
-    if (CUSTOM_ASSETS.bg && this.textures.exists('bg')) {
-      const img = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H);
-      this.bgObj = img;
+    if (CUSTOM_ASSETS.bg && this.textures.exists('bg-game')) {
+      const bgH = H - HEADER_H;
+      this.bgObj = this.add.image(W / 2, HEADER_H + bgH / 2, 'bg-game').setDisplaySize(W, bgH);
       return;
     }
     const g = this.add.graphics();
@@ -133,10 +139,8 @@ export class GameScene extends Phaser.Scene {
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
   private dealCards(W: number, H: number) {
-    const symbolPool = Phaser.Utils.Array.Shuffle([
-      ...SYMBOLS.slice(0, this.totalPairs),
-      ...SYMBOLS.slice(0, this.totalPairs),
-    ]) as string[];
+    const picked = [...SYMBOLS].slice(0, this.totalPairs);
+    const symbolPool = Phaser.Utils.Array.Shuffle([...picked, ...picked]) as string[];
 
     const layout = this.calcLayout(W, H);
 
@@ -153,10 +157,14 @@ export class GameScene extends Phaser.Scene {
     const back  = this.add.image(0, 0, 'card-back').setDisplaySize(cardW, cardH);
     const front = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardW, cardH).setVisible(false);
 
+    const maskGfx = this.add.graphics();
+    this.drawCardMask(maskGfx, x, y, cardW, cardH);
+
     const container = this.add.container(x, y, [back, front]);
     container.setSize(cardW, cardH).setInteractive();
+    container.setMask(maskGfx.createGeometryMask());
 
-    const card: Card = { container, back, front, symbol, index, isFlipped: false, isMatched: false };
+    const card: Card = { container, back, front, maskGfx, symbol, index, isFlipped: false, isMatched: false };
 
     container.on('pointerover', () => {
       if (!card.isFlipped && !card.isMatched && !this.isLocked)
@@ -171,6 +179,12 @@ export class GameScene extends Phaser.Scene {
     return card;
   }
 
+  private drawCardMask(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
+    gfx.clear();
+    gfx.fillStyle(0xffffff);
+    gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, CARD_RADIUS);
+  }
+
   // ── Resize ───────────────────────────────────────────────────────────────────
   private onResize(gameSize: Phaser.Structs.Size) {
     const W = gameSize.width;
@@ -178,7 +192,8 @@ export class GameScene extends Phaser.Scene {
 
     // Reposition / rescale background
     if (this.bgObj instanceof Phaser.GameObjects.Image) {
-      this.bgObj.setPosition(W / 2, H / 2).setDisplaySize(W, H);
+      const bgH = H - HEADER_H;
+      this.bgObj.setPosition(W / 2, HEADER_H + bgH / 2).setDisplaySize(W, bgH);
     } else if (this.bgObj instanceof Phaser.GameObjects.Graphics) {
       this.bgObj.destroy();
       this.drawBackground(W, H);
@@ -197,6 +212,7 @@ export class GameScene extends Phaser.Scene {
       card.container.setSize(layout.cardW, layout.cardH).setInteractive();
       card.back.setDisplaySize(layout.cardW, layout.cardH);
       card.front.setDisplaySize(layout.cardW, layout.cardH);
+      this.drawCardMask(card.maskGfx, x, y, layout.cardW, layout.cardH);
     });
   }
 

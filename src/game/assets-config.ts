@@ -23,19 +23,20 @@
 
 export const CUSTOM_ASSETS = {
   /** Use your own background. File: public/assets/bg.png */
-  bg: false,
+  bg: true,
 
   /** Use your own card back. File: public/assets/cards/back.png */
-  cardBack: false,
+  cardBack: true,
 
   /** Use your own card face images. Files: public/assets/cards/<symbol>.png */
-  cardFaces: false,
+  cardFaces: true,
 };
 
 // Internal: all symbol keys
 export const SYMBOLS = [
-  'star', 'heart', 'diamond', 'moon', 'sun',
-  'cloud', 'bolt', 'leaf', 'circle', 'cross',
+  'octopus', 'crab', 'clownfish', 'surgeonfish', 'jellyfish',
+  'turtle', 'seahorse', 'stingray', 'lobster', 'starfish',
+  'whale', 'pufferfish', 'shark', 'eel', 'coral',
 ] as const;
 
 export type SymbolKey = typeof SYMBOLS[number];

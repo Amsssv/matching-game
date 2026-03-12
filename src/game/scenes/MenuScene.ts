@@ -2,14 +2,15 @@ import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS } from '../assets-config';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
+type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
-const DIFF_LABELS: Record<Difficulty, string> = { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО' };
-const DIFF_DESC:   Record<Difficulty, string> = { easy: '6 пар · 3×4', medium: '8 пар · 4×4', hard: '10 пар · 5×4' };
+const DIFF_LABELS: Record<Difficulty, string> = { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО', expert: 'ЭКСПЕРТ' };
+const DIFF_DESC:   Record<Difficulty, string> = { easy: '6 пар · 3×4', medium: '10 пар · 4×5', hard: '12 пар · 4×6', expert: '15 пар · 5×6' };
 const DIFF_HINT:   Record<Difficulty, string> = {
   easy:   'Идеально для начинающих',
   medium: 'Классическая игра',
   hard:   'Для настоящих мастеров',
+  expert: 'Все 15 существ!',
 };
 
 export class MenuScene extends Phaser.Scene {
@@ -84,14 +85,14 @@ export class MenuScene extends Phaser.Scene {
     // ── Title ────────────────────────────────────────────────────────────────
     this.add.text(midX, titleY, 'НАЙДИ ПАРУ', {
       fontSize: `${clamp(Math.floor(H * 0.075), 28, 56)}px`,
-      color: '#ade8f4',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.add.text(midX, titleY + clamp(Math.floor(H * 0.055), 22, 40), 'Карточная игра на память', {
       fontSize: `${clamp(Math.floor(H * 0.025), 12, 18)}px`,
-      color: '#4d6680',
+      color: '#e0f0ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
@@ -104,26 +105,26 @@ export class MenuScene extends Phaser.Scene {
     // ── Difficulty ───────────────────────────────────────────────────────────
     this.add.text(midX, diffY - H * 0.05, 'СЛОЖНОСТЬ', {
       fontSize: '12px',
-      color: '#4d6680',
+      color: '#e0f0ff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
 
-    const btnW = clamp(Math.floor(W * 0.24), 90, 160);
+    const btnW = clamp(Math.floor(W * 0.18), 70, 120);
     const btnH = clamp(Math.floor(H * 0.09), 44, 64);
-    const gap  = clamp(Math.floor(W * 0.02), 8, 16);
-    const totalBtnW = btnW * 3 + gap * 2;
+    const gap  = clamp(Math.floor(W * 0.015), 6, 12);
+    const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
     const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, DIFF_HINT[this.difficulty], {
       fontSize: '12px',
-      color: '#4d6680',
+      color: '#e0f0ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
     const diffRedrawFns = new Map<Difficulty, (selected: boolean) => void>();
     const diffBtns = new Map<Difficulty, Phaser.GameObjects.Graphics>();
-    (['easy', 'medium', 'hard'] as Difficulty[]).forEach((diff, i) => {
+    (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       const bx = btnStartX + i * (btnW + gap);
       const by = diffY - btnH / 2;
 
@@ -139,7 +140,7 @@ export class MenuScene extends Phaser.Scene {
 
       this.add.text(bx + btnW / 2, by + btnH * 0.7, DIFF_DESC[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.18), 9, 12)}px`,
-        color: '#6688aa',
+        color: '#b8d8f0',
         fontFamily: 'Arial',
       }).setOrigin(0.5);
 
@@ -150,13 +151,13 @@ export class MenuScene extends Phaser.Scene {
           bg.fillRoundedRect(bx, by, btnW, btnH, 8);
           bg.lineStyle(2, C.teal);
           bg.strokeRoundedRect(bx, by, btnW, btnH, 8);
-          labelText.setColor('#ade8f4');
+          labelText.setColor('#ffffff');
         } else {
           bg.fillStyle(C.bgMid, 0.8);
           bg.fillRoundedRect(bx, by, btnW, btnH, 8);
           bg.lineStyle(1, C.ocean);
           bg.strokeRoundedRect(bx, by, btnW, btnH, 8);
-          labelText.setColor('#4d6680');
+          labelText.setColor('#e0f0ff');
         }
       };
       diffRedrawFns.set(diff, redraw);
@@ -173,7 +174,7 @@ export class MenuScene extends Phaser.Scene {
     // ── Sound toggle ─────────────────────────────────────────────────────────
     this.add.text(midX, soundY - H * 0.04, 'ЗВУК', {
       fontSize: '12px',
-      color: '#4d6680',
+      color: '#e0f0ff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
@@ -194,17 +195,17 @@ export class MenuScene extends Phaser.Scene {
     const redrawSound = (on: boolean) => {
       soundBg.clear();
       if (on) {
-        soundBg.fillStyle(0x1abc9c, 0.15);
+        soundBg.fillStyle(C.teal, 0.15);
         soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
-        soundBg.lineStyle(2, 0x1abc9c);
+        soundBg.lineStyle(2, C.teal);
         soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText('ВКЛЮЧЁН').setColor('#1abc9c');
+        soundTxt.setText('ВКЛЮЧЁН').setColor('#ffffff');
       } else {
         soundBg.fillStyle(C.bgMid, 0.8);
         soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
         soundBg.lineStyle(1, C.ocean);
         soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText('ВЫКЛЮЧЕН').setColor('#4d6680');
+        soundTxt.setText('ВЫКЛЮЧЕН').setColor('#e0f0ff');
       }
     };
     redrawSound(this.soundEnabled);
@@ -224,14 +225,14 @@ export class MenuScene extends Phaser.Scene {
     const playBg = this.add.graphics();
     const playTxt = this.add.text(midX, playY, 'НАЧАТЬ ИГРУ', {
       fontSize: `${clamp(Math.floor(pH * 0.38), 16, 22)}px`,
-      color: '#071528',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     const drawPlay = (hover: boolean) => {
       playBg.clear();
-      playBg.fillStyle(hover ? C.foam : C.teal);
+      playBg.fillStyle(hover ? C.coral : C.teal);
       playBg.fillRoundedRect(px, py, pW, pH, 10);
     };
     drawPlay(false);

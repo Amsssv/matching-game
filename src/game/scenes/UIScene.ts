@@ -74,20 +74,20 @@ export class UIScene extends Phaser.Scene {
 
     this.timerText = this.add.text(W / 2, cy, '0:00', {
       fontSize: '18px',
-      color: '#ade8f4',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.movesText = this.add.text(Math.max(70, W * 0.1), cy, 'Ходов: 0', {
       fontSize: '14px',
-      color: '#6688aa',
+      color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
     this.pairsText = this.add.text(W - Math.max(80, W * 0.18), cy, `Пар: 0 / ${this.totalPairs}`, {
       fontSize: '14px',
-      color: '#6688aa',
+      color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
@@ -95,7 +95,7 @@ export class UIScene extends Phaser.Scene {
     this.menuBtnBg = this.add.graphics();
     this.menuBtnLabel = this.add.text(0, 0, 'МЕНЮ', {
       fontSize: '10px',
-      color: '#ade8f4',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
@@ -139,7 +139,7 @@ export class UIScene extends Phaser.Scene {
 
   private updatePairsText(n: number) {
     this.pairsText.setText(`Пар: ${n} / ${this.totalPairs}`);
-    if (n > 0) this.pairsText.setColor('#ade8f4');
+    if (n > 0) this.pairsText.setColor('#ffffff');
   }
 
   // ── Resize ───────────────────────────────────────────────────────────────────
@@ -175,14 +175,14 @@ export class UIScene extends Phaser.Scene {
 
     this.add.text(cx, cy - pH * 0.3, 'ПОБЕДА!', {
       fontSize: `${Math.min(40, Math.floor(pW * 0.16))}px`,
-      color: '#ade8f4',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.add.text(cx, cy - pH * 0.06, 'Все пары найдены!', {
       fontSize: '14px',
-      color: '#6688aa',
+      color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 

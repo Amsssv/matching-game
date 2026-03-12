@@ -1,13 +1,13 @@
 // ── Ocean theme color palette ─────────────────────────────────────────────────
 export const C = {
-  bgDark:  0x071528, // Deep ocean — main background
-  bgMid:   0x0d2137, // Ocean mid — panels, card backs
-  ocean:   0x1b4965, // Ocean blue — inactive buttons, borders
-  teal:    0x00b4d8, // Bright teal — selected state, highlights
-  foam:    0xade8f4, // Sea foam — light text, soft accents
+  bgDark:  0x001428, // Deep navy — overlays, header bg
+  bgMid:   0x002244, // Navy blue — panels, unselected buttons
+  ocean:   0x1565c0, // Medium blue — inactive borders
+  teal:    0x0d47a1, // Deep blue — active state, play button
+  foam:    0xffffff, // White — primary text
   coral:   0xff6b6b, // Coral reef — primary accent
-  gold:    0xffd166, // Sandy gold — scores, victory
-  dim:     0x4d6680, // Muted blue-grey — secondary text
+  gold:    0xf7d077, // Sandy gold — scores, victory
+  dim:     0x334466, // Muted navy — secondary text
   white:   0xffffff,
 };
 

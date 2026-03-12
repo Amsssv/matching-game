@@ -16,6 +16,7 @@ export class BootScene extends Phaser.Scene {
 
     if (CUSTOM_ASSETS.bg) {
       this.load.image('bg', 'assets/bg.png');
+      this.load.image('bg-game', 'assets/bg-game.png');
     }
     if (CUSTOM_ASSETS.cardBack) {
       this.load.image('card-back', 'assets/cards/back.png');
@@ -79,7 +80,7 @@ export class BootScene extends Phaser.Scene {
     const g = this.make.graphics({ x: 0, y: 0 });
 
     // Card background
-    g.fillStyle(0xf0f8ff); // alice blue — oceanic white
+    g.fillStyle(0xf0fff8); // warm greenish white — coastal
     g.fillRoundedRect(0, 0, TEX_W, TEX_H, 10);
     g.lineStyle(3, color);
     g.strokeRoundedRect(2, 2, TEX_W - 4, TEX_H - 4, 8);
@@ -110,7 +111,7 @@ export class BootScene extends Phaser.Scene {
         break;
       case 'moon':
         g.fillCircle(cx, cy, s * 0.75);
-        g.fillStyle(0xf0f8ff);
+        g.fillStyle(0xf0fff8);
         g.fillCircle(cx + s * 0.32, cy - s * 0.1, s * 0.55);
         break;
       case 'sun':
@@ -143,7 +144,7 @@ export class BootScene extends Phaser.Scene {
         break;
       case 'leaf':
         g.fillEllipse(cx, cy, s * 1.2, s * 1.8, 32);
-        g.lineStyle(2, 0xf0f8ff, 0.6);
+        g.lineStyle(2, 0xf0fff8, 0.6);
         g.lineBetween(cx, cy - s * 0.8, cx, cy + s * 0.8);
         break;
       case 'circle':
