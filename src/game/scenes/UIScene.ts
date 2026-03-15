@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { GameScene } from './GameScene';
+import { LOCALES } from '../i18n';
+import type { Lang, Locale } from '../i18n';
 
 export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
@@ -17,6 +19,7 @@ export class UIScene extends Phaser.Scene {
   private totalPairs = 8;
   private elapsedSeconds = 0;
   private timerEvent?: Phaser.Time.TimerEvent;
+  private L!: Locale;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -29,6 +32,8 @@ export class UIScene extends Phaser.Scene {
 
   create() {
     this.elapsedSeconds = 0;
+    const lang: Lang = this.game.registry.get('lang') ?? 'ru';
+    this.L = LOCALES[lang];
 
     this.createHeader(this.scale.width, this.scale.height);
 
@@ -43,7 +48,7 @@ export class UIScene extends Phaser.Scene {
     });
 
     // Game event listeners (cleaned up on shutdown)
-    const onMoves    = (n: number) => this.movesText.setText(`Ходов: ${n}`);
+    const onMoves    = (n: number) => this.movesText.setText(this.L.moves(n));
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
@@ -79,13 +84,13 @@ export class UIScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.movesText = this.add.text(Math.max(70, W * 0.1), cy, 'Ходов: 0', {
+    this.movesText = this.add.text(Math.max(70, W * 0.1), cy, this.L.moves(0), {
       fontSize: '14px',
       color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
-    this.pairsText = this.add.text(W - Math.max(80, W * 0.18), cy, `Пар: 0 / ${this.totalPairs}`, {
+    this.pairsText = this.add.text(W - Math.max(80, W * 0.18), cy, this.L.pairs(0, this.totalPairs), {
       fontSize: '14px',
       color: '#cce4ff',
       fontFamily: 'Arial',
@@ -93,7 +98,7 @@ export class UIScene extends Phaser.Scene {
 
     // Menu button — create label and bg first, then zone at correct position
     this.menuBtnBg = this.add.graphics();
-    this.menuBtnLabel = this.add.text(0, 0, 'МЕНЮ', {
+    this.menuBtnLabel = this.add.text(0, 0, this.L.menu, {
       fontSize: '10px',
       color: '#ffffff',
       fontFamily: 'Arial',
@@ -138,7 +143,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   private updatePairsText(n: number) {
-    this.pairsText.setText(`Пар: ${n} / ${this.totalPairs}`);
+    this.pairsText.setText(this.L.pairs(n, this.totalPairs));
     if (n > 0) this.pairsText.setColor('#ffffff');
   }
 
@@ -173,27 +178,27 @@ export class UIScene extends Phaser.Scene {
     panel.lineStyle(2, C.teal, 0.7);
     panel.strokeRoundedRect(cx - pW / 2, cy - pH / 2, pW, pH, 14);
 
-    this.add.text(cx, cy - pH * 0.3, 'ПОБЕДА!', {
+    this.add.text(cx, cy - pH * 0.3, this.L.victory, {
       fontSize: `${Math.min(40, Math.floor(pW * 0.16))}px`,
       color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.add.text(cx, cy - pH * 0.06, 'Все пары найдены!', {
+    this.add.text(cx, cy - pH * 0.06, this.L.allPairsFound, {
       fontSize: '14px',
       color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
     const statFontSize = `${Math.min(22, Math.floor(pW * 0.085))}px`;
-    this.add.text(cx, cy + pH * 0.06, `Ходов: ${moves}`, {
+    this.add.text(cx, cy + pH * 0.06, this.L.movesResult(moves), {
       fontSize: statFontSize,
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5).setColor(`#${C.gold.toString(16).padStart(6, '0')}`);
 
-    this.add.text(cx, cy + pH * 0.2, `Время: ${formatTime(seconds)}`, {
+    this.add.text(cx, cy + pH * 0.2, this.L.timeResult(formatTime(seconds)), {
       fontSize: statFontSize,
       fontFamily: 'Arial',
       fontStyle: 'bold',
@@ -203,12 +208,12 @@ export class UIScene extends Phaser.Scene {
     const btnH = Math.min(pH * 0.15, 42);
     const btnY = cy + pH * 0.38;
 
-    this.victoryBtn(cx - btnW * 0.56, btnY, btnW, btnH, 'ЗАНОВО', C.teal, () => {
+    this.victoryBtn(cx - btnW * 0.56, btnY, btnW, btnH, this.L.restart, C.teal, () => {
       this.scene.stop();
       this.gameScene.restartGame();
     });
 
-    this.victoryBtn(cx + btnW * 0.56, btnY, btnW, btnH, 'В МЕНЮ', C.ocean, () => {
+    this.victoryBtn(cx + btnW * 0.56, btnY, btnW, btnH, this.L.toMenu, C.ocean, () => {
       this.scene.stop();
       this.gameScene.goToMenu();
     }, C.teal);

@@ -1,30 +1,24 @@
 import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS } from '../assets-config';
+import { LOCALES } from '../i18n';
+import type { Lang } from '../i18n';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
-
-const DIFF_LABELS: Record<Difficulty, string> = { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО', expert: 'ЭКСПЕРТ' };
-const DIFF_DESC:   Record<Difficulty, string> = { easy: '6 пар · 3×4', medium: '10 пар · 4×5', hard: '12 пар · 4×6', expert: '15 пар · 5×6' };
-const DIFF_HINT:   Record<Difficulty, string> = {
-  easy:   'Идеально для начинающих',
-  medium: 'Классическая игра',
-  hard:   'Для настоящих мастеров',
-  expert: 'Все 15 существ!',
-};
 
 export class MenuScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
   private soundEnabled = true;
+  private lang: Lang = 'ru';
 
-  // Redrawn on each resize restart — no need to track individual refs
   constructor() {
     super({ key: 'MenuScene' });
   }
 
   create() {
-    this.difficulty = this.game.registry.get('difficulty') ?? 'medium';
+    this.difficulty   = this.game.registry.get('difficulty')   ?? 'medium';
     this.soundEnabled = this.game.registry.get('soundEnabled') ?? true;
+    this.lang         = this.game.registry.get('lang')         ?? 'ru';
 
     const W = this.scale.width;
     const H = this.scale.height;
@@ -33,7 +27,6 @@ export class MenuScene extends Phaser.Scene {
     this.createUI(W, H);
     this.cameras.main.fadeIn(300, 7, 21, 40);
 
-    // Restart on resize so layout recalculates
     let resizeTimer: Phaser.Time.TimerEvent | null = null;
     this.scale.on('resize', () => {
       if (resizeTimer) resizeTimer.remove();
@@ -46,19 +39,15 @@ export class MenuScene extends Phaser.Scene {
       this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H);
       return;
     }
-    // Ocean gradient-style using layered graphics
     const g = this.add.graphics();
-    // Base
     g.fillStyle(C.bgDark);
     g.fillRect(0, 0, W, H);
-    // Subtle radial glow in center
     const cx = W / 2;
     const cy = H * 0.45;
     for (let i = 6; i >= 0; i--) {
       g.fillStyle(C.ocean, 0.03 * (7 - i));
       g.fillEllipse(cx, cy, W * 0.7 * (i / 6 + 0.4), H * 0.5 * (i / 6 + 0.4));
     }
-    // Faint wave lines at bottom
     g.lineStyle(1, C.teal, 0.08);
     for (let row = 0; row < 5; row++) {
       const y = H * 0.75 + row * 18;
@@ -69,28 +58,59 @@ export class MenuScene extends Phaser.Scene {
       }
       g.strokePath();
     }
-    // Corner border accents
     g.lineStyle(1, C.teal, 0.15);
     g.strokeRect(16, 16, W - 32, H - 32);
   }
 
   private createUI(W: number, H: number) {
+    const L    = LOCALES[this.lang];
     const midX = W / 2;
-    // Vertical spacing anchored to screen height
-    const titleY   = H * 0.16;
-    const diffY    = H * 0.38;
-    const soundY   = H * 0.62;
-    const playY    = H * 0.8;
+
+    const titleY = H * 0.16;
+    const diffY  = H * 0.38;
+    const soundY = H * 0.62;
+    const playY  = H * 0.8;
+
+    // ── Language toggle (top-right) ───────────────────────────────────────────
+    const langs: Lang[] = ['ru', 'en'];
+    const lBtnW = 36, lBtnH = 24, lGap = 6;
+    const lStartX = W - lBtnW * 2 - lGap - 12;
+    const lY = 14;
+
+    langs.forEach((lng, i) => {
+      const lx = lStartX + i * (lBtnW + lGap);
+      const active = lng === this.lang;
+      const lBg = this.add.graphics();
+      lBg.fillStyle(active ? C.teal : C.bgMid, active ? 1 : 0.8);
+      lBg.fillRoundedRect(lx, lY, lBtnW, lBtnH, 5);
+      lBg.lineStyle(1, active ? C.teal : C.ocean);
+      lBg.strokeRoundedRect(lx, lY, lBtnW, lBtnH, 5);
+
+      this.add.text(lx + lBtnW / 2, lY + lBtnH / 2, lng.toUpperCase(), {
+        fontSize: '10px',
+        color: '#ffffff',
+        fontFamily: 'Arial',
+        fontStyle: 'bold',
+      }).setOrigin(0.5);
+
+      if (!active) {
+        const zone = this.add.zone(lx + lBtnW / 2, lY + lBtnH / 2, lBtnW, lBtnH).setInteractive();
+        zone.on('pointerdown', () => {
+          this.game.registry.set('lang', lng);
+          this.scene.restart();
+        });
+      }
+    });
 
     // ── Title ────────────────────────────────────────────────────────────────
-    this.add.text(midX, titleY, 'НАЙДИ ПАРУ', {
+    this.add.text(midX, titleY, L.title, {
       fontSize: `${clamp(Math.floor(H * 0.075), 28, 56)}px`,
       color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.add.text(midX, titleY + clamp(Math.floor(H * 0.055), 22, 40), 'Карточная игра на память', {
+    this.add.text(midX, titleY + clamp(Math.floor(H * 0.055), 22, 40), L.subtitle, {
       fontSize: `${clamp(Math.floor(H * 0.025), 12, 18)}px`,
       color: '#e0f0ff',
       fontFamily: 'Arial',
@@ -103,7 +123,7 @@ export class MenuScene extends Phaser.Scene {
     gSep.lineBetween(midX - sepW / 2, sepY, midX + sepW / 2, sepY);
 
     // ── Difficulty ───────────────────────────────────────────────────────────
-    this.add.text(midX, diffY - H * 0.05, 'СЛОЖНОСТЬ', {
+    this.add.text(midX, diffY - H * 0.05, L.difficulty, {
       fontSize: '12px',
       color: '#e0f0ff',
       fontFamily: 'Arial',
@@ -116,29 +136,26 @@ export class MenuScene extends Phaser.Scene {
     const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
-    const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, DIFF_HINT[this.difficulty], {
+    const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, L.diffHint[this.difficulty], {
       fontSize: '12px',
       color: '#e0f0ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
 
     const diffRedrawFns = new Map<Difficulty, (selected: boolean) => void>();
-    const diffBtns = new Map<Difficulty, Phaser.GameObjects.Graphics>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       const bx = btnStartX + i * (btnW + gap);
       const by = diffY - btnH / 2;
-
       const bg = this.add.graphics();
-      diffBtns.set(diff, bg);
 
-      const labelText = this.add.text(bx + btnW / 2, by + btnH * 0.38, DIFF_LABELS[diff], {
+      const labelText = this.add.text(bx + btnW / 2, by + btnH * 0.38, L.diffLabels[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.27), 12, 16)}px`,
         color: '#ffffff',
         fontFamily: 'Arial',
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
-      this.add.text(bx + btnW / 2, by + btnH * 0.7, DIFF_DESC[diff], {
+      this.add.text(bx + btnW / 2, by + btnH * 0.7, L.diffDesc[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.18), 9, 12)}px`,
         color: '#b8d8f0',
         fontFamily: 'Arial',
@@ -167,12 +184,12 @@ export class MenuScene extends Phaser.Scene {
       zone.on('pointerdown', () => {
         this.difficulty = diff;
         diffRedrawFns.forEach((fn, d) => fn(d === diff));
-        hintText.setText(DIFF_HINT[diff]);
+        hintText.setText(L.diffHint[diff]);
       });
     });
 
     // ── Sound toggle ─────────────────────────────────────────────────────────
-    this.add.text(midX, soundY - H * 0.04, 'ЗВУК', {
+    this.add.text(midX, soundY - H * 0.04, L.sound, {
       fontSize: '12px',
       color: '#e0f0ff',
       fontFamily: 'Arial',
@@ -184,7 +201,7 @@ export class MenuScene extends Phaser.Scene {
     const sx = midX - sW / 2;
     const sy = soundY - sH / 2;
 
-    const soundBg = this.add.graphics();
+    const soundBg  = this.add.graphics();
     const soundTxt = this.add.text(midX, soundY, '', {
       fontSize: `${clamp(Math.floor(sH * 0.33), 12, 16)}px`,
       color: '#ffffff',
@@ -199,13 +216,13 @@ export class MenuScene extends Phaser.Scene {
         soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
         soundBg.lineStyle(2, C.teal);
         soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText('ВКЛЮЧЁН').setColor('#ffffff');
+        soundTxt.setText(L.soundOn).setColor('#ffffff');
       } else {
         soundBg.fillStyle(C.bgMid, 0.8);
         soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
         soundBg.lineStyle(1, C.ocean);
         soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText('ВЫКЛЮЧЕН').setColor('#e0f0ff');
+        soundTxt.setText(L.soundOff).setColor('#e0f0ff');
       }
     };
     redrawSound(this.soundEnabled);
@@ -222,8 +239,8 @@ export class MenuScene extends Phaser.Scene {
     const px = midX - pW / 2;
     const py = playY - pH / 2;
 
-    const playBg = this.add.graphics();
-    const playTxt = this.add.text(midX, playY, 'НАЧАТЬ ИГРУ', {
+    const playBg  = this.add.graphics();
+    const playTxt = this.add.text(midX, playY, L.play, {
       fontSize: `${clamp(Math.floor(pH * 0.38), 16, 22)}px`,
       color: '#ffffff',
       fontFamily: 'Arial',
@@ -248,12 +265,13 @@ export class MenuScene extends Phaser.Scene {
     });
     playZone.on('pointerdown', () => this.startGame());
 
-    void HEADER_H; // used by other scenes
+    void HEADER_H;
   }
 
   private startGame() {
-    this.game.registry.set('difficulty', this.difficulty);
+    this.game.registry.set('difficulty',   this.difficulty);
     this.game.registry.set('soundEnabled', this.soundEnabled);
+    this.game.registry.set('lang',         this.lang);
     this.cameras.main.fadeOut(300, 7, 21, 40);
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('GameScene'));
   }

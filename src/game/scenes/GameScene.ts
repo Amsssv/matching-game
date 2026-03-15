@@ -4,15 +4,14 @@ import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
-const DIFF_CONFIG: Record<Difficulty, { cols: number; rows: number; pairs: number }> = {
-  easy:   { cols: 3, rows: 4, pairs: 6  }, // 12 cards
-  medium: { cols: 4, rows: 5, pairs: 10 }, // 20 cards
-  hard:   { cols: 4, rows: 6, pairs: 12 }, // 24 cards
-  expert: { cols: 5, rows: 6, pairs: 15 }, // 30 cards — all symbols
+// Cards per row — outer rows smaller by 2 than middle rows
+const DIFF_ROWS: Record<Difficulty, number[]> = {
+  easy:   [2, 4, 4, 2],   // 12 cards, 6 pairs
+  medium: [4, 6, 6, 4],   // 20 cards, 10 pairs
+  hard:   [5, 7, 7, 5],   // 24 cards, 12 pairs
+  expert: [6, 8, 8, 6],   // 28 cards, 14 pairs
 };
 
-
-const MIN_CARD_W = 54;
 const CARD_RADIUS = 12;
 
 interface Card {
@@ -29,10 +28,7 @@ interface Card {
 interface Layout {
   cardW: number;
   cardH: number;
-  gapX: number;
-  gapY: number;
-  startX: number;
-  startY: number;
+  positions: { x: number; y: number }[];
 }
 
 export class GameScene extends Phaser.Scene {
@@ -43,8 +39,7 @@ export class GameScene extends Phaser.Scene {
   private matchedPairs = 0;
   totalPairs = 0;
 
-  private cols = 4;
-  private rows = 4;
+  private rowWidths: number[] = [];
   private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
 
   constructor() {
@@ -59,10 +54,8 @@ export class GameScene extends Phaser.Scene {
     this.matchedPairs = 0;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
-    const { cols, rows, pairs } = DIFF_CONFIG[difficulty];
-    this.cols = cols;
-    this.rows = rows;
-    this.totalPairs = pairs;
+    this.rowWidths = DIFF_ROWS[difficulty];
+    this.totalPairs = this.rowWidths.reduce((s, n) => s + n, 0) / 2;
 
     const W = this.scale.width;
     const H = this.scale.height;
@@ -106,35 +99,44 @@ export class GameScene extends Phaser.Scene {
 
   // ── Card layout calculation ──────────────────────────────────────────────────
   private calcLayout(W: number, H: number): Layout {
-    const pad = Math.max(8, W * 0.02);
-    const availW = W - pad * 2;
-    const availH = H - HEADER_H - pad * 2;
+    const padH = Math.max(40, H * 0.09); // top (from header) and bottom padding
+    const padW = Math.max(8, W * 0.02);
+    const availW = W - padW * 2;
+    const availH = H - HEADER_H - padH * 2;
+    const numRows = this.rowWidths.length;
+    const maxCols = Math.max(...this.rowWidths);
 
     const minGap = 8;
-    let cardW = Math.floor((availW - (this.cols - 1) * minGap) / this.cols);
+    let cardW = Math.floor((availW - (maxCols - 1) * minGap) / maxCols);
     let cardH = Math.round(cardW * (4 / 3));
 
     // Constrain by height
-    const maxCardH = Math.floor((availH - (this.rows - 1) * minGap) / this.rows);
+    const maxCardH = Math.floor((availH - (numRows - 1) * minGap) / numRows);
     if (cardH > maxCardH) {
       cardH = maxCardH;
       cardW = Math.round(cardH * (3 / 4));
     }
 
-    cardW = Math.max(cardW, MIN_CARD_W);
     cardH = Math.round(cardW * (4 / 3));
 
-    const gapX = Math.floor((availW - this.cols * cardW) / Math.max(1, this.cols - 1));
-    const gapY = Math.floor((availH - this.rows * cardH) / Math.max(1, this.rows - 1));
-    const clampedGapX = Math.min(Math.max(gapX, minGap), 24);
-    const clampedGapY = Math.min(Math.max(gapY, minGap), 24);
+    const gapX = Math.min(Math.max(Math.floor((availW - maxCols * cardW) / Math.max(1, maxCols - 1)), minGap), 24);
+    const gapY = Math.min(Math.max(Math.floor((availH - numRows * cardH) / Math.max(1, numRows - 1)), minGap), 24);
 
-    const gridW = this.cols * cardW + (this.cols - 1) * clampedGapX;
-    const gridH = this.rows * cardH + (this.rows - 1) * clampedGapY;
-    const startX = (W - gridW) / 2 + cardW / 2;
-    const startY = HEADER_H + (availH - gridH) / 2 + pad + cardH / 2;
+    const gridH = numRows * cardH + (numRows - 1) * gapY;
+    const startY = HEADER_H + (availH - gridH) / 2 + padH + cardH / 2;
 
-    return { cardW, cardH, gapX: clampedGapX, gapY: clampedGapY, startX, startY };
+    // Build positions — each row centered individually
+    const positions: { x: number; y: number }[] = [];
+    this.rowWidths.forEach((cols, rowIdx) => {
+      const rowW = cols * cardW + (cols - 1) * gapX;
+      const rowStartX = (W - rowW) / 2 + cardW / 2;
+      const y = startY + rowIdx * (cardH + gapY);
+      for (let col = 0; col < cols; col++) {
+        positions.push({ x: rowStartX + col * (cardW + gapX), y });
+      }
+    });
+
+    return { cardW, cardH, positions };
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
@@ -145,10 +147,7 @@ export class GameScene extends Phaser.Scene {
     const layout = this.calcLayout(W, H);
 
     symbolPool.forEach((symbol, i) => {
-      const col = i % this.cols;
-      const row = Math.floor(i / this.cols);
-      const x = layout.startX + col * (layout.cardW + layout.gapX);
-      const y = layout.startY + row * (layout.cardH + layout.gapY);
+      const { x, y } = layout.positions[i];
       this.cards.push(this.createCard(x, y, symbol, i, layout.cardW, layout.cardH));
     });
   }
@@ -203,11 +202,7 @@ export class GameScene extends Phaser.Scene {
     // Relayout cards
     const layout = this.calcLayout(W, H);
     this.cards.forEach((card) => {
-      const col = card.index % this.cols;
-      const row = Math.floor(card.index / this.cols);
-      const x = layout.startX + col * (layout.cardW + layout.gapX);
-      const y = layout.startY + row * (layout.cardH + layout.gapY);
-
+      const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
       card.container.setSize(layout.cardW, layout.cardH).setInteractive();
       card.back.setDisplaySize(layout.cardW, layout.cardH);
