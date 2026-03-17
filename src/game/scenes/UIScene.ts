@@ -3,6 +3,7 @@ import { C, HEADER_H } from '../constants';
 import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
+import { getYSDK } from '../../ysdk';
 
 export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
@@ -52,6 +53,9 @@ export class UIScene extends Phaser.Scene {
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
+      getYSDK()?.leaderboards
+        ?.setLeaderboardScore('main', n)
+        .catch(() => { /* guest or not authorized — ignore */ });
       this.showVictory(n, this.elapsedSeconds);
     };
 

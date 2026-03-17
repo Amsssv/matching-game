@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
+import { getYSDK } from '../../ysdk';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
@@ -64,6 +65,7 @@ export class GameScene extends Phaser.Scene {
     this.dealCards(W, H);
 
     this.scene.launch('UIScene', { gameScene: this });
+    getYSDK()?.features.GameplayAPI?.start();
     this.cameras.main.fadeIn(300, 7, 21, 40);
 
     this.scale.on('resize', this.onResize, this);
@@ -283,8 +285,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   goToMenu() {
-    this.scene.stop('UIScene');
-    this.cameras.main.fadeOut(300, 7, 21, 40);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
+    getYSDK()?.features.GameplayAPI?.stop();
+    const sdk = getYSDK();
+    const proceed = () => {
+      this.cameras.main.fadeOut(300, 7, 21, 40);
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
+    };
+    if (sdk) {
+      sdk.adv.showInterstitial({
+        callbacks: { onClose: proceed, onError: proceed },
+      });
+    } else {
+      proceed();
+    }
   }
 }
