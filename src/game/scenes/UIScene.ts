@@ -53,9 +53,11 @@ export class UIScene extends Phaser.Scene {
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
-      getYSDK()?.leaderboards
-        ?.setLeaderboardScore('main', n)
-        .catch(() => { /* guest or not authorized — ignore */ });
+      const lb = getYSDK()?.leaderboards;
+      if (lb && typeof lb.setLeaderboardScore === 'function') {
+        lb.setLeaderboardScore('main', n)
+          .catch(() => { /* guest or not authorized — ignore */ });
+      }
       this.showVictory(n, this.elapsedSeconds);
     };
 
