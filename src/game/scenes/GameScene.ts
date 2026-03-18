@@ -291,7 +291,7 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.fadeOut(300, 7, 21, 40);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
     };
-    if (sdk) {
+    if (sdk?.adv?.showInterstitial) {
       sdk.adv.showInterstitial({
         callbacks: { onClose: proceed, onError: proceed },
       });
