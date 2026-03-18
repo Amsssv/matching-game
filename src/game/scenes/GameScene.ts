@@ -158,7 +158,7 @@ export class GameScene extends Phaser.Scene {
     const back  = this.add.image(0, 0, 'card-back').setDisplaySize(cardW, cardH);
     const front = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardW, cardH).setVisible(false);
 
-    const maskGfx = this.make.graphics({ add: false });
+    const maskGfx = this.add.graphics().setVisible(false);
     this.drawCardMask(maskGfx, x, y, cardW, cardH);
 
     const container = this.add.container(x, y, [back, front]);
