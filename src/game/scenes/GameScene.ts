@@ -230,6 +230,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private flipCard(card: Card, faceUp: boolean) {
+    if (faceUp) card.isFlipped = true; // guard against double-click before animation completes
     this.tweens.add({
       targets: card.container,
       scaleX: 0,
@@ -238,7 +239,7 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => {
         card.back.setVisible(!faceUp);
         card.front.setVisible(faceUp);
-        card.isFlipped = faceUp;
+        if (!faceUp) card.isFlipped = false;
         this.tweens.add({ targets: card.container, scaleX: 1, duration: 140, ease: 'Linear' });
       },
     });

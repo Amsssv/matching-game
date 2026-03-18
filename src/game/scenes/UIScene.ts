@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { C, HEADER_H } from '../constants';
+import { C, DPR, HEADER_H } from '../constants';
 import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
@@ -84,34 +84,36 @@ export class UIScene extends Phaser.Scene {
     const cy = HEADER_H / 2;
 
     this.timerText = this.add.text(W / 2, cy, '0:00', {
-      fontSize: '18px',
+      fontSize: `${Math.round(18 * DPR)}px`,
       color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.movesText = this.add.text(Math.max(70, W * 0.1), cy, this.L.moves(0), {
-      fontSize: '14px',
-      color: '#cce4ff',
-      fontFamily: 'Arial',
-    }).setOrigin(0.5);
+    const statFontPx = Math.max(11, Math.min(14, Math.floor(W / 38)));
 
-    this.pairsText = this.add.text(W - Math.max(80, W * 0.18), cy, this.L.pairs(0, this.totalPairs), {
-      fontSize: '14px',
+    this.movesText = this.add.text(Math.max(50, W * 0.08), cy, this.L.moves(0), {
+      fontSize: `${statFontPx}px`,
       color: '#cce4ff',
       fontFamily: 'Arial',
-    }).setOrigin(0.5);
+    }).setOrigin(0, 0.5);
+
+    this.pairsText = this.add.text(W - Math.round(52 * DPR) - Math.round(10 * DPR) - Math.round(6 * DPR), cy, this.L.pairs(0, this.totalPairs), {
+      fontSize: `${statFontPx}px`,
+      color: '#cce4ff',
+      fontFamily: 'Arial',
+    }).setOrigin(1, 0.5);
 
     // Menu button — create label and bg first, then zone at correct position
     this.menuBtnBg = this.add.graphics();
     this.menuBtnLabel = this.add.text(0, 0, this.L.menu, {
-      fontSize: '10px',
+      fontSize: `${Math.round(10 * DPR)}px`,
       color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    const BW = 52, BH = 30;
+    const BW = Math.round(52 * DPR), BH = Math.round(30 * DPR);
     const bx = W - BW - 10;
     const by = (HEADER_H - BH) / 2;
     this.drawMenuBtn(W, false);
@@ -135,7 +137,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   private drawMenuBtn(W: number, hover: boolean) {
-    const BW = 52, BH = 30;
+    const BW = Math.round(52 * DPR), BH = Math.round(30 * DPR);
     const bx = W - BW - 10;
     const by = (HEADER_H - BH) / 2;
     this.menuBtnBg.clear();
@@ -157,11 +159,12 @@ export class UIScene extends Phaser.Scene {
   private onResize(gameSize: Phaser.Structs.Size) {
     const W = gameSize.width;
     const cy = HEADER_H / 2;
+    const statFontPx = Math.max(11, Math.min(14, Math.floor(W / 38)));
 
     this.drawHeaderBg(W);
     this.timerText.setPosition(W / 2, cy);
-    this.movesText.setPosition(Math.max(70, W * 0.1), cy);
-    this.pairsText.setPosition(W - Math.max(80, W * 0.18), cy);
+    this.movesText.setPosition(Math.max(50, W * 0.08), cy).setFontSize(statFontPx);
+    this.pairsText.setPosition(W - Math.round(52 * DPR) - Math.round(10 * DPR) - Math.round(6 * DPR), cy).setFontSize(statFontPx);
     this.drawMenuBtn(W, false);
   }
 
@@ -192,7 +195,7 @@ export class UIScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.add.text(cx, cy - pH * 0.06, this.L.allPairsFound, {
-      fontSize: '14px',
+      fontSize: `${Math.round(14 * DPR)}px`,
       color: '#cce4ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);

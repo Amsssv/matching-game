@@ -25,9 +25,12 @@ export const SYMBOL_COLORS: number[] = [
   0xff9e00, // cross    — amber
 ];
 
-// Texture dimensions for generated card graphics
-export const TEX_W = 90;
-export const TEX_H = 120;
+// Device pixel ratio — capped at 2 to limit memory on 3x screens
+export const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+// Texture dimensions for generated card graphics (scaled for device sharpness)
+export const TEX_W = Math.round(90 * DPR);
+export const TEX_H = Math.round(120 * DPR);
 
 // Fixed header height (px) — shared between GameScene and UIScene
-export const HEADER_H = 56;
+export const HEADER_H = Math.round(56 * DPR);

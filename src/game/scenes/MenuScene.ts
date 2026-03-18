@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { C, HEADER_H } from '../constants';
+import { C, DPR, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
@@ -73,7 +73,7 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Language toggle (top-right) ───────────────────────────────────────────
     const langs: Lang[] = ['ru', 'en'];
-    const lBtnW = 36, lBtnH = 24, lGap = 6;
+    const lBtnW = Math.round(36 * DPR), lBtnH = Math.round(24 * DPR), lGap = Math.round(6 * DPR);
     const lStartX = W - lBtnW * 2 - lGap - 12;
     const lY = 14;
 
@@ -87,7 +87,7 @@ export class MenuScene extends Phaser.Scene {
       lBg.strokeRoundedRect(lx, lY, lBtnW, lBtnH, 5);
 
       this.add.text(lx + lBtnW / 2, lY + lBtnH / 2, lng.toUpperCase(), {
-        fontSize: '10px',
+        fontSize: `${Math.round(10 * DPR)}px`,
         color: '#ffffff',
         fontFamily: 'Arial',
         fontStyle: 'bold',
@@ -122,22 +122,22 @@ export class MenuScene extends Phaser.Scene {
     gSep.lineStyle(1, C.teal, 0.25);
     gSep.lineBetween(midX - sepW / 2, sepY, midX + sepW / 2, sepY);
 
+    const btnW = clamp(Math.floor(W * 0.18), 70, 120);
+    const btnH = clamp(Math.floor(H * 0.09), 44, 64);
+
     // ── Difficulty ───────────────────────────────────────────────────────────
-    this.add.text(midX, diffY - H * 0.05, L.difficulty, {
-      fontSize: '12px',
+    this.add.text(midX, diffY - Math.max(H * 0.05, btnH / 2 + 14), L.difficulty, {
+      fontSize: `${Math.round(12 * DPR)}px`,
       color: '#e0f0ff',
       fontFamily: 'Arial',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
-
-    const btnW = clamp(Math.floor(W * 0.18), 70, 120);
-    const btnH = clamp(Math.floor(H * 0.09), 44, 64);
     const gap  = clamp(Math.floor(W * 0.015), 6, 12);
     const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
     const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, L.diffHint[this.difficulty], {
-      fontSize: '12px',
+      fontSize: `${Math.round(12 * DPR)}px`,
       color: '#e0f0ff',
       fontFamily: 'Arial',
     }).setOrigin(0.5);
@@ -189,17 +189,17 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Sound toggle ─────────────────────────────────────────────────────────
-    this.add.text(midX, soundY - H * 0.04, L.sound, {
-      fontSize: '12px',
-      color: '#e0f0ff',
-      fontFamily: 'Arial',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setLetterSpacing(3);
-
     const sW = clamp(Math.floor(W * 0.38), 120, 180);
     const sH = clamp(Math.floor(H * 0.065), 36, 48);
     const sx = midX - sW / 2;
     const sy = soundY - sH / 2;
+
+    this.add.text(midX, soundY - Math.max(H * 0.04, sH / 2 + 14), L.sound, {
+      fontSize: `${Math.round(12 * DPR)}px`,
+      color: '#e0f0ff',
+      fontFamily: 'Arial',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setLetterSpacing(3);
 
     const soundBg  = this.add.graphics();
     const soundTxt = this.add.text(midX, soundY, '', {
