@@ -11,7 +11,7 @@ export class AudioManager {
 
   init(scene: Phaser.Scene): void {
     if (this.music) return;
-    this.music = scene.sound.add('music', { loop: true, volume: 0.5 });
+    this.music = scene.sound.add('music', { loop: true, volume: 0.3 });
     (this.music as unknown as { setMute: (v: boolean) => void }).setMute(this.muted);
   }
 
