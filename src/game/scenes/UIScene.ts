@@ -86,7 +86,7 @@ export class UIScene extends Phaser.Scene {
     this.timerText = this.add.text(W / 2, cy, '0:00', {
       fontSize: `${Math.round(18 * DPR)}px`,
       color: '#ffffff',
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -94,14 +94,14 @@ export class UIScene extends Phaser.Scene {
 
     this.movesText = this.add.text(Math.max(50, W * 0.08), cy, this.L.moves(0), {
       fontSize: `${statFontPx}px`,
-      color: '#cce4ff',
-      fontFamily: 'Arial',
+      color: '#B8D4DC',
+      fontFamily: 'Nunito',
     }).setOrigin(0, 0.5);
 
     this.pairsText = this.add.text(W - Math.round(52 * DPR) - Math.round(10 * DPR) - Math.round(6 * DPR), cy, this.L.pairs(0, this.totalPairs), {
       fontSize: `${statFontPx}px`,
-      color: '#cce4ff',
-      fontFamily: 'Arial',
+      color: '#B8D4DC',
+      fontFamily: 'Nunito',
     }).setOrigin(1, 0.5);
 
     // Menu button — create label and bg first, then zone at correct position
@@ -109,7 +109,7 @@ export class UIScene extends Phaser.Scene {
     this.menuBtnLabel = this.add.text(0, 0, this.L.menu, {
       fontSize: `${Math.round(10 * DPR)}px`,
       color: '#ffffff',
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -189,27 +189,28 @@ export class UIScene extends Phaser.Scene {
 
     this.add.text(cx, cy - pH * 0.3, this.L.victory, {
       fontSize: `${Math.min(40, Math.floor(pW * 0.16))}px`,
-      color: '#ffffff',
-      fontFamily: 'Arial',
+      color: '#FFE566',
+      fontFamily: 'Cinzel',
       fontStyle: 'bold',
+      shadow: { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
     }).setOrigin(0.5);
 
     this.add.text(cx, cy - pH * 0.06, this.L.allPairsFound, {
       fontSize: `${Math.round(14 * DPR)}px`,
-      color: '#cce4ff',
-      fontFamily: 'Arial',
+      color: '#B8D4DC',
+      fontFamily: 'Nunito',
     }).setOrigin(0.5);
 
     const statFontSize = `${Math.min(22, Math.floor(pW * 0.085))}px`;
     this.add.text(cx, cy + pH * 0.06, this.L.movesResult(moves), {
       fontSize: statFontSize,
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5).setColor(`#${C.gold.toString(16).padStart(6, '0')}`);
 
     this.add.text(cx, cy + pH * 0.2, this.L.timeResult(formatTime(seconds)), {
       fontSize: statFontSize,
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5).setColor(`#${C.foam.toString(16).padStart(6, '0')}`);
 
@@ -250,7 +251,7 @@ export class UIScene extends Phaser.Scene {
     this.add.text(cx, cy, label, {
       fontSize: `${Math.min(15, Math.floor(h * 0.38))}px`,
       color: '#ffffff',
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 

@@ -97,7 +97,7 @@ export class MenuScene extends Phaser.Scene {
       this.add.text(lx + lBtnW / 2, lY + lBtnH / 2, lng.toUpperCase(), {
         fontSize: `${Math.round(10 * DPR)}px`,
         color: '#ffffff',
-        fontFamily: 'Arial',
+        fontFamily: 'Nunito',
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
@@ -113,15 +113,16 @@ export class MenuScene extends Phaser.Scene {
     // ── Title ────────────────────────────────────────────────────────────────
     this.add.text(midX, titleY, L.title, {
       fontSize: `${clamp(Math.floor(H * 0.075), 28, 56)}px`,
-      color: '#ffffff',
-      fontFamily: 'Arial',
+      color: '#FFE566',
+      fontFamily: 'Cinzel',
       fontStyle: 'bold',
+      shadow: { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
     }).setOrigin(0.5);
 
     this.add.text(midX, titleY + clamp(Math.floor(H * 0.055), 22, 40), L.subtitle, {
       fontSize: `${clamp(Math.floor(H * 0.025), 12, 18)}px`,
-      color: '#e0f0ff',
-      fontFamily: 'Arial',
+      color: '#F0E6C8',
+      fontFamily: 'Cinzel',
     }).setOrigin(0.5);
 
     const sepY = titleY + clamp(Math.floor(H * 0.09), 36, 60);
@@ -136,8 +137,8 @@ export class MenuScene extends Phaser.Scene {
     // ── Difficulty ───────────────────────────────────────────────────────────
     this.add.text(midX, diffY - Math.max(H * 0.05, btnH / 2 + 14), L.difficulty, {
       fontSize: `${Math.round(12 * DPR)}px`,
-      color: '#e0f0ff',
-      fontFamily: 'Arial',
+      color: '#F0E6C8',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
     const gap  = clamp(Math.floor(W * 0.015), 6, 12);
@@ -145,9 +146,10 @@ export class MenuScene extends Phaser.Scene {
     const btnStartX = midX - totalBtnW / 2;
 
     const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, L.diffHint[this.difficulty], {
-      fontSize: `${Math.round(12 * DPR)}px`,
-      color: '#e0f0ff',
-      fontFamily: 'Arial',
+      fontSize: `${Math.round(16 * DPR)}px`,
+      color: '#ffffff',
+      fontFamily: 'Nunito',
+      shadow: { offsetX: 0, offsetY: 1, color: '#001e3c', blur: 6, fill: true },
     }).setOrigin(0.5);
 
     const diffRedrawFns = new Map<Difficulty, (selected: boolean) => void>();
@@ -159,14 +161,14 @@ export class MenuScene extends Phaser.Scene {
       const labelText = this.add.text(bx + btnW / 2, by + btnH * 0.38, L.diffLabels[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.27), 12, 16)}px`,
         color: '#ffffff',
-        fontFamily: 'Arial',
+        fontFamily: 'Nunito',
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
       this.add.text(bx + btnW / 2, by + btnH * 0.7, L.diffDesc[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.18), 9, 12)}px`,
         color: '#b8d8f0',
-        fontFamily: 'Arial',
+        fontFamily: 'Nunito',
       }).setOrigin(0.5);
 
       const redraw = (selected: boolean) => {
@@ -204,8 +206,8 @@ export class MenuScene extends Phaser.Scene {
 
     this.add.text(midX, soundY - Math.max(H * 0.04, sH / 2 + 14), L.sound, {
       fontSize: `${Math.round(12 * DPR)}px`,
-      color: '#e0f0ff',
-      fontFamily: 'Arial',
+      color: '#F0E6C8',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
 
@@ -213,7 +215,7 @@ export class MenuScene extends Phaser.Scene {
     const soundTxt = this.add.text(midX, soundY, '', {
       fontSize: `${clamp(Math.floor(sH * 0.33), 12, 16)}px`,
       color: '#ffffff',
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -230,7 +232,7 @@ export class MenuScene extends Phaser.Scene {
         soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
         soundBg.lineStyle(1, C.ocean);
         soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText(L.soundOff).setColor('#e0f0ff');
+        soundTxt.setText(L.soundOff).setColor('#B8D4DC');
       }
     };
     redrawSound(this.soundEnabled);
@@ -254,7 +256,7 @@ export class MenuScene extends Phaser.Scene {
     const playTxt = this.add.text(midX, playY, L.play, {
       fontSize: `${clamp(Math.floor(pH * 0.38), 16, 22)}px`,
       color: '#ffffff',
-      fontFamily: 'Arial',
+      fontFamily: 'Nunito',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 

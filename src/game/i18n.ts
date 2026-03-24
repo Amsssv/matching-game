@@ -24,7 +24,7 @@ export interface Locale {
 
 export const LOCALES: Record<Lang, Locale> = {
   ru: {
-    title:    'НАЙДИ ПАРУ',
+    title:    'МОРСКИЕ ПАРЫ',
     subtitle: 'Карточная игра на память',
     difficulty: 'СЛОЖНОСТЬ',
     diffLabels: { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО', expert: 'ЭКСПЕРТ' },
@@ -56,7 +56,7 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   en: {
-    title:    'FIND THE PAIR',
+    title:    'SEA PAIRS',
     subtitle: 'A memory card game',
     difficulty: 'DIFFICULTY',
     diffLabels: { easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', expert: 'EXPERT' },
@@ -84,6 +84,6 @@ export const LOCALES: Record<Lang, Locale> = {
     movesResult: (n) => `Moves: ${n}`,
     timeResult:  (t) => `Time: ${t}`,
     restart: 'RESTART',
-    toMenu:  'MENU',
+    toMenu:  'TO MENU',
   },
 };
