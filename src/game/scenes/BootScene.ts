@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { C, SYMBOL_COLORS, TEX_W, TEX_H } from '../constants';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
+import { AudioManager } from '../AudioManager';
 
 export class BootScene extends Phaser.Scene {
   private failedKeys = new Set<string>();
@@ -13,6 +14,8 @@ export class BootScene extends Phaser.Scene {
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
       this.failedKeys.add(file.key);
     });
+
+    this.load.audio('music', ['assets/music.mp3', 'assets/music.ogg']);
 
     if (CUSTOM_ASSETS.bg) {
       this.load.image('bg', 'assets/bg.png');
@@ -27,6 +30,11 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
+    const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? true;
+    const audioManager = new AudioManager(!soundEnabled);
+    audioManager.init(this);
+    this.game.registry.set('audioManager', audioManager);
+
     // Generate fallback textures for anything not loaded from files
     if (!CUSTOM_ASSETS.cardBack || this.failedKeys.has('card-back')) {
       this.generateCardBack();

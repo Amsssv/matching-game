@@ -25,6 +25,14 @@ export class MenuScene extends Phaser.Scene {
 
     this.drawBackground(W, H);
     this.createUI(W, H);
+
+    // Start music on first user interaction (autoplay policy)
+    const audioManager: import('../AudioManager').AudioManager | undefined =
+      this.game.registry.get('audioManager');
+    if (audioManager) {
+      this.input.once('pointerdown', () => audioManager.play());
+    }
+
     this.cameras.main.fadeIn(300, 7, 21, 40);
 
     let resizeTimer: Phaser.Time.TimerEvent | null = null;
@@ -231,6 +239,9 @@ export class MenuScene extends Phaser.Scene {
     soundZone.on('pointerdown', () => {
       this.soundEnabled = !this.soundEnabled;
       redrawSound(this.soundEnabled);
+      const am: import('../AudioManager').AudioManager | undefined =
+        this.game.registry.get('audioManager');
+      am?.setMuted(!this.soundEnabled);
     });
 
     // ── Play button ──────────────────────────────────────────────────────────
