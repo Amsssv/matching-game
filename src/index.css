@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Indira K';
+  src: url('/fonts/IndiraK.woff2') format('woff2'),
+       url('/fonts/IndiraK.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;

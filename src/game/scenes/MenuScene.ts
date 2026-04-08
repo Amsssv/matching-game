@@ -75,9 +75,9 @@ export class MenuScene extends Phaser.Scene {
     const midX = W / 2;
 
     const titleY = H * 0.16;
-    const diffY  = H * 0.38;
-    const soundY = H * 0.62;
-    const playY  = H * 0.8;
+    let diffY  = H * 0.38;
+    let soundY = H * 0.62;
+    let playY  = H * 0.8;
 
     // ── Language toggle (top-right) ───────────────────────────────────────────
     const langs: Lang[] = ['ru', 'en'];
@@ -111,32 +111,47 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Title ────────────────────────────────────────────────────────────────
-    this.add.text(midX, titleY, L.title, {
+
+    const titleText = this.add.text(midX, titleY, L.title, {
       fontSize: `${clamp(Math.floor(H * 0.075), 28, 56)}px`,
-      color: '#FFE566',
-      fontFamily: 'Cinzel',
+      fontFamily: '"Indira K"',
       fontStyle: 'bold',
       shadow: { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
+    }).setOrigin(0.5).setDepth(2);
+
+    // Вертикальный градиент: сверху #fdfacd → снизу #f7e089
+    const tCtx = titleText.canvas.getContext('2d');
+    if (tCtx) {
+      const grad = tCtx.createLinearGradient(0, 0, 0, titleText.canvas.height);
+      grad.addColorStop(0, '#fdfacd');
+      grad.addColorStop(1, '#f7e089');
+      titleText.setFill(grad as unknown as string);
+    }
+
+    // Картинка за текстом — центрируется по центру заголовка, ширина подгоняется под текст
+    const titleBgImg = this.add.image(titleText.x, titleText.y, 'title-bg')
+      .setOrigin(0.5)
+      .setDepth(1);
+    titleBgImg.setScale(Math.max(titleText.width * 1.5, 650) / titleBgImg.width);
+
+    const subtitleText = this.add.text(midX, titleBgImg.y + titleBgImg.displayHeight / 2 + 8, L.subtitle, {
+      fontSize: `${clamp(Math.floor(H * 0.05), 24, 36)}px`,
+      color: '#01286a',
+      fontFamily: '"Indira K"',
     }).setOrigin(0.5);
 
-    this.add.text(midX, titleY + clamp(Math.floor(H * 0.055), 22, 40), L.subtitle, {
-      fontSize: `${clamp(Math.floor(H * 0.025), 12, 18)}px`,
-      color: '#F0E6C8',
-      fontFamily: 'Cinzel',
-    }).setOrigin(0.5);
 
-    const sepY = titleY + clamp(Math.floor(H * 0.09), 36, 60);
-    const sepW = Math.min(W * 0.55, 320);
-    const gSep = this.add.graphics();
-    gSep.lineStyle(1, C.teal, 0.25);
-    gSep.lineBetween(midX - sepW / 2, sepY, midX + sepW / 2, sepY);
+    const pad  = 8;
+    const btnW = clamp(Math.floor(W * 0.18), 70, 120) + pad * 2;
+    const btnH = clamp(Math.floor(H * 0.09), 44, 64)  + pad * 2;
+    const sH   = clamp(Math.floor(H * 0.065), 36, 48);
 
-    const btnW = clamp(Math.floor(W * 0.18), 70, 120);
-    const btnH = clamp(Math.floor(H * 0.09), 44, 64);
+    // diffY привязан к subtitle: его нижний край + 50px + отступ под лейбл сложности
+    diffY = subtitleText.y + subtitleText.height / 2 + 90 + Math.max(H * 0.05, btnH / 2 + 14);
 
     // ── Difficulty ───────────────────────────────────────────────────────────
-    this.add.text(midX, diffY - Math.max(H * 0.05, btnH / 2 + 14), L.difficulty, {
-      fontSize: `${Math.round(12 * DPR)}px`,
+    this.add.text(midX, diffY - btnH / 2 - 32, L.difficulty, {
+      fontSize: `${Math.round(18 * DPR)}px`,
       color: '#F0E6C8',
       fontFamily: 'Nunito',
       fontStyle: 'bold',
@@ -145,7 +160,7 @@ export class MenuScene extends Phaser.Scene {
     const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
-    const hintText = this.add.text(midX, diffY + btnH * 0.55 + 14, L.diffHint[this.difficulty], {
+    const hintText = this.add.text(midX, diffY + btnH / 2 + 32, L.diffHint[this.difficulty], {
       fontSize: `${Math.round(16 * DPR)}px`,
       color: '#ffffff',
       fontFamily: 'Nunito',
@@ -198,9 +213,22 @@ export class MenuScene extends Phaser.Scene {
       });
     });
 
+    // soundY привязан к hintText: его нижний край + 40px + отступ под лейбл звука
+    soundY = hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, sH / 2 + 14);
+
+    // playY привязан к soundY; на десктопе оба сдвигаются вниз до H-200
+    const pW = clamp(Math.floor(W * 0.5), 180, 280);
+    const pH = clamp(Math.floor(H * 0.08), 44, 58);
+    playY = soundY + sH / 2 + 40 + pH / 2;
+    const minPlayY = H - 200;
+    if (playY < minPlayY) {
+      const shift = minPlayY - playY;
+      soundY += shift;
+      playY  += shift;
+    }
+
     // ── Sound toggle ─────────────────────────────────────────────────────────
     const sW = clamp(Math.floor(W * 0.38), 120, 180);
-    const sH = clamp(Math.floor(H * 0.065), 36, 48);
     const sx = midX - sW / 2;
     const sy = soundY - sH / 2;
 
@@ -247,8 +275,6 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Play button ──────────────────────────────────────────────────────────
-    const pW = clamp(Math.floor(W * 0.5), 180, 280);
-    const pH = clamp(Math.floor(H * 0.08), 44, 58);
     const px = midX - pW / 2;
     const py = playY - pH / 2;
 
