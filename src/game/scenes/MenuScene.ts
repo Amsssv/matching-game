@@ -104,6 +104,7 @@ export class MenuScene extends Phaser.Scene {
       if (!active) {
         const zone = this.add.zone(lx + lBtnW / 2, lY + lBtnH / 2, lBtnW, lBtnH).setInteractive();
         zone.on('pointerdown', () => {
+          this.sfx('sfx-click');
           this.game.registry.set('lang', lng);
           this.scene.restart();
         });
@@ -207,6 +208,7 @@ export class MenuScene extends Phaser.Scene {
 
       const zone = this.add.zone(bx + btnW / 2, by + btnH / 2, btnW, btnH).setInteractive();
       zone.on('pointerdown', () => {
+        this.sfx('sfx-click');
         this.difficulty = diff;
         diffRedrawFns.forEach((fn, d) => fn(d === diff));
         hintText.setText(L.diffHint[diff]);
@@ -267,6 +269,7 @@ export class MenuScene extends Phaser.Scene {
 
     const soundZone = this.add.zone(midX, soundY, sW, sH).setInteractive();
     soundZone.on('pointerdown', () => {
+      this.sfx('sfx-click');
       this.soundEnabled = !this.soundEnabled;
       redrawSound(this.soundEnabled);
       const am: import('../AudioManager').AudioManager | undefined =
@@ -302,9 +305,14 @@ export class MenuScene extends Phaser.Scene {
       drawPlay(false);
       this.tweens.add({ targets: playTxt, scaleX: 1, scaleY: 1, duration: 100 });
     });
-    playZone.on('pointerdown', () => this.startGame());
+    playZone.on('pointerdown', () => { this.sfx('sfx-click'); this.startGame(); });
 
     void HEADER_H;
+  }
+
+  private sfx(key: string) {
+    const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
+    am?.playSfx(key);
   }
 
   private startGame() {

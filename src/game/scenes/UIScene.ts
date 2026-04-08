@@ -123,6 +123,7 @@ export class UIScene extends Phaser.Scene {
     this.menuBtnZone.on('pointerover',  () => this.drawMenuBtn(this.scale.width, true));
     this.menuBtnZone.on('pointerout',   () => this.drawMenuBtn(this.scale.width, false));
     this.menuBtnZone.on('pointerdown', () => {
+      this.sfx('sfx-click');
       this.scene.stop();
       this.gameScene.goToMenu();
     });
@@ -229,6 +230,11 @@ export class UIScene extends Phaser.Scene {
     }, C.teal);
   }
 
+  private sfx(key: string) {
+    const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
+    am?.playSfx(key);
+  }
+
   private victoryBtn(
     cx: number, cy: number,
     w: number, h: number,
@@ -258,7 +264,7 @@ export class UIScene extends Phaser.Scene {
     const zone = this.add.zone(cx, cy, w, h).setInteractive();
     zone.on('pointerover', () => draw(true));
     zone.on('pointerout',  () => draw(false));
-    zone.on('pointerdown', onClick);
+    zone.on('pointerdown', () => { this.sfx('sfx-click'); onClick(); });
   }
 }
 

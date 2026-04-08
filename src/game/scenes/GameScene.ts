@@ -219,6 +219,7 @@ export class GameScene extends Phaser.Scene {
     if (this.flippedCards.length >= 2) return;
 
     this.flipCard(card, true);
+    this.sfx('sfx-flip');
     this.flippedCards.push(card);
     this.moves++;
     this.events.emit('moves-updated', this.moves);
@@ -267,10 +268,14 @@ export class GameScene extends Phaser.Scene {
         },
       });
 
+      this.sfx('sfx-match');
       this.events.emit('match-found', this.matchedPairs);
 
       if (this.matchedPairs === this.totalPairs)
-        this.time.delayedCall(600, () => this.events.emit('game-complete', this.moves));
+        this.time.delayedCall(600, () => {
+          this.sfx('sfx-win');
+          this.events.emit('game-complete', this.moves);
+        });
     } else {
       this.flipCard(a, false);
       this.flipCard(b, false);
@@ -278,6 +283,12 @@ export class GameScene extends Phaser.Scene {
 
     this.flippedCards = [];
     this.isLocked = false;
+  }
+
+  // ── SFX helper ───────────────────────────────────────────────────────────────
+  private sfx(key: string) {
+    const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
+    am?.playSfx(key);
   }
 
   // ── Public API for UIScene ───────────────────────────────────────────────────
