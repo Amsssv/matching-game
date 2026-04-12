@@ -15,6 +15,10 @@ dist-ssr
 # Git worktrees
 .worktrees
 
+# Superpowers
+.superpowers
+docs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

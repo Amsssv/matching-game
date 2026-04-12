@@ -1,5 +1,8 @@
 declare global {
   interface YandexGamesSDK {
+    environment: {
+      i18n: { lang: string; tld: string };
+    };
     features: {
       GameplayAPI?: { start(): void; stop(): void };
     };
@@ -29,6 +32,8 @@ declare global {
     getMode(): 'lite' | '';
     getName(): string;
     getPhoto(size: 'small' | 'medium' | 'large'): string;
+    getData(keys?: string[]): Promise<Record<string, unknown>>;
+    setData(data: Record<string, unknown>, flush?: boolean): Promise<void>;
   }
 
   interface Window {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 import { AudioManager } from '../AudioManager';
+import { resolveLang, readSoundEnabled } from '../settings';
 
 export class BootScene extends Phaser.Scene {
   private failedKeys = new Set<string>();
@@ -37,11 +38,32 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? true;
+    const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? readSoundEnabled();
+    this.game.registry.set('soundEnabled', soundEnabled);
     const audioManager = new AudioManager(!soundEnabled);
     audioManager.init(this);
     this.game.registry.set('audioManager', audioManager);
 
-    this.scene.start('MenuScene');
+    resolveLang()
+      .then(lang => {
+        this.game.registry.set('lang', lang);
+        // Wait for Rubik WOFF2 to load before rendering canvas text.
+        // The second argument tells the browser which unicode subsets to fetch.
+        // Without Cyrillic/Arabic sample chars, only the Latin subset is loaded
+        // and Phaser draws Russian/Arabic text with the fallback font.
+        const testChars = 'ABCабвاب'; // Latin + Cyrillic + Arabic
+        return Promise.all([
+          document.fonts.load('400 14px Rubik', testChars),
+          document.fonts.load('700 14px Rubik', testChars),
+          document.fonts.load('800 14px Rubik', testChars),
+        ]);
+      })
+      .then(() => {
+        this.scene.start('MenuScene');
+      })
+      .catch(err => {
+        console.error('[BootScene] startup failed, starting menu with defaults', err);
+        this.scene.start('MenuScene');
+      });
   }
 }

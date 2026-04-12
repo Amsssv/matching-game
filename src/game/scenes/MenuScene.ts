@@ -3,6 +3,7 @@ import { C, DPR, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
+import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
@@ -79,33 +80,37 @@ export class MenuScene extends Phaser.Scene {
     let soundY = H * 0.62;
     let playY  = H * 0.8;
 
-    // ── Language toggle (top-right) ───────────────────────────────────────────
-    const langs: Lang[] = ['ru', 'en'];
+    // ── Language toggle (top-right, 3×2 grid) ────────────────────────────────
+    const langs: Lang[] = SUPPORTED;
     const lBtnW = Math.round(36 * DPR), lBtnH = Math.round(24 * DPR), lGap = Math.round(6 * DPR);
-    const lStartX = W - lBtnW * 2 - lGap - 12;
+    const lStartX = W - lBtnW * 3 - lGap * 2 - 12;
     const lY = 14;
 
     langs.forEach((lng, i) => {
-      const lx = lStartX + i * (lBtnW + lGap);
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const lx = lStartX + col * (lBtnW + lGap);
+      const ly = lY + row * (lBtnH + lGap);
       const active = lng === this.lang;
       const lBg = this.add.graphics();
       lBg.fillStyle(active ? C.teal : C.bgMid, active ? 1 : 0.8);
-      lBg.fillRoundedRect(lx, lY, lBtnW, lBtnH, 5);
+      lBg.fillRoundedRect(lx, ly, lBtnW, lBtnH, 5);
       lBg.lineStyle(1, active ? C.teal : C.ocean);
-      lBg.strokeRoundedRect(lx, lY, lBtnW, lBtnH, 5);
+      lBg.strokeRoundedRect(lx, ly, lBtnW, lBtnH, 5);
 
-      this.add.text(lx + lBtnW / 2, lY + lBtnH / 2, lng.toUpperCase(), {
+      this.add.text(lx + lBtnW / 2, ly + lBtnH / 2, lng.toUpperCase(), {
         fontSize: `${Math.round(10 * DPR)}px`,
         color: '#ffffff',
-        fontFamily: 'Nunito',
+        fontFamily: 'Rubik',
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
       if (!active) {
-        const zone = this.add.zone(lx + lBtnW / 2, lY + lBtnH / 2, lBtnW, lBtnH).setInteractive();
+        const zone = this.add.zone(lx + lBtnW / 2, ly + lBtnH / 2, lBtnW, lBtnH).setInteractive();
         zone.on('pointerdown', () => {
           this.sfx('sfx-click');
           this.game.registry.set('lang', lng);
+          saveLang(lng);
           this.scene.restart();
         });
       }
@@ -154,7 +159,7 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(midX, diffY - btnH / 2 - 32, L.difficulty, {
       fontSize: `${Math.round(18 * DPR)}px`,
       color: '#F0E6C8',
-      fontFamily: 'Nunito',
+      fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
     const gap  = clamp(Math.floor(W * 0.015), 6, 12);
@@ -164,7 +169,7 @@ export class MenuScene extends Phaser.Scene {
     const hintText = this.add.text(midX, diffY + btnH / 2 + 32, L.diffHint[this.difficulty], {
       fontSize: `${Math.round(16 * DPR)}px`,
       color: '#ffffff',
-      fontFamily: 'Nunito',
+      fontFamily: 'Rubik',
       shadow: { offsetX: 0, offsetY: 1, color: '#001e3c', blur: 6, fill: true },
     }).setOrigin(0.5);
 
@@ -177,14 +182,14 @@ export class MenuScene extends Phaser.Scene {
       const labelText = this.add.text(bx + btnW / 2, by + btnH * 0.38, L.diffLabels[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.27), 12, 16)}px`,
         color: '#ffffff',
-        fontFamily: 'Nunito',
+        fontFamily: 'Rubik',
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
       this.add.text(bx + btnW / 2, by + btnH * 0.7, L.diffDesc[diff], {
         fontSize: `${clamp(Math.floor(btnH * 0.18), 9, 12)}px`,
         color: '#b8d8f0',
-        fontFamily: 'Nunito',
+        fontFamily: 'Rubik',
       }).setOrigin(0.5);
 
       const redraw = (selected: boolean) => {
@@ -237,7 +242,7 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(midX, soundY - Math.max(H * 0.04, sH / 2 + 14), L.sound, {
       fontSize: `${Math.round(12 * DPR)}px`,
       color: '#F0E6C8',
-      fontFamily: 'Nunito',
+      fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5).setLetterSpacing(3);
 
@@ -245,7 +250,7 @@ export class MenuScene extends Phaser.Scene {
     const soundTxt = this.add.text(midX, soundY, '', {
       fontSize: `${clamp(Math.floor(sH * 0.33), 12, 16)}px`,
       color: '#ffffff',
-      fontFamily: 'Nunito',
+      fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -272,6 +277,7 @@ export class MenuScene extends Phaser.Scene {
       this.sfx('sfx-click');
       this.soundEnabled = !this.soundEnabled;
       redrawSound(this.soundEnabled);
+      saveSoundEnabled(this.soundEnabled);
       const am: import('../AudioManager').AudioManager | undefined =
         this.game.registry.get('audioManager');
       am?.setMuted(!this.soundEnabled);
@@ -285,7 +291,7 @@ export class MenuScene extends Phaser.Scene {
     const playTxt = this.add.text(midX, playY, L.play, {
       fontSize: `${clamp(Math.floor(pH * 0.38), 16, 22)}px`,
       color: '#ffffff',
-      fontFamily: 'Nunito',
+      fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
