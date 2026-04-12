@@ -18,9 +18,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('title-bg', 'assets/title-bg.webp');
 
     // ── SFX — раскомментируй когда добавишь файлы в public/assets/sfx/ ──────
-    // this.load.audio('sfx-click', 'assets/sfx/click.mp3');   // клик по кнопкам
-    // this.load.audio('sfx-flip',  'assets/sfx/flip.mp3');    // переворот карточки
-    // this.load.audio('sfx-match', 'assets/sfx/match.mp3');   // найдена пара
+    this.load.audio('sfx-click', 'assets/sfx/click.mp3');   // клик по кнопкам
+    this.load.audio('sfx-flip',  'assets/sfx/flip.mp3');    // переворот карточки
+    this.load.audio('sfx-match', 'assets/sfx/match.mp3');   // найдена пара
     // this.load.audio('sfx-win',   'assets/sfx/win.mp3');     // победа
     // ─────────────────────────────────────────────────────────────────────────
 
