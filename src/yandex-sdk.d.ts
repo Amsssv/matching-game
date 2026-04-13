@@ -1,9 +1,12 @@
 declare global {
   interface YandexGamesSDK {
     environment: {
+      app: { id: string };
       i18n: { lang: string; tld: string };
+      payload?: string;
     };
     features: {
+      LoadingAPI?: { ready(): void };
       GameplayAPI?: { start(): void; stop(): void };
     };
     adv: {

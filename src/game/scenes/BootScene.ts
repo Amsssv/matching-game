@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 import { AudioManager } from '../AudioManager';
 import { resolveLang, readSoundEnabled } from '../settings';
+import { getYSDK } from '../../ysdk';
 
 export class BootScene extends Phaser.Scene {
   private failedKeys = new Set<string>();
@@ -60,10 +61,14 @@ export class BootScene extends Phaser.Scene {
         ]);
       })
       .then(() => {
+        // Signal to Yandex SDK that the game is fully loaded and ready to play.
+        // Without this call the SDK loading overlay never dismisses (times out ~90s).
+        getYSDK()?.features.LoadingAPI?.ready();
         this.scene.start('MenuScene');
       })
       .catch(err => {
         console.error('[BootScene] startup failed, starting menu with defaults', err);
+        getYSDK()?.features.LoadingAPI?.ready();
         this.scene.start('MenuScene');
       });
   }

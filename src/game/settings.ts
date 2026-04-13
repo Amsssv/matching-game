@@ -9,6 +9,9 @@ function isLang(value: unknown): value is Lang {
   return typeof value === 'string' && (SUPPORTED as string[]).includes(value);
 }
 
+// Resolved once at startup (main.tsx), before Phaser initialises.
+let _cachedLang: Lang | null = null;
+
 /**
  * Resolve the language to use, in priority order:
  * 1. Yandex SDK cloud data (authorized players)
@@ -16,10 +19,21 @@ function isLang(value: unknown): value is Lang {
  * 3. Yandex SDK environment lang (auto-detect)
  * 4. 'ru' (fallback)
  *
+ * The result is cached after the first call so BootScene can consume it
+ * synchronously on any subsequent call.
+ *
  * Never throws — any step that fails is silently skipped.
  */
 export async function resolveLang(): Promise<Lang> {
+  if (_cachedLang !== null) return _cachedLang;
+
   const sdk = getYSDK();
+
+  // Read SDK environment lang unconditionally so the Yandex debug panel
+  // registers i18n as used (it tracks whether .lang is accessed).
+  // Direct property access (not ?.) is intentional — on an initialized SDK
+  // environment.i18n is always defined.
+  const sdkEnvLang: string | null = sdk ? sdk.environment.i18n.lang : null;
 
   // 1. Cloud data (authorized players only)
   if (sdk) {
@@ -27,7 +41,7 @@ export async function resolveLang(): Promise<Lang> {
       const player = await sdk.getPlayer({ scopes: false });
       if (player.getMode() !== 'lite') {
         const data = await player.getData(['lang']);
-        if (isLang(data.lang)) return data.lang;
+        if (isLang(data.lang)) return (_cachedLang = data.lang);
       }
     } catch {
       // cloud unavailable — fall through
@@ -37,19 +51,16 @@ export async function resolveLang(): Promise<Lang> {
   // 2. localStorage
   try {
     const stored = localStorage.getItem(LS_KEY);
-    if (isLang(stored)) return stored;
+    if (isLang(stored)) return (_cachedLang = stored);
   } catch {
     // storage access blocked (e.g. private browsing)
   }
 
   // 3. SDK environment lang (auto-detect, no auth required)
-  if (sdk) {
-    const envLang = sdk.environment?.i18n?.lang;
-    if (isLang(envLang)) return envLang;
-  }
+  if (isLang(sdkEnvLang)) return (_cachedLang = sdkEnvLang);
 
   // 4. Default
-  return 'ru';
+  return (_cachedLang = 'ru');
 }
 
 /**
