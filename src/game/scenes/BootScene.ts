@@ -56,6 +56,7 @@ export class BootScene extends Phaser.Scene {
           document.fonts.load('400 14px Rubik', testChars),
           document.fonts.load('700 14px Rubik', testChars),
           document.fonts.load('800 14px Rubik', testChars),
+          document.fonts.load('bold 14px "Indira K"'),
         ]);
       })
       .then(() => {
