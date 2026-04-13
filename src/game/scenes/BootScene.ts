@@ -33,7 +33,7 @@ export class BootScene extends Phaser.Scene {
       this.load.image('card-back', 'assets/cards/back.webp');
     }
     if (CUSTOM_ASSETS.cardFaces) {
-      SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.png`));
+      SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));
     }
   }
 
