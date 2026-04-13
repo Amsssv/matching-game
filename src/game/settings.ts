@@ -14,9 +14,11 @@ let _cachedLang: Lang | null = null;
 
 /**
  * Resolve the language to use, in priority order:
- * 1. Yandex SDK cloud data (authorized players)
- * 2. localStorage
- * 3. Yandex SDK environment lang (auto-detect)
+ * 1. Yandex SDK cloud data (authorized players — explicit in-game choice)
+ * 2. Yandex SDK environment lang (platform language: respects SDK mocks and
+ *    the real Yandex interface language — must come before localStorage so
+ *    the debug panel lang mock is not blocked by a stale localStorage value)
+ * 3. localStorage (offline / non-SDK fallback — local dev without YaGames)
  * 4. 'ru' (fallback)
  *
  * The result is cached after the first call so BootScene can consume it
@@ -29,10 +31,10 @@ export async function resolveLang(): Promise<Lang> {
 
   const sdk = getYSDK();
 
-  // Read SDK environment lang unconditionally so the Yandex debug panel
-  // registers i18n as used (it tracks whether .lang is accessed).
-  // Direct property access (not ?.) is intentional — on an initialized SDK
-  // environment.i18n is always defined.
+  // Always read SDK env lang first so the Yandex debug panel registers i18n
+  // as used (it tracks whether .lang is accessed via a proxy).
+  // Direct property access (not ?.) is intentional — environment.i18n is
+  // always defined on an initialized SDK instance.
   const sdkEnvLang: string | null = sdk ? sdk.environment.i18n.lang : null;
 
   // 1. Cloud data (authorized players only)
@@ -48,16 +50,16 @@ export async function resolveLang(): Promise<Lang> {
     }
   }
 
-  // 2. localStorage
+  // 2. SDK environment lang — platform / mock language
+  if (isLang(sdkEnvLang)) return (_cachedLang = sdkEnvLang);
+
+  // 3. localStorage — non-SDK environments (local dev, offline)
   try {
     const stored = localStorage.getItem(LS_KEY);
     if (isLang(stored)) return (_cachedLang = stored);
   } catch {
     // storage access blocked (e.g. private browsing)
   }
-
-  // 3. SDK environment lang (auto-detect, no auth required)
-  if (isLang(sdkEnvLang)) return (_cachedLang = sdkEnvLang);
 
   // 4. Default
   return (_cachedLang = 'ru');
