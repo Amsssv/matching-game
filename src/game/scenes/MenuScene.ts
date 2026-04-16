@@ -150,8 +150,8 @@ export class MenuScene extends Phaser.Scene {
       .setDepth(1);
     titleBgImg.setScale(Math.max(titleText.width * 1.5, 650) / titleBgImg.width);
 
-    const subtitleText = this.add.text(midX, titleBgImg.y + titleBgImg.displayHeight / 2 + 8, L.subtitle, {
-      fontSize: `${clamp(Math.floor(H * 0.05), 24, 36)}px`,
+    const subtitleText = this.add.text(midX, titleBgImg.y + titleBgImg.displayHeight / 2 + 8, L.subtitle.toUpperCase(), {
+      fontSize: `${clamp(Math.floor(H * 0.05), 16, 28)}px`,
       color: '#01286a',
       fontFamily: '"Indira K"',
     }).setOrigin(0.5);
