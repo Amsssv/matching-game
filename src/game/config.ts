@@ -5,8 +5,13 @@ import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { C } from './constants';
 
+// In test environments (Playwright adds ?canvas=1) force Canvas renderer for
+// deterministic pixel output. WebGL sub-pixel rounding varies between frames.
+const isTestEnv = typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).has('canvas');
+
 export const gameConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
+  type: isTestEnv ? Phaser.CANVAS : Phaser.AUTO,
   backgroundColor: C.bgDark,
   scene: [BootScene, MenuScene, GameScene, UIScene],
   scale: {
@@ -17,5 +22,11 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   },
   input: {
     activePointers: 2, // support multi-touch
+  },
+  render: {
+    // Keep the last rendered frame in the WebGL drawing buffer so that
+    // screenshot tools (Playwright) always read a complete, consistent frame
+    // rather than a partially-cleared back-buffer.
+    preserveDrawingBuffer: true,
   },
 };

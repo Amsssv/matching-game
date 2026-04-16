@@ -15,10 +15,8 @@ let _cachedLang: Lang | null = null;
 /**
  * Resolve the language to use, in priority order:
  * 1. Yandex SDK cloud data (authorized players — explicit in-game choice)
- * 2. Yandex SDK environment lang (platform language: respects SDK mocks and
- *    the real Yandex interface language — must come before localStorage so
- *    the debug panel lang mock is not blocked by a stale localStorage value)
- * 3. localStorage (offline / non-SDK fallback — local dev without YaGames)
+ * 2. Yandex SDK environment lang (platform language for Yandex users)
+ * 3. localStorage (explicit in-game choice for offline / non-SDK users)
  * 4. 'ru' (fallback)
  *
  * The result is cached after the first call so BootScene can consume it
@@ -50,10 +48,12 @@ export async function resolveLang(): Promise<Lang> {
     }
   }
 
-  // 2. SDK environment lang — platform / mock language
+  // 2. SDK environment lang — platform default for first-time Yandex users
+  //    (takes precedence over localStorage so the platform language wins when
+  //     the user hasn't made an explicit in-game choice on this device)
   if (isLang(sdkEnvLang)) return (_cachedLang = sdkEnvLang);
 
-  // 3. localStorage — non-SDK environments (local dev, offline)
+  // 3. localStorage — explicit in-game choice for offline / non-SDK users
   try {
     const stored = localStorage.getItem(LS_KEY);
     if (isLang(stored)) return (_cachedLang = stored);

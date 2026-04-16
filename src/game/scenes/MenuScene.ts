@@ -4,8 +4,7 @@ import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
 import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
-
-type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+import { type Difficulty } from '../layout';
 
 export class MenuScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
@@ -20,6 +19,11 @@ export class MenuScene extends Phaser.Scene {
     this.difficulty   = this.game.registry.get('difficulty')   ?? 'medium';
     this.soundEnabled = this.game.registry.get('soundEnabled') ?? true;
     this.lang         = this.game.registry.get('lang')         ?? 'ru';
+
+    // Purge gradient textures from previous layout (sizes change on resize)
+    this.textures.getTextureKeys()
+      .filter(k => k.startsWith('gbt_'))
+      .forEach(k => this.textures.remove(k));
 
     const W = this.scale.width;
     const H = this.scale.height;
@@ -79,6 +83,12 @@ export class MenuScene extends Phaser.Scene {
     let diffY  = H * 0.38;
     let soundY = H * 0.62;
     let playY  = H * 0.8;
+
+    const diffRadius = 16;
+    const gap  = clamp(Math.floor(W * 0.015), 8, 16);
+    const btnW = clamp(Math.floor((W * 0.92 - gap * 3) / 4), 70, 160);
+    const btnH = Math.max(64, clamp(Math.floor(H * 0.1), 60, 88));
+    const sH   = clamp(Math.floor(H * 0.065), 36, 48);
 
     // ── Language toggle (top-right, 3×2 grid) ────────────────────────────────
     const langs: Lang[] = SUPPORTED;
@@ -147,72 +157,60 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
 
-    const pad  = 8;
-    const btnW = clamp(Math.floor(W * 0.18), 70, 120) + pad * 2;
-    const btnH = clamp(Math.floor(H * 0.09), 44, 64)  + pad * 2;
-    const sH   = clamp(Math.floor(H * 0.065), 36, 48);
-
     // diffY привязан к subtitle: его нижний край + 50px + отступ под лейбл сложности
     diffY = subtitleText.y + subtitleText.height / 2 + 90 + Math.max(H * 0.05, btnH / 2 + 14);
 
     // ── Difficulty ───────────────────────────────────────────────────────────
     this.add.text(midX, diffY - btnH / 2 - 32, L.difficulty, {
       fontSize: `${Math.round(18 * DPR)}px`,
-      color: '#F0E6C8',
+      color: '#F5F5F0',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
-    }).setOrigin(0.5).setLetterSpacing(3);
-    const gap  = clamp(Math.floor(W * 0.015), 6, 12);
+      shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.9)', blur: 10, fill: true },
+      padding: { x: 16, y: 10 },
+    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3));
+
     const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
     const hintText = this.add.text(midX, diffY + btnH / 2 + 32, L.diffHint[this.difficulty], {
       fontSize: `${Math.round(16 * DPR)}px`,
-      color: '#ffffff',
+      color: '#ffffffe6',
       fontFamily: 'Rubik',
-      shadow: { offsetX: 0, offsetY: 1, color: '#001e3c', blur: 6, fill: true },
     }).setOrigin(0.5);
 
-    const diffRedrawFns = new Map<Difficulty, (selected: boolean) => void>();
+    const diffRedrawFns = new Map<Difficulty, (selected: boolean, hover?: boolean) => void>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       const bx = btnStartX + i * (btnW + gap);
       const by = diffY - btnH / 2;
+      // fillImg must be added before bg so the gradient renders below the border/ring
+      const fillImg = this.add.image(bx + btnW / 2, by + btnH / 2, '__DEFAULT').setOrigin(0.5);
       const bg = this.add.graphics();
 
-      const labelText = this.add.text(bx + btnW / 2, by + btnH * 0.38, L.diffLabels[diff], {
-        fontSize: `${clamp(Math.floor(btnH * 0.27), 12, 16)}px`,
-        color: '#ffffff',
+      this.add.text(bx + btnW / 2, by + btnH * 0.36, L.diffLabels[diff], {
+        fontSize: '16px',
+        color: '#F5E6C8',
         fontFamily: 'Rubik',
         fontStyle: 'bold',
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setLetterSpacing(1);
 
-      this.add.text(bx + btnW / 2, by + btnH * 0.7, L.diffDesc[diff], {
-        fontSize: `${clamp(Math.floor(btnH * 0.18), 9, 12)}px`,
-        color: '#b8d8f0',
+      this.add.text(bx + btnW / 2, by + btnH * 0.36 + 16 + 8, L.diffDesc[diff], {
+        fontSize: '14px',
+        color: '#ffffffb3',
         fontFamily: 'Rubik',
       }).setOrigin(0.5);
 
-      const redraw = (selected: boolean) => {
-        bg.clear();
-        if (selected) {
-          bg.fillStyle(C.teal, 0.15);
-          bg.fillRoundedRect(bx, by, btnW, btnH, 8);
-          bg.lineStyle(2, C.teal);
-          bg.strokeRoundedRect(bx, by, btnW, btnH, 8);
-          labelText.setColor('#ffffff');
-        } else {
-          bg.fillStyle(C.bgMid, 0.8);
-          bg.fillRoundedRect(bx, by, btnW, btnH, 8);
-          bg.lineStyle(1, C.ocean);
-          bg.strokeRoundedRect(bx, by, btnW, btnH, 8);
-          labelText.setColor('#e0f0ff');
-        }
+      const redraw = (selected: boolean, hover = false) => {
+        const state = selected ? 'active' : hover ? 'hover' : 'inactive';
+        this.drawDeepBtn(bg, bx, by, btnW, btnH, state, diffRadius, false, fillImg);
       };
       diffRedrawFns.set(diff, redraw);
       redraw(this.difficulty === diff);
 
       const zone = this.add.zone(bx + btnW / 2, by + btnH / 2, btnW, btnH).setInteractive();
-      zone.on('pointerdown', () => {
+      zone.on('pointerover',  () => { if (this.difficulty !== diff) redraw(false, true); });
+      zone.on('pointerout',   () => { if (this.difficulty !== diff) redraw(false, false); });
+      zone.on('pointerdown',  () => {
         this.sfx('sfx-click');
         this.difficulty = diff;
         diffRedrawFns.forEach((fn, d) => fn(d === diff));
@@ -236,44 +234,41 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Sound toggle ─────────────────────────────────────────────────────────
     const sW = clamp(Math.floor(W * 0.38), 120, 180);
+    const soundRadius = 16;
     const sx = midX - sW / 2;
     const sy = soundY - sH / 2;
 
-    this.add.text(midX, soundY - Math.max(H * 0.04, sH / 2 + 14), L.sound, {
-      fontSize: `${Math.round(12 * DPR)}px`,
-      color: '#F0E6C8',
+    this.add.text(midX, soundY - sH / 2 - 28, L.sound, {
+      fontSize: `${Math.round(18 * DPR)}px`,
+      color: '#F5F5F0',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
-    }).setOrigin(0.5).setLetterSpacing(3);
+      shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.9)', blur: 10, fill: true },
+      padding: { x: 16, y: 10 },
+    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3));
 
+    // fillImg first so it renders below the border/ring Graphics
+    const soundFillImg = this.add.image(midX, soundY, '__DEFAULT').setOrigin(0.5);
     const soundBg  = this.add.graphics();
     const soundTxt = this.add.text(midX, soundY, '', {
-      fontSize: `${clamp(Math.floor(sH * 0.33), 12, 16)}px`,
-      color: '#ffffff',
+      fontSize: '16px',
+      color: '#F5E6C8',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    const redrawSound = (on: boolean) => {
-      soundBg.clear();
-      if (on) {
-        soundBg.fillStyle(C.teal, 0.15);
-        soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
-        soundBg.lineStyle(2, C.teal);
-        soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText(L.soundOn).setColor('#ffffff');
-      } else {
-        soundBg.fillStyle(C.bgMid, 0.8);
-        soundBg.fillRoundedRect(sx, sy, sW, sH, 8);
-        soundBg.lineStyle(1, C.ocean);
-        soundBg.strokeRoundedRect(sx, sy, sW, sH, 8);
-        soundTxt.setText(L.soundOff).setColor('#B8D4DC');
-      }
+    const redrawSound = (on: boolean, hover = false) => {
+      const state = on ? 'active' : hover ? 'hover' : 'inactive';
+      this.drawDeepBtn(soundBg, sx, sy, sW, sH, state, soundRadius, false, soundFillImg);
+      soundTxt.setText(on ? L.soundOn : L.soundOff);
+      soundTxt.setColor(on ? '#F5E6C8' : 'rgba(245,230,200,0.6)');
     };
     redrawSound(this.soundEnabled);
 
     const soundZone = this.add.zone(midX, soundY, sW, sH).setInteractive();
-    soundZone.on('pointerdown', () => {
+    soundZone.on('pointerover',  () => redrawSound(this.soundEnabled, true));
+    soundZone.on('pointerout',   () => redrawSound(this.soundEnabled, false));
+    soundZone.on('pointerdown',  () => {
       this.sfx('sfx-click');
       this.soundEnabled = !this.soundEnabled;
       redrawSound(this.soundEnabled);
@@ -284,32 +279,41 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Play button ──────────────────────────────────────────────────────────
-    const px = midX - pW / 2;
-    const py = playY - pH / 2;
+    const playRadius = 16;
 
-    const playBg  = this.add.graphics();
-    const playTxt = this.add.text(midX, playY, L.play, {
+    // Container at button center: scale tween expands all children symmetrically
+    const playContainer = this.add.container(midX, playY);
+    const playFillImg = this.add.image(0, 0, '__DEFAULT').setOrigin(0.5);
+    const playBg = this.add.graphics();
+    const playTxt = this.add.text(0, 0, L.play, {
       fontSize: `${clamp(Math.floor(pH * 0.38), 16, 22)}px`,
-      color: '#ffffff',
+      color: '#F5E6C8',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
     }).setOrigin(0.5);
+    playContainer.add([playFillImg, playBg, playTxt]);
 
+    // Draw at local coordinates (origin = container center = button center)
     const drawPlay = (hover: boolean) => {
-      playBg.clear();
-      playBg.fillStyle(hover ? C.coral : C.teal);
-      playBg.fillRoundedRect(px, py, pW, pH, 10);
+      this.drawDeepBtn(playBg, -pW / 2, -pH / 2, pW, pH, hover ? 'hover' : 'active', playRadius, true, playFillImg);
+      // Hover: gradient+border change; gold ring always shown (as in CSS active class)
+      if (hover) {
+        playBg.lineStyle(2, 0xD4A853, 0.7);
+        playBg.strokeRoundedRect(-pW / 2 - 3, -pH / 2 - 3, pW + 6, pH + 6, playRadius + 2);
+      }
     };
     drawPlay(false);
 
     const playZone = this.add.zone(midX, playY, pW, pH).setInteractive();
     playZone.on('pointerover', () => {
       drawPlay(true);
-      this.tweens.add({ targets: playTxt, scaleX: 1.04, scaleY: 1.04, duration: 100 });
+      this.tweens.killTweensOf(playContainer);
+      this.tweens.add({ targets: playContainer, scaleX: 1.05, scaleY: 1.05, duration: 150, ease: 'Cubic.easeOut' });
     });
     playZone.on('pointerout', () => {
       drawPlay(false);
-      this.tweens.add({ targets: playTxt, scaleX: 1, scaleY: 1, duration: 100 });
+      this.tweens.killTweensOf(playContainer);
+      this.tweens.add({ targets: playContainer, scaleX: 1, scaleY: 1, duration: 150, ease: 'Cubic.easeOut' });
     });
     playZone.on('pointerdown', () => { this.sfx('sfx-click'); this.startGame(); });
 
@@ -319,6 +323,119 @@ export class MenuScene extends Phaser.Scene {
   private sfx(key: string) {
     const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
     am?.playSfx(key);
+  }
+
+  /**
+   * Draw a Deep Sea palette button background.
+   * Active state renders the button 5% larger (desktop) / 2% (mobile), centered.
+   * When fillImg is provided, gradient is rendered via CanvasTexture (works in WebGL);
+   * otherwise a solid-fill fallback is used.
+   */
+  private drawDeepBtn(
+    g: Phaser.GameObjects.Graphics,
+    x: number, y: number, w: number, h: number,
+    state: 'inactive' | 'active' | 'hover',
+    radius: number,
+    noAutoScale = false,
+    fillImg?: Phaser.GameObjects.Image,
+  ): void {
+    g.clear();
+
+    const isMobile = this.scale.width < 768;
+    const scale = (!noAutoScale && state === 'active') ? (isMobile ? 1.02 : 1.05) : 1;
+    const sw = Math.round(w * scale);
+    const sh = Math.round(h * scale);
+    const sx = Math.round(x - (sw - w) / 2);
+    const sy = Math.round(y - (sh - h) / 2);
+    const sr = Math.round(radius * scale);
+
+    if (fillImg) {
+      // Gradient via pre-rendered CanvasTexture — works correctly in both WebGL and Canvas
+      const texKey = this.getGradTexture(sw, sh, sr, state);
+      fillImg.setTexture(texKey).setDisplaySize(sw, sh);
+      // Center stays at x + w/2, y + h/2 regardless of scale (scale expands from center)
+      fillImg.setPosition(x + w / 2, y + h / 2);
+    } else {
+      // Solid fill fallback
+      if (state === 'active') {
+        g.fillStyle(0x0A3D7A, 0.92);
+      } else if (state === 'hover') {
+        g.fillStyle(0x02347a, 0.87);
+      } else {
+        g.fillStyle(0x01286a, 0.82);
+      }
+      g.fillRoundedRect(sx, sy, sw, sh, sr);
+
+      // Inner top highlight (CSS: inset 0 1px 0 rgba(255,255,255,0.1/0.15))
+      g.lineStyle(1, 0xffffff, state === 'active' ? 0.15 : 0.1);
+      g.beginPath();
+      g.moveTo(sx + sr, sy + 1);
+      g.lineTo(sx + sw - sr, sy + 1);
+      g.strokePath();
+    }
+
+    // Gold border (1px)
+    const borderAlpha = state === 'active' ? 0.5 : state === 'hover' ? 0.35 : 0.2;
+    g.lineStyle(1, 0xD4A853, borderAlpha);
+    g.strokeRoundedRect(sx, sy, sw, sh, sr);
+
+    // Gold ring — 2px, 3px outside border (active only)
+    if (state === 'active') {
+      g.lineStyle(2, 0xD4A853, 0.7);
+      g.strokeRoundedRect(sx - 3, sy - 3, sw + 6, sh + 6, sr + 2);
+    }
+  }
+
+  /**
+   * Pre-render gradient + inner highlight into a CanvasTexture, cached by key.
+   * The texture is clipped to a rounded rectangle with the specified radius.
+   */
+  private getGradTexture(w: number, h: number, radius: number, state: 'inactive' | 'active' | 'hover'): string {
+    const key = `gbt_${state}_${w}_${h}_${radius}`;
+    if (this.textures.exists(key)) return key;
+
+    const canvasTex = this.textures.createCanvas(key, w, h) as Phaser.Textures.CanvasTexture;
+    const ctx = canvasTex.getContext();
+
+    // Clip to rounded rectangle path
+    ctx.beginPath();
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(w - radius, 0);
+    ctx.arcTo(w, 0, w, radius, radius);
+    ctx.lineTo(w, h - radius);
+    ctx.arcTo(w, h, w - radius, h, radius);
+    ctx.lineTo(radius, h);
+    ctx.arcTo(0, h, 0, h - radius, radius);
+    ctx.lineTo(0, radius);
+    ctx.arcTo(0, 0, radius, 0, radius);
+    ctx.closePath();
+    ctx.clip();
+
+    // Vertical gradient fill
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    if (state === 'active') {
+      grad.addColorStop(0, 'rgba(10,61,122,0.92)');
+      grad.addColorStop(1, 'rgba(1,40,106,0.95)');
+    } else if (state === 'hover') {
+      grad.addColorStop(0, 'rgba(2,52,122,0.87)');
+      grad.addColorStop(1, 'rgba(1,35,88,0.90)');
+    } else {
+      grad.addColorStop(0, 'rgba(1,40,106,0.82)');
+      grad.addColorStop(1, 'rgba(1,29,74,0.85)');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Inner top highlight (inset 0 1px 0 rgba(255,255,255,...))
+    ctx.strokeStyle = `rgba(255,255,255,${state === 'active' ? 0.15 : 0.10})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(radius, 1.5);
+    ctx.lineTo(w - radius, 1.5);
+    ctx.stroke();
+
+    canvasTex.refresh();
+    return key;
   }
 
   private startGame() {

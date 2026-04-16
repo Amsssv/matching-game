@@ -12,6 +12,10 @@ export function Game() {
     const game = new Phaser.Game({ ...gameConfig, parent: 'game-container' });
     gameRef.current = game;
 
+    if (import.meta.env.DEV) {
+      (window as any).__game = game;
+    }
+
     if (dpr > 1) {
       // Phaser reads getBoundingClientRect() — no transform on container so it sees DPR size.
       // Scale the canvas visually back to CSS viewport size.

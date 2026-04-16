@@ -2,16 +2,7 @@ import Phaser from 'phaser';
 import { C, HEADER_H } from '../constants';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
-
-type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
-
-// Cards per row — outer rows smaller by 2 than middle rows
-const DIFF_ROWS: Record<Difficulty, number[]> = {
-  easy:   [2, 4, 4, 2],   // 12 cards, 6 pairs
-  medium: [4, 6, 6, 4],   // 20 cards, 10 pairs
-  hard:   [5, 7, 7, 5],   // 24 cards, 12 pairs
-  expert: [6, 8, 8, 6],   // 28 cards, 14 pairs
-};
+import { DIFF_ROWS, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
 
 const CARD_RADIUS = 12;
 
@@ -24,12 +15,6 @@ interface Card {
   index: number;
   isFlipped: boolean;
   isMatched: boolean;
-}
-
-interface Layout {
-  cardW: number;
-  cardH: number;
-  positions: { x: number; y: number }[];
 }
 
 export class GameScene extends Phaser.Scene {
@@ -101,44 +86,7 @@ export class GameScene extends Phaser.Scene {
 
   // ── Card layout calculation ──────────────────────────────────────────────────
   private calcLayout(W: number, H: number): Layout {
-    const padH = Math.max(40, H * 0.09); // top (from header) and bottom padding
-    const padW = Math.max(8, W * 0.02);
-    const availW = W - padW * 2;
-    const availH = H - HEADER_H - padH * 2;
-    const numRows = this.rowWidths.length;
-    const maxCols = Math.max(...this.rowWidths);
-
-    const minGap = 8;
-    let cardW = Math.floor((availW - (maxCols - 1) * minGap) / maxCols);
-    let cardH = Math.round(cardW * (4 / 3));
-
-    // Constrain by height
-    const maxCardH = Math.floor((availH - (numRows - 1) * minGap) / numRows);
-    if (cardH > maxCardH) {
-      cardH = maxCardH;
-      cardW = Math.round(cardH * (3 / 4));
-    }
-
-    cardH = Math.round(cardW * (4 / 3));
-
-    const gapX = Math.min(Math.max(Math.floor((availW - maxCols * cardW) / Math.max(1, maxCols - 1)), minGap), 24);
-    const gapY = Math.min(Math.max(Math.floor((availH - numRows * cardH) / Math.max(1, numRows - 1)), minGap), 24);
-
-    const gridH = numRows * cardH + (numRows - 1) * gapY;
-    const startY = HEADER_H + (availH - gridH) / 2 + padH + cardH / 2;
-
-    // Build positions — each row centered individually
-    const positions: { x: number; y: number }[] = [];
-    this.rowWidths.forEach((cols, rowIdx) => {
-      const rowW = cols * cardW + (cols - 1) * gapX;
-      const rowStartX = (W - rowW) / 2 + cardW / 2;
-      const y = startY + rowIdx * (cardH + gapY);
-      for (let col = 0; col < cols; col++) {
-        positions.push({ x: rowStartX + col * (cardW + gapX), y });
-      }
-    });
-
-    return { cardW, cardH, positions };
+    return calcLayoutFn(this.rowWidths, W, H, HEADER_H);
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
