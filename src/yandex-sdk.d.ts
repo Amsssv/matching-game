@@ -5,6 +5,13 @@ declare global {
       i18n: { lang: string; tld: string };
       payload?: string;
     };
+    deviceInfo: {
+      type: 'desktop' | 'mobile' | 'tablet' | 'tv';
+      isDesktop(): boolean;
+      isMobile(): boolean;
+      isTablet(): boolean;
+      isTV(): boolean;
+    };
     features: {
       LoadingAPI?: { ready(): void };
       GameplayAPI?: { start(): void; stop(): void };

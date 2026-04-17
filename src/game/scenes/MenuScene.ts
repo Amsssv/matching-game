@@ -5,6 +5,7 @@ import type { Lang } from '../i18n';
 import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
 import { type Difficulty } from '../layout';
 import { createButton, createTitle, createSubtitle, createIconButton, createText, preWarmGradients } from '../ui/factory';
+import { isMobileDevice } from '../device';
 import type { ButtonHandle } from '../ui/factory';
 import { UI, clamp } from '../ui/config';
 
@@ -155,26 +156,53 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Difficulty ───────────────────────────────────────────────────────────
-    const diffY = subtitleText.y + subtitleText.height / 2 + 90 + Math.max(H * 0.05, btnH / 2 + 14);
+    const isMobile = isMobileDevice();
+    const diffBtnW = isMobile
+      ? clamp(Math.floor((W * 0.92 - gap) / 2), 100, 180)
+      : btnW;
 
-    createText(this, { x: midX, y: diffY - btnH / 2 - 32, text: L.difficulty, variant: 'sectionLabel', localDpr });
+    // Label is anchored to the subtitle; buttons are anchored to the label.
+    const diffLabelY = subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), 48, 90);
+    const diffLabel  = createText(this, {
+      x: midX, y: diffLabelY,
+      text: L.difficulty, variant: 'sectionLabel', localDpr,
+    });
 
-    const totalBtnW = btnW * 4 + gap * 3;
-    const btnStartX = midX - totalBtnW / 2;
+    // Larger gap between the 2×2 cells on mobile for better tap comfort
+    const mobileGap = clamp(Math.floor(H * 0.02), 16, 28);
+
+    // Row 0 center = label bottom + 24 + half-button-height
+    const row0Y       = diffLabel.y + diffLabel.height / 2 + 24 + btnH / 2;
+    const row1Y       = row0Y + btnH + mobileGap;   // mobile row 1
+    const diffBottomY = isMobile ? row1Y : row0Y;   // bottom row center
 
     const hintText = createText(this, {
-      x: midX, y: diffY + btnH / 2 + 32,
+      x: midX, y: diffBottomY + btnH / 2 + 32,
       text: L.diffHint[this.difficulty],
       variant: 'hint', localDpr,
     });
 
-    const lblSz = clamp(Math.round(btnW * 0.1), Math.round(7 * localDpr), 16);
+    // On mobile stretch buttons to fill the usable width (2 columns with one gap)
+    const mobileBtnW = isMobile ? Math.floor((W * 0.92 - mobileGap) / 2) : diffBtnW;
+
+    const lblSz = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
     const diffHandles = new Map<Difficulty, ButtonHandle>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
-      const bx = btnStartX + i * (btnW + gap);
+      let bx: number, by: number;
+      if (isMobile) {
+        const col   = i % 2;
+        const row   = Math.floor(i / 2);
+        const gridW = mobileBtnW * 2 + mobileGap;
+        bx = midX - gridW / 2 + col * (mobileBtnW + mobileGap) + mobileBtnW / 2;
+        by = row === 0 ? row0Y : row1Y;
+      } else {
+        const gridW = diffBtnW * 4 + gap * 3;
+        bx = midX - gridW / 2 + i * (diffBtnW + gap) + diffBtnW / 2;
+        by = row0Y;
+      }
       const handle = createButton(this, {
-        x:           bx + btnW / 2,
-        y:           diffY,
+        x:           bx,
+        y:           by,
         label:       L.diffLabels[diff],
         onClick:     () => {
           this.sfx('sfx-click');
@@ -185,7 +213,7 @@ export class MenuScene extends Phaser.Scene {
         variant:     'primary',
         active:      this.difficulty === diff,
         description: L.diffDesc[diff],
-        fixedWidth:  btnW,
+        fixedWidth:  isMobile ? mobileBtnW : diffBtnW,
         fixedHeight: btnH,
         fontSize:    lblSz,
       });
@@ -227,6 +255,7 @@ export class MenuScene extends Phaser.Scene {
       active:      this.soundEnabled,
       fixedWidth:  sW,
       fixedHeight: sH,
+      fontSize:    Math.round(sH * 0.38),
     });
 
     // ── Play button ──────────────────────────────────────────────────────────
