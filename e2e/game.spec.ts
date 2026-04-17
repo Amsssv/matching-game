@@ -6,6 +6,7 @@ import {
   getActualDeck,
   pausePhaser,
   resumePhaser,
+  waitForGameUnlocked,
 } from './helpers';
 
 test.describe('GameScene', () => {
@@ -37,12 +38,13 @@ test.describe('GameScene', () => {
       pairMap.set(sym, arr);
     });
 
-    // Click each pair in order
+    // Click each pair in order; wait for the game to unlock between clicks
     for (const indices of pairMap.values()) {
+      await waitForGameUnlocked(page);
       await clickCard(page, indices[0]);
-      await page.waitForTimeout(350);
+      await page.waitForTimeout(350); // allow first card flip animation to start
       await clickCard(page, indices[1]);
-      await page.waitForTimeout(900); // match animation + lock release
+      await waitForGameUnlocked(page); // wait for checkMatch (800ms delayedCall) + lock release
     }
 
     // Wait for victory event + UIScene to render victory overlay

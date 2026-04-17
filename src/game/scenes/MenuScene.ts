@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { C, DPR, HEADER_H } from '../constants';
+import { C } from '../constants';
 import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
@@ -10,9 +10,14 @@ export class MenuScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
   private soundEnabled = true;
   private lang: Lang = 'ru';
+  private fromResize = false;
 
   constructor() {
     super({ key: 'MenuScene' });
+  }
+
+  init(data?: { fromResize?: boolean }) {
+    this.fromResize = data?.fromResize ?? false;
   }
 
   create() {
@@ -38,12 +43,21 @@ export class MenuScene extends Phaser.Scene {
       this.input.once('pointerdown', () => audioManager.play());
     }
 
-    this.cameras.main.fadeIn(300, 7, 21, 40);
+    if (!this.fromResize) {
+      this.cameras.main.fadeIn(300, 7, 21, 40);
+    }
 
-    let resizeTimer: Phaser.Time.TimerEvent | null = null;
-    this.scale.on('resize', () => {
-      if (resizeTimer) resizeTimer.remove();
-      resizeTimer = this.time.delayedCall(150, () => this.scene.restart());
+    // Use native window resize + setTimeout so DevTools device switching works without reload.
+    // Phaser's ScaleManager 'resize' event is unreliable in that scenario.
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => this.scene.restart({ fromResize: true }), 150);
+    };
+    window.addEventListener('resize', onResize);
+    this.events.once('shutdown', () => {
+      window.removeEventListener('resize', onResize);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
     });
   }
 
@@ -76,6 +90,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createUI(W: number, H: number) {
+    // Read current DPR at scene-create time so DevTools device switches work correctly
+    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    // CSS viewport width — used to distinguish mobile from desktop
+    const cssW = Math.round(W / localDpr);
+
     const L    = LOCALES[this.lang];
     const midX = W / 2;
 
@@ -92,7 +111,7 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Language toggle (top-right, 3×2 grid) ────────────────────────────────
     const langs: Lang[] = SUPPORTED;
-    const lBtnW = Math.round(36 * DPR), lBtnH = Math.round(24 * DPR), lGap = Math.round(6 * DPR);
+    const lBtnW = Math.round(36 * localDpr), lBtnH = Math.round(24 * localDpr), lGap = Math.round(6 * localDpr);
     const lStartX = W - lBtnW * 3 - lGap * 2 - 12;
     const lY = 14;
 
@@ -102,21 +121,21 @@ export class MenuScene extends Phaser.Scene {
       const lx = lStartX + col * (lBtnW + lGap);
       const ly = lY + row * (lBtnH + lGap);
       const active = lng === this.lang;
-      const lBg = this.add.graphics();
+      const lBg = this.add.graphics().setDepth(5);
       lBg.fillStyle(active ? C.teal : C.bgMid, active ? 1 : 0.8);
       lBg.fillRoundedRect(lx, ly, lBtnW, lBtnH, 5);
       lBg.lineStyle(1, active ? C.teal : C.ocean);
       lBg.strokeRoundedRect(lx, ly, lBtnW, lBtnH, 5);
 
       this.add.text(lx + lBtnW / 2, ly + lBtnH / 2, lng.toUpperCase(), {
-        fontSize: `${Math.round(10 * DPR)}px`,
+        fontSize: `${Math.round(10 * localDpr)}px`,
         color: '#ffffff',
         fontFamily: 'Rubik',
         fontStyle: 'bold',
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setDepth(5);
 
       if (!active) {
-        const zone = this.add.zone(lx + lBtnW / 2, ly + lBtnH / 2, lBtnW, lBtnH).setInteractive();
+        const zone = this.add.zone(lx + lBtnW / 2, ly + lBtnH / 2, lBtnW, lBtnH).setInteractive().setDepth(5);
         zone.on('pointerdown', () => {
           this.sfx('sfx-click');
           this.game.registry.set('lang', lng);
@@ -128,8 +147,11 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Title ────────────────────────────────────────────────────────────────
 
+    // On mobile CSS viewports (<600px wide) the cap is visual-size-based so DPR=1
+    // tests and DPR=2 real devices produce the same proportional appearance.
+    const titleMaxSz = cssW < 600 ? 28 * localDpr : 56;
     const titleText = this.add.text(midX, titleY, L.title, {
-      fontSize: `${clamp(Math.floor(H * 0.075), 28, 56)}px`,
+      fontSize: `${clamp(Math.floor(H * 0.075), 14, titleMaxSz)}px`,
       fontFamily: '"Indira K"',
       fontStyle: 'bold',
       shadow: { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
@@ -143,18 +165,29 @@ export class MenuScene extends Phaser.Scene {
       grad.addColorStop(1, '#f7e089');
       titleText.setFill(grad as unknown as string);
     }
+    // Scale down uniformly if text overflows canvas width (narrow screens)
+    const titleMaxW = W * 0.9;
+    if (titleText.width > titleMaxW) {
+      titleText.setScale(titleMaxW / titleText.width);
+    }
 
     // Картинка за текстом — центрируется по центру заголовка, ширина подгоняется под текст
     const titleBgImg = this.add.image(titleText.x, titleText.y, 'title-bg')
       .setOrigin(0.5)
       .setDepth(1);
-    titleBgImg.setScale(Math.max(titleText.width * 1.5, 650) / titleBgImg.width);
+    titleBgImg.setScale(Math.max(titleText.displayWidth * 1.5, Math.min(650, W * 0.85)) / titleBgImg.width);
 
+    const subtitleMaxSz = cssW < 600 ? 14 * localDpr : 28;
     const subtitleText = this.add.text(midX, titleBgImg.y + titleBgImg.displayHeight / 2 + 8, L.subtitle.toUpperCase(), {
-      fontSize: `${clamp(Math.floor(H * 0.05), 16, 28)}px`,
+      fontSize: `${clamp(Math.floor(H * 0.05), 10, subtitleMaxSz)}px`,
       color: '#01286a',
       fontFamily: '"Indira K"',
     }).setOrigin(0.5);
+    // Scale down uniformly if subtitle overflows canvas width (narrow screens)
+    const subtitleMaxW = W * 0.88;
+    if (subtitleText.width > subtitleMaxW) {
+      subtitleText.setScale(subtitleMaxW / subtitleText.width);
+    }
 
 
     // diffY привязан к subtitle: его нижний край + 50px + отступ под лейбл сложности
@@ -162,19 +195,19 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Difficulty ───────────────────────────────────────────────────────────
     this.add.text(midX, diffY - btnH / 2 - 32, L.difficulty, {
-      fontSize: `${Math.round(18 * DPR)}px`,
+      fontSize: `${Math.round(18 * localDpr)}px`,
       color: '#F5F5F0',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
       shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.9)', blur: 10, fill: true },
       padding: { x: 16, y: 10 },
-    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3));
+    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3 * localDpr));
 
     const totalBtnW = btnW * 4 + gap * 3;
     const btnStartX = midX - totalBtnW / 2;
 
     const hintText = this.add.text(midX, diffY + btnH / 2 + 32, L.diffHint[this.difficulty], {
-      fontSize: `${Math.round(16 * DPR)}px`,
+      fontSize: `${Math.round(16 * localDpr)}px`,
       color: '#ffffffe6',
       fontFamily: 'Rubik',
     }).setOrigin(0.5);
@@ -187,15 +220,18 @@ export class MenuScene extends Phaser.Scene {
       const fillImg = this.add.image(bx + btnW / 2, by + btnH / 2, '__DEFAULT').setOrigin(0.5);
       const bg = this.add.graphics();
 
+      const lblSz = clamp(Math.round(btnW * 0.1), Math.round(7 * localDpr), 16);
+      const dscSz = clamp(Math.round(btnW * 0.088), Math.round(6 * localDpr), 14);
+
       this.add.text(bx + btnW / 2, by + btnH * 0.36, L.diffLabels[diff], {
-        fontSize: '16px',
+        fontSize: `${lblSz}px`,
         color: '#F5E6C8',
         fontFamily: 'Rubik',
         fontStyle: 'bold',
       }).setOrigin(0.5).setLetterSpacing(1);
 
-      this.add.text(bx + btnW / 2, by + btnH * 0.36 + 16 + 8, L.diffDesc[diff], {
-        fontSize: '14px',
+      this.add.text(bx + btnW / 2, by + btnH * 0.36 + lblSz + 8, L.diffDesc[diff], {
+        fontSize: `${dscSz}px`,
         color: '#ffffffb3',
         fontFamily: 'Rubik',
       }).setOrigin(0.5);
@@ -239,13 +275,13 @@ export class MenuScene extends Phaser.Scene {
     const sy = soundY - sH / 2;
 
     this.add.text(midX, soundY - sH / 2 - 28, L.sound, {
-      fontSize: `${Math.round(18 * DPR)}px`,
+      fontSize: `${Math.round(18 * localDpr)}px`,
       color: '#F5F5F0',
       fontFamily: 'Rubik',
       fontStyle: 'bold',
       shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.9)', blur: 10, fill: true },
       padding: { x: 16, y: 10 },
-    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3));
+    }).setOrigin(0.5).setLetterSpacing(Math.round(18 * 0.3 * localDpr));
 
     // fillImg first so it renders below the border/ring Graphics
     const soundFillImg = this.add.image(midX, soundY, '__DEFAULT').setOrigin(0.5);
@@ -317,7 +353,6 @@ export class MenuScene extends Phaser.Scene {
     });
     playZone.on('pointerdown', () => { this.sfx('sfx-click'); this.startGame(); });
 
-    void HEADER_H;
   }
 
   private sfx(key: string) {

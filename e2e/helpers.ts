@@ -107,6 +107,19 @@ export async function clickCard(
   const { x, y } = layout.positions[index];
   await page.mouse.click(x, y);
 }
+/**
+ * Wait until GameScene is unlocked and no cards are pending flip.
+ * More reliable than fixed timeouts when the CPU is under load.
+ */
+export async function waitForGameUnlocked(page: Page, timeout = 2000) {
+  await page.waitForFunction(() => {
+    const game = (window as any).__game;
+    const scene = game?.scene?.getScene('GameScene') as any;
+    if (!scene) return true;
+    return !scene.isLocked && scene.flippedCards?.length === 0;
+  }, { timeout });
+}
+
 // ── Phaser loop control ──────────────────────────────────────────────────────
 
 /**
