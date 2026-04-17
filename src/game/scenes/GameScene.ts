@@ -165,7 +165,7 @@ export class GameScene extends Phaser.Scene {
     if (this.flippedCards.length >= 2) return;
 
     this.flipCard(card, true);
-    this.sfx('sfx-flip');
+    this.sfx('sfx-flip', 0.15);
     this.flippedCards.push(card);
 
     if (this.flippedCards.length === 2) {
@@ -232,9 +232,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   // ── SFX helper ───────────────────────────────────────────────────────────────
-  private sfx(key: string) {
+  private sfx(key: string, volume?: number) {
     const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
-    am?.playSfx(key);
+    am?.playSfx(key, volume);
   }
 
   // ── Public API for UIScene ───────────────────────────────────────────────────
