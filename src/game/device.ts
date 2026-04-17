@@ -6,7 +6,9 @@ import { getYSDK } from '../ysdk';
  */
 export function isMobileDevice(): boolean {
   const sdk = getYSDK();
-  if (sdk?.deviceInfo) {
+  // deviceInfo.type is null when SDK runs outside the Yandex iframe (local dev).
+  // Only trust it when type is set to a real value.
+  if (sdk?.deviceInfo?.type) {
     return sdk.deviceInfo.isMobile() || sdk.deviceInfo.isTablet();
   }
   if (/Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
