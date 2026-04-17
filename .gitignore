@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+game.zip
 
 # Git worktrees
 .worktrees

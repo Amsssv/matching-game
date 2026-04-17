@@ -25,7 +25,7 @@ export class GameScene extends Phaser.Scene {
   private matchedPairs = 0;
   totalPairs = 0;
 
-  private rowWidths: number[] = [];
+  private rowWidths: readonly number[] = [];
   private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
 
   constructor() {
