@@ -47,17 +47,20 @@ export class MenuScene extends Phaser.Scene {
       this.cameras.main.fadeIn(300, 7, 21, 40);
     }
 
-    // Use native window resize + setTimeout so DevTools device switching works without reload.
-    // Phaser's ScaleManager 'resize' event is unreliable in that scenario.
-    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Game.tsx now tracks window.resize and updates the container div when DPR changes.
+    // That triggers Phaser's ScaleManager (via ResizeObserver) to resize the canvas and
+    // emit 'resize' — so this.scale.on('resize') reliably catches DevTools device switches.
+    // Using Phaser's event (not window.resize) avoids spurious restarts from mobile browser
+    // viewport changes (iOS address bar, keyboard) that don't affect the Phaser canvas.
+    let resizeTimer: Phaser.Time.TimerEvent | null = null;
     const onResize = () => {
-      if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => this.scene.restart({ fromResize: true }), 150);
+      if (resizeTimer) resizeTimer.remove();
+      resizeTimer = this.time.delayedCall(150, () => this.scene.restart({ fromResize: true }));
     };
-    window.addEventListener('resize', onResize);
+    this.scale.on('resize', onResize);
     this.events.once('shutdown', () => {
-      window.removeEventListener('resize', onResize);
-      if (resizeTimeout) clearTimeout(resizeTimeout);
+      this.scale.off('resize', onResize);
+      resizeTimer?.remove();
     });
   }
 

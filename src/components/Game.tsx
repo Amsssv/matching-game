@@ -30,23 +30,42 @@ export function Game() {
     };
   }, []);
 
-  // Apply canvas DPR transform — re-runs whenever dpr state changes
+  // Apply canvas DPR sizing — re-runs whenever dpr state changes
   useEffect(() => {
     const game = gameRef.current;
     if (!game) return;
     const apply = () => {
       const cur = Math.min(window.devicePixelRatio || 1, 2);
+      const sm = game.scale as any;
       if (cur > 1) {
+        // Phaser RESIZE mode sets canvas.width/height but never sets style.width/height.
+        // We set style.width/height to shrink the rendered canvas back to CSS-pixel size.
+        // CSS transform: scale() would also shrink visually, but it does NOT trigger
+        // Phaser's ResizeObserver (which watches the parent div, not the canvas element),
+        // so displayScale would never update and all touch input would be off by DPR.
+        // style.width/height IS read by getBoundingClientRect, so updateBounds() below
+        // gives the correct visual size → displayScale = canvas.width / visual.width = DPR.
+        game.canvas.style.width = `${Math.round(game.canvas.width / cur)}px`;
+        game.canvas.style.height = `${Math.round(game.canvas.height / cur)}px`;
         game.canvas.style.marginLeft = '0';
         game.canvas.style.marginTop = '0';
-        game.canvas.style.transform = `scale(${1 / cur})`;
-        game.canvas.style.transformOrigin = 'top left';
-        game.scale.displayScale.set(cur, cur);
-      } else {
         game.canvas.style.transform = '';
         game.canvas.style.transformOrigin = '';
-        game.scale.displayScale.set(1, 1);
+      } else {
+        game.canvas.style.width = '';
+        game.canvas.style.height = '';
+        game.canvas.style.transform = '';
+        game.canvas.style.transformOrigin = '';
       }
+      // Sync Phaser's input transform with the new visual canvas size.
+      // updateBounds() re-reads getBoundingClientRect(); displayScale.set() updates
+      // the multiplier used in transformX/transformY without emitting a RESIZE event
+      // (which would cause an infinite loop if we called refresh() instead).
+      sm.updateBounds();
+      sm.displayScale.set(
+        sm.baseSize.width / sm.canvasBounds.width,
+        sm.baseSize.height / sm.canvasBounds.height,
+      );
     };
     if (game.canvas) apply(); else game.events.once('ready', apply);
     game.scale.on('resize', apply);

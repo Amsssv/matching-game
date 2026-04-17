@@ -34,5 +34,17 @@ export default defineConfig({
         deviceScaleFactor: 1,
       },
     },
+    {
+      // Runs only interaction tests (click-based) at real mobile DPR=2.
+      // This project would have caught the displayScale double-mapping bug:
+      // with displayScale(2,2) + CSS scale(0.5), all taps landed 2× off target
+      // and the victory test would time out instead of completing.
+      name: 'mobile-dpr2',
+      testMatch: '**/game.spec.ts',
+      use: {
+        ...devices['Pixel 5'],
+        deviceScaleFactor: 2,
+      },
+    },
   ],
 });
