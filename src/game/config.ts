@@ -3,7 +3,7 @@ import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
-import { C } from './constants';
+import { UI } from './ui/config';
 
 // In test environments (Playwright adds ?canvas=1) force Canvas renderer for
 // deterministic pixel output. WebGL sub-pixel rounding varies between frames.
@@ -12,7 +12,7 @@ const isTestEnv = typeof window !== 'undefined' &&
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: isTestEnv ? Phaser.CANVAS : Phaser.AUTO,
-  backgroundColor: C.bgDark,
+  backgroundColor: UI.colors.bgDark,
   scene: [BootScene, MenuScene, GameScene, UIScene],
   scale: {
     mode: Phaser.Scale.RESIZE,

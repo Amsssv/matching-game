@@ -1,10 +1,8 @@
 import Phaser from 'phaser';
-import { C, HEADER_H } from '../constants';
+import { UI } from '../ui/config';
 import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
 import { DIFF_ROWS, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
-
-const CARD_RADIUS = 12;
 
 interface Card {
   container: Phaser.GameObjects.Container;
@@ -51,7 +49,7 @@ export class GameScene extends Phaser.Scene {
 
     this.scene.launch('UIScene', { gameScene: this });
     getYSDK()?.features.GameplayAPI?.start();
-    this.cameras.main.fadeIn(300, 7, 21, 40);
+    this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
     this.scale.on('resize', this.onResize, this);
     this.events.once('shutdown', () => {
@@ -63,15 +61,15 @@ export class GameScene extends Phaser.Scene {
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(W: number, H: number) {
     if (CUSTOM_ASSETS.bg && this.textures.exists('bg-game')) {
-      const bgH = H - HEADER_H;
-      this.bgObj = this.add.image(W / 2, HEADER_H + bgH / 2, 'bg-game').setDisplaySize(W, bgH);
+      const bgH = H - UI.layout.headerH;
+      this.bgObj = this.add.image(W / 2, UI.layout.headerH + bgH / 2, 'bg-game').setDisplaySize(W, bgH);
       return;
     }
     const g = this.add.graphics();
-    g.fillStyle(C.bgDark);
+    g.fillStyle(UI.colors.bgDark);
     g.fillRect(0, 0, W, H);
     // Subtle wave lines at bottom third
-    g.lineStyle(1, C.teal, 0.06);
+    g.lineStyle(1, UI.colors.primary, 0.06);
     for (let row = 0; row < 4; row++) {
       const y = H * 0.72 + row * 16;
       g.beginPath();
@@ -86,7 +84,7 @@ export class GameScene extends Phaser.Scene {
 
   // ── Card layout calculation ──────────────────────────────────────────────────
   private calcLayout(W: number, H: number): Layout {
-    return calcLayoutFn(this.rowWidths, W, H, HEADER_H);
+    return calcLayoutFn(this.rowWidths, W, H, UI.layout.headerH);
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
@@ -117,11 +115,11 @@ export class GameScene extends Phaser.Scene {
 
     container.on('pointerover', () => {
       if (!card.isFlipped && !card.isMatched && !this.isLocked)
-        this.tweens.add({ targets: container, scaleX: 1.06, scaleY: 1.06, duration: 100 });
+        this.tweens.add({ targets: container, scaleX: UI.card.hoverScale, scaleY: UI.card.hoverScale, duration: UI.card.hoverDuration });
     });
     container.on('pointerout', () => {
       if (!card.isFlipped && !card.isMatched)
-        this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 100 });
+        this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: UI.card.hoverDuration });
     });
     container.on('pointerdown', () => this.onCardClick(card));
 
@@ -131,7 +129,7 @@ export class GameScene extends Phaser.Scene {
   private drawCardMask(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
     gfx.clear();
     gfx.fillStyle(0xffffff);
-    gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, CARD_RADIUS);
+    gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, UI.card.radius);
   }
 
   // ── Resize ───────────────────────────────────────────────────────────────────
@@ -141,8 +139,8 @@ export class GameScene extends Phaser.Scene {
 
     // Reposition / rescale background
     if (this.bgObj instanceof Phaser.GameObjects.Image) {
-      const bgH = H - HEADER_H;
-      this.bgObj.setPosition(W / 2, HEADER_H + bgH / 2).setDisplaySize(W, bgH);
+      const bgH = H - UI.layout.headerH;
+      this.bgObj.setPosition(W / 2, UI.layout.headerH + bgH / 2).setDisplaySize(W, bgH);
     } else if (this.bgObj instanceof Phaser.GameObjects.Graphics) {
       this.bgObj.destroy();
       this.drawBackground(W, H);
@@ -169,12 +167,12 @@ export class GameScene extends Phaser.Scene {
     this.flipCard(card, true);
     this.sfx('sfx-flip');
     this.flippedCards.push(card);
-    this.moves++;
-    this.events.emit('moves-updated', this.moves);
 
     if (this.flippedCards.length === 2) {
+      this.moves++;
+      this.events.emit('moves-updated', this.moves);
       this.isLocked = true;
-      this.time.delayedCall(800, () => this.checkMatch());
+      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch());
     }
   }
 
@@ -183,13 +181,13 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: card.container,
       scaleX: 0,
-      duration: 140,
+      duration: UI.card.flipDuration,
       ease: 'Linear',
       onComplete: () => {
         card.back.setVisible(!faceUp);
         card.front.setVisible(faceUp);
         if (!faceUp) card.isFlipped = false;
-        this.tweens.add({ targets: card.container, scaleX: 1, duration: 140, ease: 'Linear' });
+        this.tweens.add({ targets: card.container, scaleX: 1, duration: UI.card.flipDuration, ease: 'Linear' });
       },
     });
   }
@@ -207,10 +205,10 @@ export class GameScene extends Phaser.Scene {
         alpha: 0.55,
         yoyo: true,
         repeat: 1,
-        duration: 180,
+        duration: UI.animation.cardMatchFlash,
         onComplete: () => {
-          a.container.setAlpha(0.45);
-          b.container.setAlpha(0.45);
+          a.container.setAlpha(UI.card.matchedAlpha);
+          b.container.setAlpha(UI.card.matchedAlpha);
           a.container.disableInteractive();
           b.container.disableInteractive();
         },
@@ -220,7 +218,7 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('match-found', this.matchedPairs);
 
       if (this.matchedPairs === this.totalPairs)
-        this.time.delayedCall(600, () => {
+        this.time.delayedCall(UI.animation.cardMatchDelay, () => {
           this.sfx('sfx-win');
           this.events.emit('game-complete', this.moves);
         });
@@ -248,7 +246,7 @@ export class GameScene extends Phaser.Scene {
     getYSDK()?.features.GameplayAPI?.stop();
     const sdk = getYSDK();
     const proceed = () => {
-      this.cameras.main.fadeOut(300, 7, 21, 40);
+      this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
     };
     if (sdk?.adv?.showInterstitial) {

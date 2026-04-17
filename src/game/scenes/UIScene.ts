@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
-import { C, DPR, HEADER_H } from '../constants';
 import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
 import { getYSDK } from '../../ysdk';
+import { createButton, createPanel, createText } from '../ui/factory';
+import type { ButtonHandle } from '../ui/factory';
+import { UI } from '../ui/config';
 
 export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
@@ -13,9 +15,7 @@ export class UIScene extends Phaser.Scene {
   private timerText!: Phaser.GameObjects.Text;
   private movesText!: Phaser.GameObjects.Text;
   private pairsText!: Phaser.GameObjects.Text;
-  private menuBtnBg!: Phaser.GameObjects.Graphics;
-  private menuBtnLabel!: Phaser.GameObjects.Text;
-  private menuBtnZone!: Phaser.GameObjects.Zone;
+  private menuBtn!: ButtonHandle;
 
   private totalPairs = 8;
   private elapsedSeconds = 0;
@@ -38,7 +38,6 @@ export class UIScene extends Phaser.Scene {
 
     this.createHeader(this.scale.width, this.scale.height);
 
-    // Start timer
     this.timerEvent = this.time.addEvent({
       delay: 1000,
       repeat: -1,
@@ -48,7 +47,6 @@ export class UIScene extends Phaser.Scene {
       },
     });
 
-    // Game event listeners (cleaned up on shutdown)
     const onMoves    = (n: number) => this.movesText.setText(this.L.moves(n));
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
@@ -78,77 +76,57 @@ export class UIScene extends Phaser.Scene {
 
   // ── Header ───────────────────────────────────────────────────────────────────
   private createHeader(W: number, _H: number) {
+    const HEADER_H = UI.layout.headerH;
     this.headerBg = this.add.graphics();
     this.drawHeaderBg(W);
 
-    const cy = HEADER_H / 2;
-
-    this.timerText = this.add.text(W / 2, cy, '0:00', {
-      fontSize: `${Math.round(18 * DPR)}px`,
-      color: '#ffffff',
-      fontFamily: 'Rubik',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
+    const cy       = HEADER_H / 2;
+    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const BW       = Math.round(52 * localDpr), BH = Math.round(30 * localDpr);
+    const bx       = W - BW - 10;
+    const by       = (HEADER_H - BH) / 2;
 
     const statFontPx = Math.max(11, Math.min(14, Math.floor(W / 38)));
 
-    this.movesText = this.add.text(Math.max(50, W * 0.08), cy, this.L.moves(0), {
-      fontSize: `${statFontPx}px`,
-      color: '#B8D4DC',
-      fontFamily: 'Rubik',
+    this.timerText = createText(this, {
+      x: W / 2, y: cy,
+      text: '0:00', variant: 'timer', localDpr,
+    });
+
+    this.movesText = createText(this, {
+      x: Math.max(50, W * 0.08), y: cy,
+      text: this.L.moves(0), variant: 'stat', localDpr, fontSize: statFontPx,
     }).setOrigin(0, 0.5);
 
-    this.pairsText = this.add.text(W - Math.round(52 * DPR) - Math.round(10 * DPR) - Math.round(6 * DPR), cy, this.L.pairs(0, this.totalPairs), {
-      fontSize: `${statFontPx}px`,
-      color: '#B8D4DC',
-      fontFamily: 'Rubik',
+    this.pairsText = createText(this, {
+      x: W - BW - Math.round(10 * localDpr) - Math.round(6 * localDpr), y: cy,
+      text: this.L.pairs(0, this.totalPairs), variant: 'stat', localDpr, fontSize: statFontPx,
     }).setOrigin(1, 0.5);
 
-    // Menu button — create label and bg first, then zone at correct position
-    this.menuBtnBg = this.add.graphics();
-    this.menuBtnLabel = this.add.text(0, 0, this.L.menu, {
-      fontSize: `${Math.round(10 * DPR)}px`,
-      color: '#ffffff',
-      fontFamily: 'Rubik',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    const BW = Math.round(52 * DPR), BH = Math.round(30 * DPR);
-    const bx = W - BW - 10;
-    const by = (HEADER_H - BH) / 2;
-    this.drawMenuBtn(W, false);
-
-    // Zone created AFTER drawMenuBtn so size/position are final
-    this.menuBtnZone = this.add.zone(bx + BW / 2, by + BH / 2, BW, BH).setInteractive();
-    this.menuBtnZone.on('pointerover',  () => this.drawMenuBtn(this.scale.width, true));
-    this.menuBtnZone.on('pointerout',   () => this.drawMenuBtn(this.scale.width, false));
-    this.menuBtnZone.on('pointerdown', () => {
-      this.sfx('sfx-click');
-      this.scene.stop();
-      this.gameScene.goToMenu();
+    this.menuBtn = createButton(this, {
+      x: bx + BW / 2,
+      y: by + BH / 2,
+      label:       this.L.menu,
+      onClick:     () => {
+        this.sfx('sfx-click');
+        this.scene.stop();
+        this.gameScene.goToMenu();
+      },
+      variant:     'ghost',
+      fixedWidth:  BW,
+      fixedHeight: BH,
+      fontSize:    Math.round(10 * localDpr),
     });
+    this.menuBtn.container.setDepth(10);
   }
 
   private drawHeaderBg(W: number) {
+    const HEADER_H = UI.layout.headerH;
     this.headerBg.clear();
-    this.headerBg.fillStyle(C.bgDark, 0.95);
+    this.headerBg.fillStyle(UI.colors.bgDark, 0.95);
     this.headerBg.fillRect(0, 0, W, HEADER_H);
-    this.headerBg.lineStyle(1, C.teal, 0.2);
+    this.headerBg.lineStyle(1, UI.colors.primary, 0.2);
     this.headerBg.lineBetween(0, HEADER_H, W, HEADER_H);
-  }
-
-  private drawMenuBtn(W: number, hover: boolean) {
-    const BW = Math.round(52 * DPR), BH = Math.round(30 * DPR);
-    const bx = W - BW - 10;
-    const by = (HEADER_H - BH) / 2;
-    this.menuBtnBg.clear();
-    this.menuBtnBg.fillStyle(hover ? C.ocean : C.bgMid);
-    this.menuBtnBg.fillRoundedRect(bx, by, BW, BH, 6);
-    this.menuBtnBg.lineStyle(1, hover ? C.teal : C.ocean);
-    this.menuBtnBg.strokeRoundedRect(bx, by, BW, BH, 6);
-
-    if (this.menuBtnZone) this.menuBtnZone.setPosition(bx + BW / 2, by + BH / 2);
-    if (this.menuBtnLabel) this.menuBtnLabel.setPosition(bx + BW / 2, by + BH / 2);
   }
 
   private updatePairsText(n: number) {
@@ -158,113 +136,98 @@ export class UIScene extends Phaser.Scene {
 
   // ── Resize ───────────────────────────────────────────────────────────────────
   private onResize(gameSize: Phaser.Structs.Size) {
-    const W = gameSize.width;
-    const cy = HEADER_H / 2;
+    const W        = gameSize.width;
+    const HEADER_H = UI.layout.headerH;
+    const cy       = HEADER_H / 2;
+    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const BW       = Math.round(52 * localDpr), BH = Math.round(30 * localDpr);
+    const bx       = W - BW - 10;
+    const by       = (HEADER_H - BH) / 2;
     const statFontPx = Math.max(11, Math.min(14, Math.floor(W / 38)));
 
     this.drawHeaderBg(W);
     this.timerText.setPosition(W / 2, cy);
     this.movesText.setPosition(Math.max(50, W * 0.08), cy).setFontSize(statFontPx);
-    this.pairsText.setPosition(W - Math.round(52 * DPR) - Math.round(10 * DPR) - Math.round(6 * DPR), cy).setFontSize(statFontPx);
-    this.drawMenuBtn(W, false);
+    this.pairsText
+      .setPosition(W - BW - Math.round(10 * localDpr) - Math.round(6 * localDpr), cy)
+      .setFontSize(statFontPx);
+    this.menuBtn.container.setPosition(bx + BW / 2, by + BH / 2);
   }
 
   // ── Victory overlay ──────────────────────────────────────────────────────────
   private showVictory(moves: number, seconds: number) {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W  = this.scale.width;
+    const H  = this.scale.height;
     const cx = W / 2;
     const cy = H / 2;
     const pW = Math.min(W * 0.85, 340);
     const pH = Math.min(H * 0.55, 300);
+    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const overlay = this.add.graphics();
     overlay.fillStyle(0x000000, 0.65);
     overlay.fillRect(0, 0, W, H);
 
-    const panel = this.add.graphics();
-    panel.fillStyle(C.bgMid);
-    panel.fillRoundedRect(cx - pW / 2, cy - pH / 2, pW, pH, 14);
-    panel.lineStyle(2, C.teal, 0.7);
-    panel.strokeRoundedRect(cx - pW / 2, cy - pH / 2, pW, pH, 14);
+    createPanel(this, { cx, cy, w: pW, h: pH });
 
     this.add.text(cx, cy - pH * 0.3, this.L.victory, {
-      fontSize: `${Math.min(40, Math.floor(pW * 0.16))}px`,
-      color: '#FFE566',
+      fontSize:   `${Math.min(40, Math.floor(pW * 0.16))}px`,
+      color:      '#FFE566',
       fontFamily: 'Cinzel',
-      fontStyle: 'bold',
-      shadow: { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
+      fontStyle:  'bold',
+      shadow:     { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
     }).setOrigin(0.5);
 
-    this.add.text(cx, cy - pH * 0.06, this.L.allPairsFound, {
-      fontSize: `${Math.round(14 * DPR)}px`,
-      color: '#B8D4DC',
-      fontFamily: 'Rubik',
-    }).setOrigin(0.5);
+    createText(this, {
+      x: cx, y: cy - pH * 0.06,
+      text: this.L.allPairsFound, variant: 'stat', localDpr,
+    });
 
-    const statFontSize = `${Math.min(22, Math.floor(pW * 0.085))}px`;
-    this.add.text(cx, cy + pH * 0.06, this.L.movesResult(moves), {
-      fontSize: statFontSize,
-      fontFamily: 'Rubik',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setColor(`#${C.gold.toString(16).padStart(6, '0')}`);
+    const statFontSize = Math.min(22, Math.floor(pW * 0.085));
 
-    this.add.text(cx, cy + pH * 0.2, this.L.timeResult(formatTime(seconds)), {
+    createText(this, {
+      x: cx, y: cy + pH * 0.06,
+      text:     this.L.movesResult(moves),
+      variant:  'timer',
+      localDpr,
       fontSize: statFontSize,
-      fontFamily: 'Rubik',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setColor(`#${C.foam.toString(16).padStart(6, '0')}`);
+      color:    `#${UI.colors.accent.toString(16).padStart(6, '0')}`,
+    });
+
+    createText(this, {
+      x: cx, y: cy + pH * 0.2,
+      text:     this.L.timeResult(formatTime(seconds)),
+      variant:  'timer',
+      localDpr,
+      fontSize: statFontSize,
+    });
 
     const btnW = Math.min(pW * 0.46, 150);
     const btnH = Math.min(pH * 0.15, 42);
     const btnY = cy + pH * 0.38;
 
-    this.victoryBtn(cx - btnW * 0.56, btnY, btnW, btnH, this.L.restart, C.teal, () => {
-      this.scene.stop();
-      this.gameScene.restartGame();
+    createButton(this, {
+      x: cx - btnW * 0.56, y: btnY,
+      label:       this.L.restart,
+      onClick:     () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.restartGame(); },
+      variant:     'secondary',
+      fixedWidth:  btnW,
+      fixedHeight: btnH,
     });
 
-    this.victoryBtn(cx + btnW * 0.56, btnY, btnW, btnH, this.L.toMenu, C.ocean, () => {
-      this.scene.stop();
-      this.gameScene.goToMenu();
-    }, C.teal);
+    createButton(this, {
+      x: cx + btnW * 0.56, y: btnY,
+      label:       this.L.toMenu,
+      onClick:     () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.goToMenu(); },
+      variant:     'ghost',
+      fixedWidth:  btnW,
+      fixedHeight: btnH,
+    });
   }
 
   private sfx(key: string) {
     const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
     am?.playSfx(key);
-  }
-
-  private victoryBtn(
-    cx: number, cy: number,
-    w: number, h: number,
-    label: string,
-    fill: number,
-    onClick: () => void,
-    border?: number
-  ) {
-    const bg = this.add.graphics();
-    const brd = border ?? fill;
-    const draw = (hover: boolean) => {
-      bg.clear();
-      bg.fillStyle(fill, hover ? 1 : 0.7);
-      bg.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-      bg.lineStyle(2, brd);
-      bg.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-    };
-    draw(false);
-
-    this.add.text(cx, cy, label, {
-      fontSize: `${Math.min(15, Math.floor(h * 0.38))}px`,
-      color: '#ffffff',
-      fontFamily: 'Rubik',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    const zone = this.add.zone(cx, cy, w, h).setInteractive();
-    zone.on('pointerover', () => draw(true));
-    zone.on('pointerout',  () => draw(false));
-    zone.on('pointerdown', () => { this.sfx('sfx-click'); onClick(); });
   }
 }
 

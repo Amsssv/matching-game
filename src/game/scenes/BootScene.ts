@@ -3,6 +3,7 @@ import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
 import { AudioManager } from '../AudioManager';
 import { resolveLang, readSoundEnabled } from '../settings';
 import { getYSDK } from '../../ysdk';
+import { preWarmGradients } from '../ui/factory';
 
 export class BootScene extends Phaser.Scene {
   private failedKeys = new Set<string>();
@@ -44,6 +45,8 @@ export class BootScene extends Phaser.Scene {
     const audioManager = new AudioManager(!soundEnabled);
     audioManager.init(this);
     this.game.registry.set('audioManager', audioManager);
+
+    preWarmGradients(this, this.scale.width, this.scale.height);
 
     resolveLang()
       .then(lang => {
