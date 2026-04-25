@@ -20,6 +20,8 @@ export interface Locale {
   timeResult: (t: string) => string;
   restart: string;
   toMenu: string;
+  movesLabel: string;
+  timeLabel: string;
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -53,6 +55,8 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `Время: ${t}`,
     restart: 'ЗАНОВО',
     toMenu:  'В МЕНЮ',
+    movesLabel: 'ХОДОВ',
+    timeLabel:  'ВРЕМЯ',
   },
 
   en: {
@@ -85,6 +89,8 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `Time: ${t}`,
     restart: 'RESTART',
     toMenu:  'TO MENU',
+    movesLabel: 'MOVES',
+    timeLabel:  'TIME',
   },
 
   tr: {
@@ -117,6 +123,8 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `Süre: ${t}`,
     restart: 'YENİDEN',
     toMenu:  'MENÜYE',
+    movesLabel: 'HAMLE',
+    timeLabel:  'SÜRE',
   },
 
   es: {
@@ -149,6 +157,8 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `Tiempo: ${t}`,
     restart: 'REINICIAR',
     toMenu:  'AL MENÚ',
+    movesLabel: 'JUGADAS',
+    timeLabel:  'TIEMPO',
   },
 
   pt: {
@@ -181,6 +191,8 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `Tempo: ${t}`,
     restart: 'REINICIAR',
     toMenu:  'AO MENU',
+    movesLabel: 'JOGADAS',
+    timeLabel:  'TEMPO',
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -216,5 +228,7 @@ export const LOCALES: Record<Lang, Locale> = {
     timeResult:  (t) => `الوقت: ${t}`,
     restart: 'مجدداً',
     toMenu:  'إلى القائمة',
+    movesLabel: 'الحركات',
+    timeLabel:  'الوقت',
   },
 };

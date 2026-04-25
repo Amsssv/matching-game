@@ -3,7 +3,7 @@ import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
 import { getYSDK } from '../../ysdk';
-import { createButton, createPanel, createText } from '../ui/factory';
+import { createButton, createText } from '../ui/factory';
 import type { ButtonHandle } from '../ui/factory';
 import { UI } from '../ui/config';
 
@@ -118,7 +118,11 @@ export class UIScene extends Phaser.Scene {
       fixedHeight: BH,
       fontSize:    Math.round(10 * localDpr),
     });
-    this.menuBtn.container.setDepth(10);
+    this.headerBg.setDepth(5);
+    this.timerText.setDepth(22);
+    this.movesText.setDepth(22);
+    this.pairsText.setDepth(22);
+    this.menuBtn.container.setDepth(22);
   }
 
   private drawHeaderBg(W: number) {
@@ -161,69 +165,150 @@ export class UIScene extends Phaser.Scene {
     const H  = this.scale.height;
     const cx = W / 2;
     const cy = H / 2;
-    const pW = Math.min(W * 0.85, 340);
-    const pH = Math.min(H * 0.55, 300);
-    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pW        = Math.min(W * 0.85, 340);
+    const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
 
-    const overlay = this.add.graphics();
-    overlay.fillStyle(0x000000, 0.65);
-    overlay.fillRect(0, 0, W, H);
+    // ── Element sizes ────────────────────────────────────────────────────────────
+    const titleSize     = Math.min(40, Math.floor(pW * 0.16));
+    const subtitleSize  = Math.max(13, Math.floor(pW * 0.045));
+    const statLabelSize = Math.max(10, Math.floor(pW * 0.038));
+    const statValueSize = Math.min(28, Math.floor(pW * 0.105));
 
-    createPanel(this, { cx, cy, w: pW, h: pH });
+    // ── Button sizes ─────────────────────────────────────────────────────────────
+    const modalPadX     = Math.round(20 * localDpr);
+    const deepEffectPad = 6;
+    const btnW          = pW - modalPadX * 2 - deepEffectPad * 2;
+    const btnH          = Math.max(40, Math.round(46 * (localDpr / 2 + 0.5)));
 
-    this.add.text(cx, cy - pH * 0.3, this.L.victory, {
-      fontSize:   `${Math.min(40, Math.floor(pW * 0.16))}px`,
-      color:      '#FFE566',
-      fontFamily: 'Cinzel',
-      fontStyle:  'bold',
-      shadow:     { offsetX: 0, offsetY: 2, color: '#003250', blur: 10, fill: true },
-    }).setOrigin(0.5);
+    // ── Vertical gaps ─────────────────────────────────────────────────────────────
+    const padTop          = Math.round(28 * localDpr);
+    const padBot          = Math.round(20 * localDpr);
+    const gapTitleSep     = Math.round(12 * localDpr);
+    const gapSepSubtitle  = Math.round(14 * localDpr);
+    const gapSubtitleStat = Math.round(20 * localDpr);
+    const gapStatBtns     = Math.round(22 * localDpr);
+    const gapBtnBtn       = Math.round(10 * localDpr);
+    const statBlockGap    = Math.round(6  * localDpr);
 
-    createText(this, {
-      x: cx, y: cy - pH * 0.06,
-      text: this.L.allPairsFound, variant: 'stat', localDpr,
+    // ── Panel height from content ─────────────────────────────────────────────────
+    const statBlockH = statLabelSize + statBlockGap + statValueSize;
+    const contentH   =
+      padTop +
+      titleSize     + gapTitleSep +
+      1             + gapSepSubtitle +
+      subtitleSize  + gapSubtitleStat +
+      statBlockH    + gapStatBtns +
+      btnH + gapBtnBtn + btnH +
+      padBot;
+    const pH = Math.min(contentH, H * 0.92);
+
+    // ── Cursor layout (local coords, origin = panel centre) ───────────────────────
+    let cursorY = -pH / 2 + padTop;
+
+    const titleY    = cursorY + titleSize / 2;
+    cursorY        += titleSize + gapTitleSep;
+
+    const sepY      = cursorY;
+    cursorY        += 1 + gapSepSubtitle;
+
+    const subtitleY = cursorY + subtitleSize / 2;
+    cursorY        += subtitleSize + gapSubtitleStat;
+
+    const statColX   = pW * 0.22;
+    const statLabelY = cursorY + statLabelSize / 2;
+    const statValueY = cursorY + statLabelSize + statBlockGap + statValueSize / 2;
+    const statDivTop = cursorY - 4;
+    const statDivBot = cursorY + statBlockH + 4;
+    cursorY         += statBlockH + gapStatBtns;
+
+    const btnPrimaryY = cursorY + btnH / 2;
+    cursorY          += btnH + gapBtnBtn;
+    const btnGhostY   = cursorY + btnH / 2;
+
+    // ── Backdrop ──────────────────────────────────────────────────────────────────
+    const backdrop = this.add.graphics().setDepth(20);
+    backdrop.fillStyle(UI.colors.bgDark);
+    backdrop.fillRect(0, 0, W, H);
+    backdrop.setAlpha(0);
+    this.tweens.add({ targets: backdrop, alpha: 0.78, duration: UI.animation.fadeScene, ease: 'Sine.easeOut' });
+
+    // ── Modal container ───────────────────────────────────────────────────────────
+    const modal = this.add.container(cx, cy).setDepth(21).setAlpha(0).setScale(0.9);
+    this.tweens.add({ targets: modal, alpha: 1, scale: 1, duration: UI.animation.fadeScene, ease: 'Back.easeOut' });
+
+    // ── Panel ─────────────────────────────────────────────────────────────────────
+    const panelGfx = this.add.graphics();
+    panelGfx.fillStyle(UI.panel.bg);
+    panelGfx.fillRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+    panelGfx.lineStyle(UI.panel.borderWidth, UI.panel.border, UI.panel.borderAlpha);
+    panelGfx.strokeRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+
+    // ── Title ─────────────────────────────────────────────────────────────────────
+    const titleText = createText(this, {
+      x: 0, y: titleY, text: this.L.victory, variant: 'title', localDpr, fontSize: titleSize,
     });
 
-    const statFontSize = Math.min(22, Math.floor(pW * 0.085));
+    // ── Separator ─────────────────────────────────────────────────────────────────
+    const sep = this.add.graphics();
+    sep.lineStyle(1, UI.colors.accent, 0.35);
+    sep.lineBetween(-pW * 0.32, sepY, pW * 0.32, sepY);
 
-    createText(this, {
-      x: cx, y: cy + pH * 0.06,
-      text:     this.L.movesResult(moves),
-      variant:  'timer',
-      localDpr,
-      fontSize: statFontSize,
-      color:    `#${UI.colors.accent.toString(16).padStart(6, '0')}`,
+    // ── Subtitle ──────────────────────────────────────────────────────────────────
+    const subtitleText = createText(this, {
+      x: 0, y: subtitleY, text: this.L.allPairsFound, variant: 'stat', localDpr, fontSize: subtitleSize,
     });
 
-    createText(this, {
-      x: cx, y: cy + pH * 0.2,
-      text:     this.L.timeResult(formatTime(seconds)),
-      variant:  'timer',
-      localDpr,
-      fontSize: statFontSize,
+    // ── Stats — two columns ───────────────────────────────────────────────────────
+    const movesLabel = createText(this, { x: -statColX, y: statLabelY, text: this.L.movesLabel, variant: 'stat',  localDpr, fontSize: statLabelSize });
+    const movesValue = createText(this, { x: -statColX, y: statValueY, text: String(moves),      variant: 'timer', localDpr, fontSize: statValueSize, color: accentHex });
+    const timeLabel  = createText(this, { x:  statColX, y: statLabelY, text: this.L.timeLabel,   variant: 'stat',  localDpr, fontSize: statLabelSize });
+    const timeValue  = createText(this, { x:  statColX, y: statValueY, text: formatTime(seconds),variant: 'timer', localDpr, fontSize: statValueSize, color: accentHex });
+
+    const statDiv = this.add.graphics();
+    statDiv.lineStyle(1, UI.colors.textDim, 0.2);
+    statDiv.lineBetween(0, statDivTop, 0, statDivBot);
+
+    // ── Buttons — vertical stack ──────────────────────────────────────────────────
+    const restartBtn = createButton(this, {
+      x: 0, y: btnPrimaryY, label: this.L.restart,
+      onClick: () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.restartGame(); },
+      variant: 'primary', fixedWidth: btnW, fixedHeight: btnH,
+    });
+    const toMenuBtn = createButton(this, {
+      x: 0, y: btnGhostY, label: this.L.toMenu,
+      onClick: () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.goToMenu(); },
+      variant: 'ghost', fixedWidth: btnW, fixedHeight: btnH,
     });
 
-    const btnW = Math.min(pW * 0.46, 150);
-    const btnH = Math.min(pH * 0.15, 42);
-    const btnY = cy + pH * 0.38;
+    // ── Assemble ──────────────────────────────────────────────────────────────────
+    modal.add([
+      panelGfx, titleText, sep, subtitleText,
+      movesLabel, movesValue, statDiv, timeLabel, timeValue,
+      restartBtn.container, toMenuBtn.container,
+    ]);
 
-    createButton(this, {
-      x: cx - btnW * 0.56, y: btnY,
-      label:       this.L.restart,
-      onClick:     () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.restartGame(); },
-      variant:     'secondary',
-      fixedWidth:  btnW,
-      fixedHeight: btnH,
-    });
+    // ── Stagger animation ─────────────────────────────────────────────────────────
+    const baseDelay   = UI.animation.fadeScene * 0.6;
+    const staggerStep = 120;
+    const dur         = 240;
+    const offset      = 8;
 
-    createButton(this, {
-      x: cx + btnW * 0.56, y: btnY,
-      label:       this.L.toMenu,
-      onClick:     () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.goToMenu(); },
-      variant:     'ghost',
-      fixedWidth:  btnW,
-      fixedHeight: btnH,
-    });
+    movesLabel.setAlpha(0).setY(statLabelY + offset);
+    movesValue.setAlpha(0).setY(statValueY + offset);
+    statDiv.setAlpha(0);
+    timeLabel.setAlpha(0).setY(statLabelY + offset);
+    timeValue.setAlpha(0).setY(statValueY + offset);
+    restartBtn.container.setAlpha(0).setY(btnPrimaryY + offset);
+    toMenuBtn.container.setAlpha(0).setY(btnGhostY + offset);
+
+    this.tweens.add({ targets: movesLabel,           alpha: 1, y: statLabelY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay });
+    this.tweens.add({ targets: movesValue,           alpha: 1, y: statValueY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay });
+    this.tweens.add({ targets: statDiv,              alpha: 1,                 duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep });
+    this.tweens.add({ targets: timeLabel,            alpha: 1, y: statLabelY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep });
+    this.tweens.add({ targets: timeValue,            alpha: 1, y: statValueY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep });
+    this.tweens.add({ targets: restartBtn.container, alpha: 1, y: btnPrimaryY, duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep * 2 });
+    this.tweens.add({ targets: toMenuBtn.container,  alpha: 1, y: btnGhostY,   duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep * 3 });
   }
 
   private sfx(key: string) {
