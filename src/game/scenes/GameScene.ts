@@ -25,6 +25,14 @@ export class GameScene extends Phaser.Scene {
 
   private rowWidths: readonly number[] = [];
   private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
+  private gameActive = true;
+  private onVisibilityChange = () => {
+    if (document.hidden) {
+      getYSDK()?.features.GameplayAPI?.stop();
+    } else if (this.gameActive) {
+      getYSDK()?.features.GameplayAPI?.start();
+    }
+  };
 
   constructor() {
     super({ key: 'GameScene' });
@@ -36,6 +44,7 @@ export class GameScene extends Phaser.Scene {
     this.isLocked = false;
     this.moves = 0;
     this.matchedPairs = 0;
+    this.gameActive = true;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     this.rowWidths = DIFF_ROWS[difficulty];
@@ -52,8 +61,11 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
     this.scale.on('resize', this.onResize, this);
+    this.events.once('game-complete', () => { this.gameActive = false; });
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.events.once('shutdown', () => {
       this.scale.off('resize', this.onResize, this);
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
       this.cards.forEach(card => card.maskGfx.destroy());
     });
   }
@@ -249,8 +261,8 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
     };
-    if (sdk?.adv?.showInterstitial) {
-      sdk.adv.showInterstitial({
+    if (sdk?.adv?.showFullscreenAdv) {
+      sdk.adv.showFullscreenAdv({
         callbacks: { onClose: proceed, onError: proceed },
       });
     } else {

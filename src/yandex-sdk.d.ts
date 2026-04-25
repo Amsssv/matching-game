@@ -17,7 +17,7 @@ declare global {
       GameplayAPI?: { start(): void; stop(): void };
     };
     adv: {
-      showInterstitial(opts: {
+      showFullscreenAdv(opts: {
         callbacks: {
           onClose?: (wasShown: boolean) => void;
           onError?: (e: Error) => void;

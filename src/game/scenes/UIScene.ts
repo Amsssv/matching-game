@@ -51,6 +51,7 @@ export class UIScene extends Phaser.Scene {
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
+      getYSDK()?.features.GameplayAPI?.stop();
       const lb = getYSDK()?.leaderboards;
       if (lb && typeof lb.setLeaderboardScore === 'function') {
         lb.setLeaderboardScore('main', n)
