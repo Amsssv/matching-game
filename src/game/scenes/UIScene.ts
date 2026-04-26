@@ -6,6 +6,8 @@ import { getYSDK } from '../../ysdk';
 import { createButton, createText } from '../ui/factory';
 import type { ButtonHandle } from '../ui/factory';
 import { UI } from '../ui/config';
+import { fetchLeaderboard, type LeaderboardData, SCORE_BASE } from '../leaderboard';
+import type { Difficulty } from '../layout';
 
 export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
@@ -51,11 +53,12 @@ export class UIScene extends Phaser.Scene {
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
+      this.game.registry.set('lastScore', n);
       getYSDK()?.features.GameplayAPI?.stop();
+      const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const lb = getYSDK()?.leaderboards;
       if (lb && typeof lb.setLeaderboardScore === 'function') {
-        lb.setLeaderboardScore('main', n)
-          .catch(() => { /* guest or not authorized — ignore */ });
+        lb.setLeaderboardScore(difficulty, SCORE_BASE - n).catch(() => {});
       }
       this.showVictory(n, this.elapsedSeconds);
     };
@@ -167,6 +170,8 @@ export class UIScene extends Phaser.Scene {
     const cy = H / 2;
     const pW        = Math.min(W * 0.85, 340);
     const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
+    const lbPromise = fetchLeaderboard(difficulty);
     const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
 
     // ── Element sizes ────────────────────────────────────────────────────────────
@@ -176,10 +181,9 @@ export class UIScene extends Phaser.Scene {
     const statValueSize = Math.min(28, Math.floor(pW * 0.105));
 
     // ── Button sizes ─────────────────────────────────────────────────────────────
-    const modalPadX     = Math.round(20 * localDpr);
-    const deepEffectPad = 6;
-    const btnW          = pW - modalPadX * 2 - deepEffectPad * 2;
-    const btnH          = Math.max(40, Math.round(46 * (localDpr / 2 + 0.5)));
+    const modalPadX = Math.round(20 * localDpr);
+    const btnW      = pW - modalPadX * 2;
+    const btnH      = Math.max(40, Math.round(46 * (localDpr / 2 + 0.5)));
 
     // ── Vertical gaps ─────────────────────────────────────────────────────────────
     const padTop          = Math.round(28 * localDpr);
@@ -199,7 +203,7 @@ export class UIScene extends Phaser.Scene {
       1             + gapSepSubtitle +
       subtitleSize  + gapSubtitleStat +
       statBlockH    + gapStatBtns +
-      btnH + gapBtnBtn + btnH +
+      btnH + gapBtnBtn + btnH + gapBtnBtn + btnH +
       padBot;
     const pH = Math.min(contentH, H * 0.92);
 
@@ -225,6 +229,8 @@ export class UIScene extends Phaser.Scene {
     const btnPrimaryY = cursorY + btnH / 2;
     cursorY          += btnH + gapBtnBtn;
     const btnGhostY   = cursorY + btnH / 2;
+    cursorY          += btnH + gapBtnBtn;
+    const btnLbY      = cursorY + btnH / 2;
 
     // ── Backdrop ──────────────────────────────────────────────────────────────────
     const backdrop = this.add.graphics().setDepth(20);
@@ -280,12 +286,17 @@ export class UIScene extends Phaser.Scene {
       onClick: () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.goToMenu(); },
       variant: 'ghost', fixedWidth: btnW, fixedHeight: btnH,
     });
+    const lbBtn = createButton(this, {
+      x: 0, y: btnLbY, label: '🏆 ' + this.L.leaderboard,
+      onClick: () => { this.sfx('sfx-click'); this.openLeaderboardOverlay(); },
+      variant: 'ghost', fixedWidth: btnW, fixedHeight: btnH,
+    });
 
     // ── Assemble ──────────────────────────────────────────────────────────────────
     modal.add([
       panelGfx, titleText, sep, subtitleText,
       movesLabel, movesValue, statDiv, timeLabel, timeValue,
-      restartBtn.container, toMenuBtn.container,
+      restartBtn.container, toMenuBtn.container, lbBtn.container,
     ]);
 
     // ── Stagger animation ─────────────────────────────────────────────────────────
@@ -301,6 +312,7 @@ export class UIScene extends Phaser.Scene {
     timeValue.setAlpha(0).setY(statValueY + offset);
     restartBtn.container.setAlpha(0).setY(btnPrimaryY + offset);
     toMenuBtn.container.setAlpha(0).setY(btnGhostY + offset);
+    lbBtn.container.setAlpha(0).setY(btnLbY + offset);
 
     this.tweens.add({ targets: movesLabel,           alpha: 1, y: statLabelY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay });
     this.tweens.add({ targets: movesValue,           alpha: 1, y: statValueY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay });
@@ -309,6 +321,258 @@ export class UIScene extends Phaser.Scene {
     this.tweens.add({ targets: timeValue,            alpha: 1, y: statValueY,  duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep });
     this.tweens.add({ targets: restartBtn.container, alpha: 1, y: btnPrimaryY, duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep * 2 });
     this.tweens.add({ targets: toMenuBtn.container,  alpha: 1, y: btnGhostY,   duration: dur, ease: 'Sine.easeOut', delay: baseDelay + staggerStep * 3 });
+    this.tweens.add({
+      targets: lbBtn.container,
+      alpha: 1, y: btnLbY,
+      duration: dur, ease: 'Sine.easeOut',
+      delay: baseDelay + staggerStep * 4,
+      onComplete: () => {
+        lbPromise.then(data => {
+          if (data && this.scene.isActive('UIScene')) {
+            this.showCompactLeaderboard(data, W, H, cx, cy + pH / 2, pW, localDpr);
+          }
+        });
+        this.showAuthPromptIfNeeded(moves, W, H, cx, cy + pH / 2, pW, localDpr);
+      },
+    });
+  }
+
+  private async openLeaderboardOverlay(): Promise<void> {
+    const W  = this.scale.width;
+    const H  = this.scale.height;
+    const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const lang: Lang = this.game.registry.get('lang') ?? 'ru';
+    const L         = LOCALES[lang];
+    const cx        = W / 2;
+    const cy        = H / 2;
+    const pW        = Math.min(W * 0.92, 486);
+    const pH        = Math.min(H * 0.78, 460);
+    const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
+
+    // depth 24/25 — above victory modal (21) and header elements (22)
+    const backdrop = this.add.graphics().setDepth(24);
+    backdrop.fillStyle(UI.colors.bgDark);
+    backdrop.fillRect(0, 0, W, H);
+    backdrop.setAlpha(0);
+    this.tweens.add({ targets: backdrop, alpha: 0.78, duration: UI.animation.fadeScene, ease: 'Sine.easeOut' });
+
+    const modal = this.add.container(cx, cy).setDepth(25).setAlpha(0).setScale(0.9);
+    this.tweens.add({ targets: modal, alpha: 1, scale: 1, duration: UI.animation.fadeScene, ease: 'Back.easeOut' });
+
+    const closeModal = () => {
+      this.sfx('sfx-click');
+      backdrop.destroy();
+      modal.destroy(true);
+    };
+
+    // Panel
+    const panelGfx = this.add.graphics();
+    panelGfx.fillStyle(UI.panel.bg);
+    panelGfx.fillRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+    panelGfx.lineStyle(UI.panel.borderWidth, UI.panel.border, UI.panel.borderAlpha);
+    panelGfx.strokeRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+
+    // Title
+    const titleFontSize = Math.min(26, Math.floor(pW * 0.11));
+    const titleY        = -pH / 2 + 28 + titleFontSize / 2;
+    const titleText     = createText(this, {
+      x: 0, y: titleY, text: '🏆 ' + L.lbTitle, variant: 'title', localDpr, fontSize: titleFontSize,
+    });
+
+    // Difficulty tabs
+    const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+    let currentDiff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
+
+    const tabH   = Math.max(22, Math.round(26 * (localDpr / 2 + 0.5)));
+    const tabGap = Math.round(4 * localDpr) + 12;
+    const tabW   = Math.floor((pW - tabGap * 3 - 40) / 4);
+    const tabsY  = titleY + titleFontSize / 2 + 20 + tabH / 2;
+
+    const tabHandles = new Map<Difficulty, ButtonHandle>();
+
+    // Separator + table area
+    const sepY        = tabsY + tabH / 2 + 10;
+    const tableStartY = sepY + 20;
+    const rowH        = Math.round(28 * (localDpr / 2 + 0.5));
+    const nameFontSz  = Math.max(10, Math.floor(pW * 0.04));
+
+    const sep = this.add.graphics();
+    sep.lineStyle(1, UI.colors.accent, 0.35);
+    sep.lineBetween(-pW * 0.4, sepY, pW * 0.4, sepY);
+
+    const loadingText = createText(this, { x: 0, y: tableStartY + rowH, text: L.lbLoading, variant: 'stat', localDpr });
+    const tableContainer = this.add.container(0, 0);
+
+    // Close button
+    const closeBtnH = Math.max(36, Math.round(40 * (localDpr / 2 + 0.5)));
+    const closeBtnW = Math.min(pW * 0.55, 180);
+    const closeBtnY = pH / 2 - closeBtnH / 2 - 16;
+    const closeBtn  = createButton(this, {
+      x: 0, y: closeBtnY, label: L.lbClose, onClick: closeModal,
+      variant: 'ghost', fixedWidth: closeBtnW, fixedHeight: closeBtnH,
+      fontSize: Math.round(11 * localDpr),
+    });
+
+    modal.add([panelGfx, titleText, sep, loadingText, tableContainer, closeBtn.container]);
+
+    // Table render — clears and refills tableContainer
+    const renderTable = async (diff: Difficulty) => {
+      tableContainer.removeAll(true);
+      loadingText.setVisible(true);
+      const data = await fetchLeaderboard(diff);
+      if (!modal.active) return;
+      loadingText.setVisible(false);
+      if (!data || data.rows.length === 0) {
+        tableContainer.add(createText(this, { x: 0, y: tableStartY + rowH, text: '—', variant: 'stat', localDpr }));
+        return;
+      }
+      const rowTexts: Phaser.GameObjects.Text[] = [];
+      data.rows.forEach((row, i) => {
+        const rowY  = tableStartY + i * (rowH + 6) + rowH / 2;
+        const color = row.isPlayer ? accentHex : undefined;
+        rowTexts.push(
+          createText(this, { x: -(pW / 2 - 20), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  0,             y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - 20,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+        );
+      });
+      tableContainer.add(rowTexts);
+    };
+
+    const switchDiff = (diff: Difficulty) => {
+      currentDiff = diff;
+      tabHandles.forEach((handle, d) => handle.setActive(d === diff));
+      renderTable(diff);
+    };
+
+    // Create tab buttons
+    difficulties.forEach((diff, i) => {
+      const tx     = -pW / 2 + 20 + i * (tabW + tabGap) + tabW / 2;
+      const handle = createButton(this, {
+        x: tx, y: tabsY,
+        label:       L.diffLabels[diff],
+        onClick:     () => { this.sfx('sfx-click'); switchDiff(diff); },
+        variant:     'primary',
+        active:      diff === currentDiff,
+        noAutoScale: true,
+        fixedWidth:  tabW,
+        fixedHeight: tabH,
+        fontSize:    Math.round(11 * localDpr),
+      });
+      tabHandles.set(diff, handle);
+      modal.add(handle.container);
+    });
+
+    await renderTable(currentDiff);
+  }
+
+  private showCompactLeaderboard(
+    data:         LeaderboardData,
+    _W:           number,
+    H:            number,
+    cx:           number,
+    modalBottomY: number,
+    pW:           number,
+    localDpr:     number,
+  ): void {
+    const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
+
+    // Find player and neighbors, or show top 3
+    const playerIdx  = data.rows.findIndex(r => r.isPlayer);
+    const displayRows = playerIdx === -1
+      ? data.rows.slice(0, 3)
+      : data.rows.slice(Math.max(0, playerIdx - 1), playerIdx + 2);
+
+    if (displayRows.length === 0) return;
+
+    const nameFontSz = Math.max(10, Math.floor(pW * 0.038));
+    const rowH       = Math.round(24 * (localDpr / 2 + 0.5));
+    const padV       = 8;
+    const panelH     = displayRows.length * rowH + displayRows.length * 4 + padV * 2;
+    const panelGap   = 10;
+    const panelCy    = modalBottomY + panelGap + panelH / 2;
+
+    if (panelCy + panelH / 2 > H - 8) return;
+
+    const lbContainer = this.add.container(cx, panelCy).setDepth(21).setAlpha(0);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(UI.panel.bg);
+    bg.fillRoundedRect(-pW / 2, -panelH / 2, pW, panelH, UI.panel.radius);
+    bg.lineStyle(UI.panel.borderWidth, UI.panel.border, UI.panel.borderAlpha * 0.5);
+    bg.strokeRoundedRect(-pW / 2, -panelH / 2, pW, panelH, UI.panel.radius);
+
+    const rowTexts: Phaser.GameObjects.Text[] = [];
+    displayRows.forEach((row, i) => {
+      const rowY  = -panelH / 2 + padV + i * (rowH + 4) + rowH / 2;
+      const color = row.isPlayer ? accentHex : undefined;
+      rowTexts.push(
+        createText(this, { x: -pW * 0.36, y: rowY, text: `#${row.rank}`,     variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+        createText(this, { x:  pW * 0.02, y: rowY, text: row.name,            variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
+        createText(this, { x:  pW * 0.40, y: rowY, text: String(row.score),   variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+      );
+    });
+
+    lbContainer.add([bg, ...rowTexts]);
+
+    this.tweens.add({
+      targets: lbContainer, alpha: 1,
+      duration: 240, ease: 'Sine.easeOut',
+    });
+  }
+
+  private showAuthPromptIfNeeded(
+    moves:        number,
+    _W:           number,
+    H:            number,
+    cx:           number,
+    modalBottomY: number,
+    pW:           number,
+    localDpr:     number,
+  ): void {
+    if (this.game.registry.get('authPromptShown')) return;
+    const sdk = getYSDK();
+    if (!sdk) return;
+
+    sdk.getPlayer({ scopes: false }).then(player => {
+      if (player.getMode() !== 'lite') return;
+      if (!this.scene.isActive('UIScene')) return;
+
+      this.game.registry.set('authPromptShown', true);
+
+      const btnH = Math.max(36, Math.round(40 * (localDpr / 2 + 0.5)));
+      const btnW = Math.min(pW * 0.85, 280);
+      const estimatedLbH = 100;
+      const btnCy = modalBottomY + estimatedLbH + 12 + btnH / 2;
+
+      if (btnCy + btnH / 2 > H - 8) return;
+
+      const lang: Lang = this.game.registry.get('lang') ?? 'ru';
+      const L = LOCALES[lang];
+
+      const btn = createButton(this, {
+        x: cx, y: btnCy,
+        label:      L.loginToSave,
+        onClick:    () => {
+          sdk.auth.openAuthDialog().then(result => {
+            if (result.action !== 'login') return;
+            sdk.getPlayer({ scopes: false }).then(p => {
+              if (p.getMode() === 'lite') return;
+              const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
+              const lastMoves: number = this.game.registry.get('lastScore') ?? moves;
+              sdk.leaderboards?.setLeaderboardScore(diff, SCORE_BASE - lastMoves).catch(() => {});
+            });
+          }).catch(() => {});
+        },
+        variant:    'ghost',
+        fixedWidth: btnW,
+        fixedHeight: btnH,
+        fontSize:   Math.round(10 * localDpr),
+      });
+
+      btn.container.setDepth(21).setAlpha(0);
+      this.tweens.add({ targets: btn.container, alpha: 1, duration: 240, ease: 'Sine.easeOut' });
+    }).catch(() => {});
   }
 
   private sfx(key: string) {

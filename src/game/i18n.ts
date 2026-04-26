@@ -22,6 +22,11 @@ export interface Locale {
   toMenu: string;
   movesLabel: string;
   timeLabel: string;
+  leaderboard: string;
+  loginToSave: string;
+  lbTitle:     string;
+  lbLoading:   string;
+  lbClose:     string;
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -57,6 +62,11 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'В МЕНЮ',
     movesLabel: 'ХОДОВ',
     timeLabel:  'ВРЕМЯ',
+    leaderboard: 'РЕКОРДЫ',
+    loginToSave: 'Войти и сохранить рекорд',
+    lbTitle:     'Таблица рекордов',
+    lbLoading:   'Загрузка...',
+    lbClose:     'ЗАКРЫТЬ',
   },
 
   en: {
@@ -91,6 +101,11 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'TO MENU',
     movesLabel: 'MOVES',
     timeLabel:  'TIME',
+    leaderboard: 'RECORDS',
+    loginToSave: 'Log in to save score',
+    lbTitle:     'Leaderboard',
+    lbLoading:   'Loading...',
+    lbClose:     'CLOSE',
   },
 
   tr: {
@@ -125,6 +140,11 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'MENÜYE',
     movesLabel: 'HAMLE',
     timeLabel:  'SÜRE',
+    leaderboard: 'REKORDLAR',
+    loginToSave: 'Puanı kaydetmek için giriş yap',
+    lbTitle:     'Liderlik Tablosu',
+    lbLoading:   'Yükleniyor...',
+    lbClose:     'KAPAT',
   },
 
   es: {
@@ -159,6 +179,11 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'AL MENÚ',
     movesLabel: 'JUGADAS',
     timeLabel:  'TIEMPO',
+    leaderboard: 'RÉCORDS',
+    loginToSave: 'Inicia sesión para guardar',
+    lbTitle:     'Tabla de líderes',
+    lbLoading:   'Cargando...',
+    lbClose:     'CERRAR',
   },
 
   pt: {
@@ -193,6 +218,11 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'AO MENU',
     movesLabel: 'JOGADAS',
     timeLabel:  'TEMPO',
+    leaderboard: 'RECORDES',
+    loginToSave: 'Entrar para salvar pontuação',
+    lbTitle:     'Placar',
+    lbLoading:   'Carregando...',
+    lbClose:     'FECHAR',
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -230,5 +260,10 @@ export const LOCALES: Record<Lang, Locale> = {
     toMenu:  'إلى القائمة',
     movesLabel: 'الحركات',
     timeLabel:  'الوقت',
+    leaderboard: 'الأرقام القياسية',
+    loginToSave: 'سجّل الدخول لحفظ النتيجة',
+    lbTitle:     'لوحة المتصدرين',
+    lbLoading:   'جارٍ التحميل...',
+    lbClose:     'إغلاق',
   },
 };

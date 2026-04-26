@@ -26,6 +26,9 @@ export class GameScene extends Phaser.Scene {
   private rowWidths: readonly number[] = [];
   private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
   private gameActive = true;
+  private lastAdvTime = 0;
+  private static readonly ADV_MIN_INTERVAL = 180_000; // 3 minutes between ads
+
   private onVisibilityChange = () => {
     if (document.hidden) {
       getYSDK()?.features.GameplayAPI?.stop();
@@ -249,24 +252,38 @@ export class GameScene extends Phaser.Scene {
     am?.playSfx(key, volume);
   }
 
+  // ── Ad helper ────────────────────────────────────────────────────────────────
+  private showAdThenProceed(proceed: () => void): void {
+    const sdk = getYSDK();
+    if (!sdk?.adv?.showFullscreenAdv) { proceed(); return; }
+
+    const now = Date.now();
+    if (now - this.lastAdvTime < GameScene.ADV_MIN_INTERVAL) { proceed(); return; }
+
+    type AM = import('../AudioManager').AudioManager;
+    const am = this.game.registry.get('audioManager') as AM | undefined;
+    const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? true;
+
+    sdk.adv.showFullscreenAdv({
+      callbacks: {
+        onOpen:  () => am?.setMuted(true),
+        onClose: () => { this.lastAdvTime = Date.now(); am?.setMuted(!soundEnabled); proceed(); },
+        onError: () => { am?.setMuted(!soundEnabled); proceed(); },
+      },
+    });
+  }
+
   // ── Public API for UIScene ───────────────────────────────────────────────────
   restartGame() {
-    this.scene.restart();
+    getYSDK()?.features.GameplayAPI?.stop();
+    this.showAdThenProceed(() => this.scene.restart());
   }
 
   goToMenu() {
     getYSDK()?.features.GameplayAPI?.stop();
-    const sdk = getYSDK();
-    const proceed = () => {
+    this.showAdThenProceed(() => {
       this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
-    };
-    if (sdk?.adv?.showFullscreenAdv) {
-      sdk.adv.showFullscreenAdv({
-        callbacks: { onClose: proceed, onError: proceed },
-      });
-    } else {
-      proceed();
-    }
+    });
   }
 }
