@@ -1,4 +1,11 @@
 declare global {
+  interface YandexLeaderboardEntry {
+    score: number;
+    rank: number;
+    player: { publicName: string; getAvatarSrc(size: string): string };
+    formattedScore: string;
+  }
+
   interface YandexGamesSDK {
     environment: {
       app: { id: string };
@@ -16,9 +23,13 @@ declare global {
       LoadingAPI?: { ready(): void };
       GameplayAPI?: { start(): void; stop(): void };
     };
+    auth: {
+      openAuthDialog(): Promise<{ action: 'close' | 'login' }>;
+    };
     adv: {
       showFullscreenAdv(opts: {
         callbacks: {
+          onOpen?:  () => void;
           onClose?: (wasShown: boolean) => void;
           onError?: (e: Error) => void;
         };
@@ -30,11 +41,19 @@ declare global {
           onError?: (e: Error) => void;
         };
       }): void;
+      showBannerAdv(): void;
+      hideBannerAdv(): void;
+      getBannerAdvStatus(): Promise<{ stickyAdvIsShowing: boolean; reason?: string }>;
     };
     getPlayer(opts?: { scopes?: boolean }): Promise<YandexPlayer>;
     leaderboards?: {
       setLeaderboardScore(name: string, score: number): Promise<void>;
-      getLeaderboardPlayerEntry(name: string): Promise<unknown>;
+      getLeaderboardPlayerEntry(name: string): Promise<YandexLeaderboardEntry>;
+      getLeaderboardEntries(name: string, opts?: {
+        quantityTop?: number;
+        includeUser?: boolean;
+        quantityAround?: number;
+      }): Promise<{ entries: YandexLeaderboardEntry[] }>;
     };
   }
 

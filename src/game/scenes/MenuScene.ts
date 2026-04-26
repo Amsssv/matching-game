@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
+import { getYSDK } from '../../ysdk';
+import { fetchLeaderboard } from '../leaderboard';
 import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
 import { type Difficulty } from '../layout';
 import { createButton, createTitle, createSubtitle, createIconButton, createText, preWarmGradients } from '../ui/factory';
@@ -55,6 +57,12 @@ export class MenuScene extends Phaser.Scene {
     if (!this.fromResize) {
       this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
     }
+
+    // Show sticky banner while in menu; hide when leaving
+    getYSDK()?.adv.showBannerAdv();
+    this.events.once('shutdown', () => {
+      getYSDK()?.adv.hideBannerAdv();
+    });
 
     // Game.tsx now tracks window.resize and updates the container div when DPR changes.
     // That triggers Phaser's ScaleManager (via ResizeObserver) to resize the canvas and
@@ -272,6 +280,161 @@ export class MenuScene extends Phaser.Scene {
       fixedWidth:  pW,
       fixedHeight: pH,
     });
+
+    // ── Leaderboard button ───────────────────────────────────────────────────
+    const lbH    = Math.round(pH / 1.5);
+    const lbBtnY = playY + pH / 2 + 14 + lbH / 2;
+
+    createButton(this, {
+      x:           midX,
+      y:           lbBtnY,
+      label:       '🏆 ' + L.leaderboard,
+      onClick:     () => { this.sfx('sfx-click'); this.openLeaderboardModal(W, H); },
+      variant:     'ghost',
+      fixedWidth:  pW,
+      fixedHeight: lbH,
+    });
+  }
+
+  private async requireAuthIfNeeded(): Promise<void> {
+    const sdk = getYSDK();
+    if (!sdk) return;
+    try {
+      const player = await sdk.getPlayer({ scopes: false });
+      if (player.getMode() !== 'lite') return;
+      await sdk.auth.openAuthDialog();
+    } catch {
+      // auth unavailable or dismissed — proceed anyway
+    }
+  }
+
+  private async openLeaderboardModal(W: number, H: number): Promise<void> {
+    await this.requireAuthIfNeeded();
+
+    const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const L         = LOCALES[this.lang];
+    const cx        = W / 2;
+    const cy        = H / 2;
+    const pW        = Math.min(W * 0.92, 486);
+    const pH        = Math.min(H * 0.78, 460);
+    const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
+
+    // Backdrop
+    const backdrop = this.add.graphics().setDepth(20);
+    backdrop.fillStyle(UI.colors.bgDark);
+    backdrop.fillRect(0, 0, W, H);
+    backdrop.setAlpha(0);
+    this.tweens.add({ targets: backdrop, alpha: 0.78, duration: UI.animation.fadeScene, ease: 'Sine.easeOut' });
+
+    // Modal container
+    const modal = this.add.container(cx, cy).setDepth(21).setAlpha(0).setScale(0.9);
+    this.tweens.add({ targets: modal, alpha: 1, scale: 1, duration: UI.animation.fadeScene, ease: 'Back.easeOut' });
+
+    const closeModal = () => {
+      this.sfx('sfx-click');
+      backdrop.destroy();
+      modal.destroy(true);
+    };
+
+    // Panel
+    const panelGfx = this.add.graphics();
+    panelGfx.fillStyle(UI.panel.bg);
+    panelGfx.fillRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+    panelGfx.lineStyle(UI.panel.borderWidth, UI.panel.border, UI.panel.borderAlpha);
+    panelGfx.strokeRoundedRect(-pW / 2, -pH / 2, pW, pH, UI.panel.radius);
+
+    // Title
+    const titleFontSize = Math.min(26, Math.floor(pW * 0.11));
+    const titleY        = -pH / 2 + 28 + titleFontSize / 2;
+    const titleText     = createText(this, {
+      x: 0, y: titleY, text: '🏆 ' + L.lbTitle, variant: 'title', localDpr, fontSize: titleFontSize,
+    });
+
+    // Difficulty tabs
+    const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+    let currentDiff: Difficulty = this.difficulty;
+
+    const tabH   = Math.max(22, Math.round(26 * (localDpr / 2 + 0.5)));
+    const tabGap = Math.round(4 * localDpr) + 12;
+    const tabW   = Math.floor((pW - tabGap * 3 - 40) / 4);
+    const tabsY  = titleY + titleFontSize / 2 + 20 + tabH / 2;
+
+    const tabHandles = new Map<Difficulty, ButtonHandle>();
+
+    // Separator + table area
+    const sepY        = tabsY + tabH / 2 + 10;
+    const tableStartY = sepY + 20;
+    const rowH        = Math.round(28 * (localDpr / 2 + 0.5));
+    const nameFontSz  = Math.max(10, Math.floor(pW * 0.04));
+
+    const sep = this.add.graphics();
+    sep.lineStyle(1, UI.colors.accent, 0.35);
+    sep.lineBetween(-pW * 0.4, sepY, pW * 0.4, sepY);
+
+    const loadingText = createText(this, { x: 0, y: tableStartY + rowH, text: L.lbLoading, variant: 'stat', localDpr });
+    const tableContainer = this.add.container(0, 0);
+
+    // Close button
+    const closeBtnH = Math.max(36, Math.round(40 * (localDpr / 2 + 0.5)));
+    const closeBtnW = Math.min(pW * 0.55, 180);
+    const closeBtnY = pH / 2 - closeBtnH / 2 - 16;
+    const closeBtn  = createButton(this, {
+      x: 0, y: closeBtnY, label: L.lbClose, onClick: closeModal,
+      variant: 'ghost', fixedWidth: closeBtnW, fixedHeight: closeBtnH,
+      fontSize: Math.round(11 * localDpr),
+    });
+
+    modal.add([panelGfx, titleText, sep, loadingText, tableContainer, closeBtn.container]);
+
+    // Table render — clears and refills tableContainer
+    const renderTable = async (diff: Difficulty) => {
+      tableContainer.removeAll(true);
+      loadingText.setVisible(true);
+      const data = await fetchLeaderboard(diff);
+      if (!modal.active) return;
+      loadingText.setVisible(false);
+      if (!data || data.rows.length === 0) {
+        tableContainer.add(createText(this, { x: 0, y: tableStartY + rowH, text: '—', variant: 'stat', localDpr }));
+        return;
+      }
+      const rowTexts: Phaser.GameObjects.Text[] = [];
+      data.rows.forEach((row, i) => {
+        const rowY  = tableStartY + i * (rowH + 6) + rowH / 2;
+        const color = row.isPlayer ? accentHex : undefined;
+        rowTexts.push(
+          createText(this, { x: -(pW / 2 - 20), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  0,             y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - 20,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+        );
+      });
+      tableContainer.add(rowTexts);
+    };
+
+    const switchDiff = (diff: Difficulty) => {
+      currentDiff = diff;
+      tabHandles.forEach((handle, d) => handle.setActive(d === diff));
+      renderTable(diff);
+    };
+
+    // Create tab buttons
+    difficulties.forEach((diff, i) => {
+      const tx     = -pW / 2 + 20 + i * (tabW + tabGap) + tabW / 2;
+      const handle = createButton(this, {
+        x: tx, y: tabsY,
+        label:       L.diffLabels[diff],
+        onClick:     () => { this.sfx('sfx-click'); switchDiff(diff); },
+        variant:     'primary',
+        active:      diff === currentDiff,
+        noAutoScale: true,
+        fixedWidth:  tabW,
+        fixedHeight: tabH,
+        fontSize:    Math.round(11 * localDpr),
+      });
+      tabHandles.set(diff, handle);
+      modal.add(handle.container);
+    });
+
+    await renderTable(currentDiff);
   }
 
   private sfx(key: string) {

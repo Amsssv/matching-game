@@ -20,8 +20,6 @@ const palette = {
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
-const _dpr = Math.min(window.devicePixelRatio || 1, 2);
-
 export const UI = {
 
   // ── Semantic colors ─────────────────────────────────────────────────────────
@@ -156,7 +154,7 @@ export const UI = {
   // ── Layout ───────────────────────────────────────────────────────────────────
   layout: {
     /** Header bar height in game pixels (= 56 CSS px × DPR). */
-    headerH: Math.round(56 * _dpr),
+    get headerH() { return Math.round(56 * Math.min(window.devicePixelRatio || 1, 2)); },
   },
 
   // ── Animation durations (ms) ─────────────────────────────────────────────────
