@@ -229,7 +229,7 @@ export function createButton(
 
   let tmpDesc: Phaser.GameObjects.Text | undefined;
   if (description) {
-    const descSz = clamp(Math.round(fontSize * 0.75), 8, 14);
+    const descSz = clamp(Math.round(fontSize * 0.75), 8, 18);
     tmpDesc = scene.add.text(0, 0, description, {
       fontSize: `${descSz}px`, fontFamily: UI.font.body,
     }).setVisible(false);
@@ -267,7 +267,7 @@ export function createButton(
 
   let descTxt: Phaser.GameObjects.Text | undefined;
   if (description) {
-    const descSz = clamp(Math.round(fontSize * 0.75), 8, 14);
+    const descSz = clamp(Math.round(fontSize * 0.75), 8, 18);
     const descY  = totalTextH / 2 - descH / 2;
     descTxt = scene.add.text(0, descY, description, {
       fontSize: `${descSz}px`,

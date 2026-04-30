@@ -168,7 +168,8 @@ export class MenuScene extends Phaser.Scene {
     // On mobile stretch buttons to fill the usable width (2 columns with one gap)
     const mobileBtnW = isMobile ? Math.floor((W * 0.92 - mobileGap) / 2) : diffBtnW;
 
-    const lblSz = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
+    const lblSzBase = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
+    const lblSz = isMobile ? Math.round(lblSzBase * 1.5) : lblSzBase;
     const diffHandles = new Map<Difficulty, ButtonHandle>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       let bx: number, by: number;
@@ -257,7 +258,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Leaderboard button ───────────────────────────────────────────────────
-    const lbH    = Math.round(pH / 1.5);
+    const lbH    = isMobile ? Math.round(pH) : Math.round(pH / 1.5);
     const lbBtnY = playY + pH / 2 + 14 + lbH / 2;
 
     createButton(this, {
@@ -268,6 +269,7 @@ export class MenuScene extends Phaser.Scene {
       variant:     'ghost',
       fixedWidth:  pW,
       fixedHeight: lbH,
+      fontSize:    Math.round(lbH * 0.4),
     });
   }
 
