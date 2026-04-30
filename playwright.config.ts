@@ -46,5 +46,28 @@ export default defineConfig({
         deviceScaleFactor: 2,
       },
     },
+    // ── Store screenshot projects ─────────────────────────────────────────────
+    // CSS 360×640 × dpr3 → physical 1080×1920 (9:16 portrait, Yandex mobile).
+    // Pixel 5 (Chromium) is used instead of iPhone 12 (WebKit) — WebKit is not
+    // installed. Android UA still satisfies isMobileDevice() → 2×2 grid layout.
+    {
+      name: 'store-mobile',
+      testMatch: '**/store-screenshots.spec.ts',
+      use: {
+        ...devices['Pixel 5'],
+        viewport: { width: 360, height: 640 },
+        deviceScaleFactor: 3,
+      },
+    },
+    // 1280×720 (16:9 landscape, Yandex desktop)
+    {
+      name: 'store-desktop',
+      testMatch: '**/store-screenshots.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 1,
+      },
+    },
   ],
 });
