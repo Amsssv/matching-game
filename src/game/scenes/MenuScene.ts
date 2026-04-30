@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { CUSTOM_ASSETS } from '../assets-config';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
 import { getYSDK } from '../../ysdk';
@@ -82,31 +81,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private drawBackground(W: number, H: number) {
-    if (CUSTOM_ASSETS.bg && this.textures.exists('bg')) {
-      this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H);
-      return;
-    }
-    const g = this.add.graphics();
-    g.fillStyle(UI.colors.bgDark);
-    g.fillRect(0, 0, W, H);
-    const cx = W / 2;
-    const cy = H * 0.45;
-    for (let i = 6; i >= 0; i--) {
-      g.fillStyle(UI.colors.border, 0.03 * (7 - i));
-      g.fillEllipse(cx, cy, W * 0.7 * (i / 6 + 0.4), H * 0.5 * (i / 6 + 0.4));
-    }
-    g.lineStyle(1, UI.colors.primary, 0.08);
-    for (let row = 0; row < 5; row++) {
-      const y = H * 0.75 + row * 18;
-      g.beginPath();
-      for (let x = 0; x <= W; x += 3) {
-        const wy = y + Math.sin((x / W) * Math.PI * 6 + row) * 4;
-        x === 0 ? g.moveTo(x, wy) : g.lineTo(x, wy);
-      }
-      g.strokePath();
-    }
-    g.lineStyle(1, UI.colors.primary, 0.15);
-    g.strokeRect(16, 16, W - 32, H - 32);
+    this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H);
   }
 
   private createUI(W: number, H: number) {

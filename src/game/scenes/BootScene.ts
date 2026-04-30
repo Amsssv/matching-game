@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
+import { SYMBOLS } from '../assets-config';
 import { AudioManager } from '../AudioManager';
 import { resolveLang, readSoundEnabled } from '../settings';
 import { getYSDK } from '../../ysdk';
@@ -27,16 +27,10 @@ export class BootScene extends Phaser.Scene {
     // this.load.audio('sfx-win',   'assets/sfx/win.mp3');     // победа
     // ─────────────────────────────────────────────────────────────────────────
 
-    if (CUSTOM_ASSETS.bg) {
-      this.load.image('bg', 'assets/bg.webp');
-    }
+    this.load.image('bg', 'assets/bg.webp');
     this.load.image('island', 'assets/iland.webp');
-    if (CUSTOM_ASSETS.cardBack) {
-      this.load.image('card-back', 'assets/cards/back.webp');
-    }
-    if (CUSTOM_ASSETS.cardFaces) {
-      SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));
-    }
+    this.load.image('card-back', 'assets/cards/back.webp');
+    SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));
   }
 
   create() {

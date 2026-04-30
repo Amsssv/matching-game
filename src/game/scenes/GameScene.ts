@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { UI } from '../ui/config';
-import { CUSTOM_ASSETS, SYMBOLS } from '../assets-config';
+import { SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
 import { DIFF_ROWS, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
 
@@ -24,7 +24,7 @@ export class GameScene extends Phaser.Scene {
   totalPairs = 0;
 
   private rowWidths: readonly number[] = [];
-  private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
+  private bgObj?: Phaser.GameObjects.Image;
   private islandObj?: Phaser.GameObjects.Image;
   private gameActive = true;
   private lastAdvTime = 0;
@@ -80,28 +80,8 @@ export class GameScene extends Phaser.Scene {
 
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(W: number, H: number) {
-    // Full-screen ocean background
-    if (CUSTOM_ASSETS.bg && this.textures.exists('bg')) {
-      this.bgObj = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(-1);
-    } else {
-      const g = this.add.graphics().setDepth(-1);
-      g.fillStyle(UI.colors.bgDark);
-      g.fillRect(0, 0, W, H);
-      g.lineStyle(1, UI.colors.primary, 0.06);
-      for (let row = 0; row < 4; row++) {
-        const y = H * 0.72 + row * 16;
-        g.beginPath();
-        for (let x = 0; x <= W; x += 3) {
-          const wy = y + Math.sin((x / W) * Math.PI * 5 + row * 0.8) * 3;
-          x === 0 ? g.moveTo(x, wy) : g.lineTo(x, wy);
-        }
-        g.strokePath();
-      }
-      this.bgObj = g;
-    }
-
-    // Island — guard prevents duplicate on Graphics-bg resize path
-    if (this.textures.exists('island') && !this.islandObj) {
+    this.bgObj = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(-1);
+    if (!this.islandObj) {
       const { x, y, w, h } = this.calcIslandBounds(W, H);
       this.islandObj = this.add.image(x, y, 'island').setDisplaySize(w, h).setDepth(0);
     }
@@ -187,12 +167,7 @@ export class GameScene extends Phaser.Scene {
     const H = gameSize.height;
 
     // Reposition / rescale background
-    if (this.bgObj instanceof Phaser.GameObjects.Image) {
-      this.bgObj.setPosition(W / 2, H / 2).setDisplaySize(W, H);
-    } else if (this.bgObj instanceof Phaser.GameObjects.Graphics) {
-      this.bgObj.destroy();
-      this.drawBackground(W, H); // sets this.bgObj; island skipped via !this.islandObj guard
-    }
+    this.bgObj?.setPosition(W / 2, H / 2).setDisplaySize(W, H);
 
     // Compute island bounds once — reused for island reposition and card layout
     const island = this.calcIslandBounds(W, H);
