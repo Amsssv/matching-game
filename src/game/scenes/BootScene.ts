@@ -29,8 +29,8 @@ export class BootScene extends Phaser.Scene {
 
     if (CUSTOM_ASSETS.bg) {
       this.load.image('bg', 'assets/bg.webp');
-      this.load.image('bg-game', 'assets/bg-game.webp');
     }
+    this.load.image('island', 'assets/iland.webp');
     if (CUSTOM_ASSETS.cardBack) {
       this.load.image('card-back', 'assets/cards/back.webp');
     }

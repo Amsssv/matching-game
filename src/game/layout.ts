@@ -15,45 +15,46 @@ export const DIFF_ROWS: Record<Difficulty, readonly number[]> = {
 
 export function calcLayout(
   rowWidths: readonly number[],
-  W: number,
-  H: number,
-  headerH: number,
+  areaW: number,
+  areaH: number,
+  originX: number,
+  originY: number,
 ): Layout {
-  const padH = Math.max(40, H * 0.09);
-  const padW = Math.max(8, W * 0.02);
-  const availW = W - padW * 2;
-  const availH = H - headerH - padH * 2;
   const numRows = rowWidths.length;
   const maxCols = Math.max(...rowWidths);
-
   const minGap = 8;
-  let cardW = Math.floor((availW - (maxCols - 1) * minGap) / maxCols);
+
+  let cardW = Math.floor((areaW - (maxCols - 1) * minGap) / maxCols);
   let cardH = Math.round(cardW * (4 / 3));
 
-  const maxCardH = Math.floor((availH - (numRows - 1) * minGap) / numRows);
+  const maxCardH = Math.floor((areaH - (numRows - 1) * minGap) / numRows);
   if (cardH > maxCardH) {
     cardH = maxCardH;
     cardW = Math.round(cardH * (3 / 4));
   }
-
   cardH = Math.round(cardW * (4 / 3));
 
   const gapX = Math.min(
-    Math.max(Math.floor((availW - maxCols * cardW) / Math.max(1, maxCols - 1)), minGap),
+    Math.max(Math.floor((areaW - maxCols * cardW) / Math.max(1, maxCols - 1)), minGap),
     24,
   );
-  const gapY = Math.min(
-    Math.max(Math.floor((availH - numRows * cardH) / Math.max(1, numRows - 1)), minGap),
+  let gapY = Math.min(
+    Math.max(Math.floor((areaH - numRows * cardH) / Math.max(1, numRows - 1)), minGap),
     24,
   );
+  // Ensure grid actually fits
+  let gridH = numRows * cardH + (numRows - 1) * gapY;
+  if (gridH > areaH && numRows > 1) {
+    gapY = Math.floor((areaH - numRows * cardH) / (numRows - 1));
+    gridH = numRows * cardH + (numRows - 1) * gapY;
+  }
 
-  const gridH = numRows * cardH + (numRows - 1) * gapY;
-  const startY = headerH + (availH - gridH) / 2 + padH + cardH / 2;
+  const startY = originY - gridH / 2 + cardH / 2;
 
   const positions: { x: number; y: number }[] = [];
   rowWidths.forEach((cols, rowIdx) => {
     const rowW = cols * cardW + (cols - 1) * gapX;
-    const rowStartX = (W - rowW) / 2 + cardW / 2;
+    const rowStartX = originX - rowW / 2 + cardW / 2;
     const y = startY + rowIdx * (cardH + gapY);
     for (let col = 0; col < cols; col++) {
       positions.push({ x: rowStartX + col * (cardW + gapX), y });

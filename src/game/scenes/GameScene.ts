@@ -25,9 +25,11 @@ export class GameScene extends Phaser.Scene {
 
   private rowWidths: readonly number[] = [];
   private bgObj?: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
+  private islandObj?: Phaser.GameObjects.Image;
   private gameActive = true;
   private lastAdvTime = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000; // 3 minutes between ads
+  private static readonly CARD_AREA_RATIO = 0.80;    // 10% inset from each island edge
 
   private onVisibilityChange = () => {
     if (document.hidden) {
@@ -48,6 +50,8 @@ export class GameScene extends Phaser.Scene {
     this.moves = 0;
     this.matchedPairs = 0;
     this.gameActive = true;
+    this.bgObj = undefined;
+    this.islandObj = undefined;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     this.rowWidths = DIFF_ROWS[difficulty];
@@ -70,36 +74,66 @@ export class GameScene extends Phaser.Scene {
       this.scale.off('resize', this.onResize, this);
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       this.cards.forEach(card => card.maskGfx.destroy());
+      this.islandObj?.destroy();
     });
   }
 
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(W: number, H: number) {
-    if (CUSTOM_ASSETS.bg && this.textures.exists('bg-game')) {
-      const bgH = H - UI.layout.headerH;
-      this.bgObj = this.add.image(W / 2, UI.layout.headerH + bgH / 2, 'bg-game').setDisplaySize(W, bgH);
-      return;
-    }
-    const g = this.add.graphics();
-    g.fillStyle(UI.colors.bgDark);
-    g.fillRect(0, 0, W, H);
-    // Subtle wave lines at bottom third
-    g.lineStyle(1, UI.colors.primary, 0.06);
-    for (let row = 0; row < 4; row++) {
-      const y = H * 0.72 + row * 16;
-      g.beginPath();
-      for (let x = 0; x <= W; x += 3) {
-        const wy = y + Math.sin((x / W) * Math.PI * 5 + row * 0.8) * 3;
-        x === 0 ? g.moveTo(x, wy) : g.lineTo(x, wy);
+    // Full-screen ocean background
+    if (CUSTOM_ASSETS.bg && this.textures.exists('bg')) {
+      this.bgObj = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(-1);
+    } else {
+      const g = this.add.graphics().setDepth(-1);
+      g.fillStyle(UI.colors.bgDark);
+      g.fillRect(0, 0, W, H);
+      g.lineStyle(1, UI.colors.primary, 0.06);
+      for (let row = 0; row < 4; row++) {
+        const y = H * 0.72 + row * 16;
+        g.beginPath();
+        for (let x = 0; x <= W; x += 3) {
+          const wy = y + Math.sin((x / W) * Math.PI * 5 + row * 0.8) * 3;
+          x === 0 ? g.moveTo(x, wy) : g.lineTo(x, wy);
+        }
+        g.strokePath();
       }
-      g.strokePath();
+      this.bgObj = g;
     }
-    this.bgObj = g;
+
+    // Island — guard prevents duplicate on Graphics-bg resize path
+    if (this.textures.exists('island') && !this.islandObj) {
+      const { x, y, w, h } = this.calcIslandBounds(W, H);
+      this.islandObj = this.add.image(x, y, 'island').setDisplaySize(w, h).setDepth(0);
+    }
+  }
+
+  private calcIslandBounds(W: number, H: number): { x: number; y: number; w: number; h: number } {
+    const availH = H - UI.layout.headerH;
+    const ISLAND_ASPECT = 1093 / 1267; // h/w of iland.webp
+    const TARGET = 0.9;
+    let islandW = W * TARGET;
+    let islandH = islandW * ISLAND_ASPECT;
+    const maxH = availH * TARGET;
+    if (islandH > maxH) {
+      islandH = maxH;
+      islandW = islandH / ISLAND_ASPECT;
+    }
+    return {
+      x: W / 2,
+      y: UI.layout.headerH + availH / 2,
+      w: islandW,
+      h: islandH,
+    };
   }
 
   // ── Card layout calculation ──────────────────────────────────────────────────
+  private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }): Layout {
+    const r = GameScene.CARD_AREA_RATIO;
+    return calcLayoutFn(this.rowWidths, island.w * r, island.h * r, island.x, island.y);
+  }
+
   private calcLayout(W: number, H: number): Layout {
-    return calcLayoutFn(this.rowWidths, W, H, UI.layout.headerH);
+    return this.calcLayoutFromIsland(this.calcIslandBounds(W, H));
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
@@ -154,16 +188,22 @@ export class GameScene extends Phaser.Scene {
 
     // Reposition / rescale background
     if (this.bgObj instanceof Phaser.GameObjects.Image) {
-      const bgH = H - UI.layout.headerH;
-      this.bgObj.setPosition(W / 2, UI.layout.headerH + bgH / 2).setDisplaySize(W, bgH);
+      this.bgObj.setPosition(W / 2, H / 2).setDisplaySize(W, H);
     } else if (this.bgObj instanceof Phaser.GameObjects.Graphics) {
       this.bgObj.destroy();
-      this.drawBackground(W, H);
-      this.bgObj.setDepth(-1);
+      this.drawBackground(W, H); // sets this.bgObj; island skipped via !this.islandObj guard
+    }
+
+    // Compute island bounds once — reused for island reposition and card layout
+    const island = this.calcIslandBounds(W, H);
+
+    // Reposition island
+    if (this.islandObj) {
+      this.islandObj.setPosition(island.x, island.y).setDisplaySize(island.w, island.h);
     }
 
     // Relayout cards
-    const layout = this.calcLayout(W, H);
+    const layout = this.calcLayoutFromIsland(island);
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
