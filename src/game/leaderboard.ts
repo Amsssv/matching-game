@@ -24,11 +24,11 @@ export async function fetchLeaderboard(difficulty: Difficulty): Promise<Leaderbo
 
   try {
     const player  = await sdk.getPlayer({ scopes: false });
-    const isGuest = player.getMode() === 'lite';
+    const isGuest = !player.isAuthorized();
 
     const [topResult, playerResult] = await Promise.allSettled([
-      lb.getLeaderboardEntries(difficulty, { quantityTop: 5, includeUser: !isGuest }),
-      isGuest ? Promise.reject('guest') : lb.getLeaderboardPlayerEntry(difficulty),
+      lb.getEntries(difficulty, { quantityTop: 5, includeUser: !isGuest }),
+      isGuest ? Promise.reject('guest') : lb.getPlayerEntry(difficulty),
     ]);
 
     if (topResult.status === 'rejected') return null;

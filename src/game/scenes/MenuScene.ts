@@ -278,7 +278,7 @@ export class MenuScene extends Phaser.Scene {
     if (!sdk) return;
     try {
       const player = await sdk.getPlayer({ scopes: false });
-      if (player.getMode() !== 'lite') return;
+      if (player.isAuthorized()) return;
       await sdk.auth.openAuthDialog();
     } catch {
       // auth unavailable or dismissed — proceed anyway

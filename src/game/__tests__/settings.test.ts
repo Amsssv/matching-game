@@ -104,7 +104,7 @@ describe('resolveLang', () => {
     vi.doMock('../../ysdk', () => ({
       getYSDK: () => ({
         environment: { i18n: { lang: 'tr' } },
-        getPlayer: async () => ({ getMode: () => 'lite', getData: async () => ({}) }),
+        getPlayer: async () => ({ isAuthorized: () => false, getData: async () => ({}) }),
       }),
     }));
     const { resolveLang } = await import('../settings');
@@ -116,7 +116,7 @@ describe('resolveLang', () => {
       getYSDK: () => ({
         environment: { i18n: { lang: 'tr' } },
         getPlayer: async () => ({
-          getMode: () => 'authorized',
+          isAuthorized: () => true,
           getData: async (_keys: string[]) => ({ lang: 'es' }),
         }),
       }),
@@ -130,7 +130,7 @@ describe('resolveLang', () => {
       getYSDK: () => ({
         environment: { i18n: { lang: 'pt' } },
         getPlayer: async () => ({
-          getMode: () => 'authorized',
+          isAuthorized: () => true,
           getData: async () => ({}),
         }),
       }),

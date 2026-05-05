@@ -39,7 +39,7 @@ export async function resolveLang(): Promise<Lang> {
   if (sdk) {
     try {
       const player = await sdk.getPlayer({ scopes: false });
-      if (player.getMode() !== 'lite') {
+      if (player.isAuthorized()) {
         const data = await player.getData(['lang']);
         if (isLang(data.lang)) return (_cachedLang = data.lang);
       }
@@ -109,7 +109,7 @@ export function saveLang(lang: Lang): void {
   (async () => {
     try {
       const player = await sdk.getPlayer({ scopes: false });
-      if (player.getMode() !== 'lite') {
+      if (player.isAuthorized()) {
         await player.setData({ lang }, true);
       }
     } catch {

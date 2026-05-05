@@ -30,10 +30,10 @@ describe('fetchLeaderboard', () => {
       { rank: 2, score: 15, player: { publicName: 'Beta',  getAvatarSrc: () => '' }, formattedScore: '15' },
     ];
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({
-      getPlayer: async () => ({ getMode: () => '', getName: () => 'Me' }),
+      getPlayer: async () => ({ isAuthorized: () => true, getName: () => 'Me' }),
       leaderboards: {
-        getLeaderboardEntries: async () => ({ entries }),
-        getLeaderboardPlayerEntry: async () => ({ rank: 2, score: 15, player: { publicName: 'Beta', getAvatarSrc: () => '' }, formattedScore: '15' }),
+        getEntries: async () => ({ entries }),
+        getPlayerEntry: async () => ({ rank: 2, score: 15, player: { publicName: 'Beta', getAvatarSrc: () => '' }, formattedScore: '15' }),
       },
     }));
 
@@ -49,10 +49,10 @@ describe('fetchLeaderboard', () => {
       { rank: 1, score: 10, player: { publicName: 'Alpha', getAvatarSrc: () => '' }, formattedScore: '10' },
     ];
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({
-      getPlayer: async () => ({ getMode: () => '', getName: () => 'Me' }),
+      getPlayer: async () => ({ isAuthorized: () => true, getName: () => 'Me' }),
       leaderboards: {
-        getLeaderboardEntries: async () => ({ entries }),
-        getLeaderboardPlayerEntry: async () => ({ rank: 7, score: 42, player: { publicName: 'Me', getAvatarSrc: () => '' }, formattedScore: '42' }),
+                 getEntries: async () => ({ entries }),
+        getPlayerEntry: async () => ({ rank: 7, score: 42, player: { publicName: 'Me', getAvatarSrc: () => '' }, formattedScore: '42' }),
       },
     }));
 
@@ -67,10 +67,10 @@ describe('fetchLeaderboard', () => {
       { rank: 1, score: 10, player: { publicName: 'Alpha', getAvatarSrc: () => '' }, formattedScore: '10' },
     ];
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({
-      getPlayer: async () => ({ getMode: () => 'lite', getName: () => '' }),
+      getPlayer: async () => ({ isAuthorized: () => false, getName: () => '' }),
       leaderboards: {
-        getLeaderboardEntries: async () => ({ entries }),
-        getLeaderboardPlayerEntry: async () => { throw new Error('guest'); },
+        getEntries: async () => ({ entries }),
+        getPlayerEntry: async () => { throw new Error('guest'); },
       },
     }));
 
@@ -82,10 +82,10 @@ describe('fetchLeaderboard', () => {
 
   it('returns null when leaderboard network fetch fails', async () => {
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({
-      getPlayer: async () => ({ getMode: () => '', getName: () => 'Me' }),
+      getPlayer: async () => ({ isAuthorized: () => true, getName: () => 'Me' }),
       leaderboards: {
-        getLeaderboardEntries: async () => { throw new Error('network'); },
-        getLeaderboardPlayerEntry: async () => { throw new Error(); },
+        getEntries: async () => { throw new Error('network'); },
+        getPlayerEntry: async () => { throw new Error(); },
       },
     }));
 

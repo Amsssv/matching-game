@@ -297,6 +297,7 @@ export function createButton(
 
   // ── Hover / click ─────────────────────────────────────────────────────────
   const isDeep = vcfg.style === 'deep';
+  let pendingClick = false;
   container.on('pointerover', () => {
     if (!isActive) { isHover = true; draw(); }
     if (isDeep) {
@@ -305,13 +306,15 @@ export function createButton(
     }
   });
   container.on('pointerout', () => {
+    pendingClick = false;
     if (!isActive) { isHover = false; draw(); }
     if (isDeep) {
       scene.tweens.killTweensOf(container);
       scene.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 150, ease: 'Cubic.easeOut' });
     }
   });
-  container.on('pointerdown', () => onClick());
+  container.on('pointerdown', () => { pendingClick = true; });
+  container.on('pointerup',   () => { if (pendingClick) { pendingClick = false; onClick(); } });
 
   return {
     container,

@@ -51,14 +51,14 @@ export class UIScene extends Phaser.Scene {
 
     const onMoves    = (n: number) => this.movesText.setText(this.L.moves(n));
     const onMatch    = (n: number) => this.updatePairsText(n);
-    const onComplete = (n: number) => {
+    const onComplete = async (n: number) => {
       this.timerEvent?.remove();
       this.game.registry.set('lastScore', n);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const lb = getYSDK()?.leaderboards;
-      if (lb && typeof lb.setLeaderboardScore === 'function') {
-        lb.setLeaderboardScore(difficulty, SCORE_BASE - n).catch(() => {});
+      if (lb) {
+        await lb.setScore(difficulty, SCORE_BASE - n).catch(() => {});
       }
       this.showVictory(n, this.elapsedSeconds);
     };
@@ -535,7 +535,7 @@ export class UIScene extends Phaser.Scene {
     if (!sdk) return;
 
     sdk.getPlayer({ scopes: false }).then(player => {
-      if (player.getMode() !== 'lite') return;
+      if (player.isAuthorized()) return;
       if (!this.scene.isActive('UIScene')) return;
 
       this.game.registry.set('authPromptShown', true);
@@ -557,10 +557,10 @@ export class UIScene extends Phaser.Scene {
           sdk.auth.openAuthDialog().then(result => {
             if (result.action !== 'login') return;
             sdk.getPlayer({ scopes: false }).then(p => {
-              if (p.getMode() === 'lite') return;
+              if (!p.isAuthorized()) return;
               const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
               const lastMoves: number = this.game.registry.get('lastScore') ?? moves;
-              sdk.leaderboards?.setLeaderboardScore(diff, SCORE_BASE - lastMoves).catch(() => {});
+              sdk.leaderboards?.setScore(diff, SCORE_BASE - lastMoves).catch(() => {});
             });
           }).catch(() => {});
         },

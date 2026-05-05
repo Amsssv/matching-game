@@ -2,13 +2,16 @@ import Phaser from 'phaser';
 import { UI } from '../ui/config';
 import { SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
-import { DIFF_ROWS, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
+import { DIFF_ROWS, DIFF_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
+import { isMobileDevice } from '../device';
 
 interface Card {
   container: Phaser.GameObjects.Container;
   back: Phaser.GameObjects.Image;
   front: Phaser.GameObjects.Image;
   maskGfx: Phaser.GameObjects.Graphics;
+  shadow: Phaser.GameObjects.Graphics;
+  border: Phaser.GameObjects.Graphics;
   symbol: string;
   index: number;
   isFlipped: boolean;
@@ -24,12 +27,14 @@ export class GameScene extends Phaser.Scene {
   totalPairs = 0;
 
   private rowWidths: readonly number[] = [];
+  private isMobile = false;
   private bgObj?: Phaser.GameObjects.Image;
-  private islandObj?: Phaser.GameObjects.Image;
+  private islandObj?: Phaser.GameObjects.NineSlice;
   private gameActive = true;
   private lastAdvTime = 0;
-  private static readonly ADV_MIN_INTERVAL = 180_000; // 3 minutes between ads
-  private static readonly CARD_AREA_RATIO = 0.80;    // 10% inset from each island edge
+  private static readonly ADV_MIN_INTERVAL = 180_000;
+  private static readonly CARD_AREA_RATIO = 0.80;
+  private static readonly ISLAND_SLICE = { left: 400, right: 400, top: 360, bottom: 400 };
 
   private onVisibilityChange = () => {
     if (document.hidden) {
@@ -54,7 +59,8 @@ export class GameScene extends Phaser.Scene {
     this.islandObj = undefined;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
-    this.rowWidths = DIFF_ROWS[difficulty];
+    this.isMobile = isMobileDevice();
+    this.rowWidths = (this.isMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[difficulty];
     this.totalPairs = this.rowWidths.reduce((s, n) => s + n, 0) / 2;
 
     const W = this.scale.width;
@@ -73,7 +79,7 @@ export class GameScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.scale.off('resize', this.onResize, this);
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
-      this.cards.forEach(card => card.maskGfx.destroy());
+      this.cards.forEach(card => { card.maskGfx.destroy(); card.shadow.destroy(); });
       this.islandObj?.destroy();
     });
   }
@@ -83,37 +89,61 @@ export class GameScene extends Phaser.Scene {
     this.bgObj = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(-1);
     if (!this.islandObj) {
       const { x, y, w, h } = this.calcIslandBounds(W, H);
-      this.islandObj = this.add.image(x, y, 'island').setDisplaySize(w, h).setDepth(0);
+      const s = GameScene.ISLAND_SLICE;
+      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, s.left, s.right, s.top, s.bottom).setDepth(0);
     }
+  }
+
+  private calcRefCardSize(W: number, H: number): { cardW: number; cardH: number } {
+    const availH = H - UI.layout.headerH;
+    const baseAreaW = W * 0.90 * GameScene.CARD_AREA_RATIO;
+    const baseAreaH = availH * 0.90 * GameScene.CARD_AREA_RATIO;
+    const refRows = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
+    const { cardW, cardH } = calcLayoutFn(refRows, baseAreaW, baseAreaH, 0, 0);
+    if (this.isMobile) {
+      return { cardW: Math.round(cardW * 1.5), cardH: Math.round(cardH * 1.5) };
+    }
+    return { cardW, cardH };
   }
 
   private calcIslandBounds(W: number, H: number): { x: number; y: number; w: number; h: number } {
     const availH = H - UI.layout.headerH;
-    const ISLAND_ASPECT = 1093 / 1267; // h/w of iland.webp
-    const TARGET = 0.9;
-    let islandW = W * TARGET;
-    let islandH = islandW * ISLAND_ASPECT;
-    const maxH = availH * TARGET;
-    if (islandH > maxH) {
-      islandH = maxH;
-      islandW = islandH / ISLAND_ASPECT;
-    }
+    const { cardW, cardH } = this.calcRefCardSize(W, H);
+    // Island never shrinks below medium size (easy has fewer cards but same island)
+    const medRef = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
+    const maxCols = Math.max(Math.max(...this.rowWidths), Math.max(...medRef));
+    const numRows = Math.max(this.rowWidths.length, medRef.length);
+
+    // Natural grid size with max gap (24px) — island grows to fit
+    const gridW = maxCols * cardW + (maxCols - 1) * 24;
+    const gridH = numRows * cardH + (numRows - 1) * 24;
+
+    const r = GameScene.CARD_AREA_RATIO;
+    const maxIslandH = this.isMobile ? availH - 300 : availH * 0.97;
     return {
       x: W / 2,
       y: UI.layout.headerH + availH / 2,
-      w: islandW,
-      h: islandH,
+      w: Math.min(gridW / r, W * 0.99),
+      h: Math.min(gridH / r, maxIslandH),
     };
   }
 
   // ── Card layout calculation ──────────────────────────────────────────────────
-  private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }): Layout {
+  private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }, W: number, H: number): Layout {
     const r = GameScene.CARD_AREA_RATIO;
-    return calcLayoutFn(this.rowWidths, island.w * r, island.h * r, island.x, island.y);
+    const areaW = island.w * r;
+    const areaH = island.h * r;
+    const { cardW, cardH } = this.calcRefCardSize(W, H);
+    const maxCols = Math.max(...this.rowWidths);
+    const numRows = this.rowWidths.length;
+    // Use fixed card size if it fits (island may be viewport-clamped for expert on small screens)
+    const fits = maxCols * cardW + (maxCols - 1) * 8 <= areaW &&
+                 numRows * cardH + (numRows - 1) * 8 <= areaH;
+    return calcLayoutFn(this.rowWidths, areaW, areaH, island.x, island.y, fits ? cardW : undefined, fits ? cardH : undefined);
   }
 
   private calcLayout(W: number, H: number): Layout {
-    return this.calcLayoutFromIsland(this.calcIslandBounds(W, H));
+    return this.calcLayoutFromIsland(this.calcIslandBounds(W, H), W, H);
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
@@ -130,25 +160,32 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createCard(x: number, y: number, symbol: string, index: number, cardW: number, cardH: number): Card {
-    const back  = this.add.image(0, 0, 'card-back').setDisplaySize(cardW, cardH);
-    const front = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardW, cardH).setVisible(false);
+    const shadow = this.add.graphics().setDepth(1);
+    this.drawCardShadow(shadow, x, y, cardW, cardH);
+
+    const back   = this.add.image(0, 0, 'card-back').setDisplaySize(cardW, cardH);
+    const front  = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardW, cardH).setVisible(false);
+    const border = this.add.graphics();
+    this.drawCardBorderInner(border, cardW, cardH);
 
     const maskGfx = this.add.graphics().setVisible(false);
     this.drawCardMask(maskGfx, x, y, cardW, cardH);
 
-    const container = this.add.container(x, y, [back, front]);
-    container.setSize(cardW, cardH).setInteractive();
+    const container = this.add.container(x, y, [back, front, border]);
+    container.setSize(cardW, cardH).setInteractive().setDepth(2);
     container.setMask(maskGfx.createGeometryMask());
 
-    const card: Card = { container, back, front, maskGfx, symbol, index, isFlipped: false, isMatched: false };
+    const card: Card = { container, back, front, maskGfx, shadow, border, symbol, index, isFlipped: false, isMatched: false };
 
     container.on('pointerover', () => {
-      if (!card.isFlipped && !card.isMatched && !this.isLocked)
+      if (!card.isFlipped && !card.isMatched && !this.isLocked) {
         this.tweens.add({ targets: container, scaleX: UI.card.hoverScale, scaleY: UI.card.hoverScale, duration: UI.card.hoverDuration });
+      }
     });
     container.on('pointerout', () => {
-      if (!card.isFlipped && !card.isMatched)
+      if (!card.isFlipped && !card.isMatched) {
         this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: UI.card.hoverDuration });
+      }
     });
     container.on('pointerdown', () => this.onCardClick(card));
 
@@ -159,6 +196,21 @@ export class GameScene extends Phaser.Scene {
     gfx.clear();
     gfx.fillStyle(0xffffff);
     gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, UI.card.radius);
+  }
+
+  private drawCardShadow(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
+    gfx.setPosition(x, y);
+    gfx.clear();
+    const o = UI.card.shadowOffset;
+    gfx.fillStyle(0x000000, UI.card.shadowAlpha);
+    gfx.fillRoundedRect(-w / 2 + o, -h / 2 + o, w, h, UI.card.radius);
+  }
+
+  private drawCardBorderInner(gfx: Phaser.GameObjects.Graphics, w: number, h: number) {
+    gfx.clear();
+    const bw = UI.card.borderWidth;
+    gfx.lineStyle(bw, UI.card.borderColor, 1);
+    gfx.strokeRoundedRect(-w / 2 + bw / 2, -h / 2 + bw / 2, w - bw, h - bw, UI.card.radius - bw / 2);
   }
 
   // ── Resize ───────────────────────────────────────────────────────────────────
@@ -174,11 +226,12 @@ export class GameScene extends Phaser.Scene {
 
     // Reposition island
     if (this.islandObj) {
-      this.islandObj.setPosition(island.x, island.y).setDisplaySize(island.w, island.h);
+      this.islandObj.setPosition(island.x, island.y);
+      this.islandObj.setSize(island.w, island.h);
     }
 
     // Relayout cards
-    const layout = this.calcLayoutFromIsland(island);
+    const layout = this.calcLayoutFromIsland(island, W, H);
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
@@ -186,6 +239,8 @@ export class GameScene extends Phaser.Scene {
       card.back.setDisplaySize(layout.cardW, layout.cardH);
       card.front.setDisplaySize(layout.cardW, layout.cardH);
       this.drawCardMask(card.maskGfx, x, y, layout.cardW, layout.cardH);
+      this.drawCardShadow(card.shadow, x, y, layout.cardW, layout.cardH);
+      this.drawCardBorderInner(card.border, layout.cardW, layout.cardH);
     });
   }
 
@@ -193,6 +248,9 @@ export class GameScene extends Phaser.Scene {
   private onCardClick(card: Card) {
     if (this.isLocked || card.isFlipped || card.isMatched) return;
     if (this.flippedCards.length >= 2) return;
+
+    this.tweens.killTweensOf(card.container);
+    card.container.setScale(1);
 
     this.flipCard(card, true);
     this.sfx('sfx-flip', 0.15);
@@ -207,9 +265,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private flipCard(card: Card, faceUp: boolean) {
-    if (faceUp) card.isFlipped = true; // guard against double-click before animation completes
+    if (faceUp) card.isFlipped = true;
     this.tweens.add({
-      targets: card.container,
+      targets: [card.container, card.shadow],
       scaleX: 0,
       duration: UI.card.flipDuration,
       ease: 'Linear',
@@ -217,7 +275,7 @@ export class GameScene extends Phaser.Scene {
         card.back.setVisible(!faceUp);
         card.front.setVisible(faceUp);
         if (!faceUp) card.isFlipped = false;
-        this.tweens.add({ targets: card.container, scaleX: 1, duration: UI.card.flipDuration, ease: 'Linear' });
+        this.tweens.add({ targets: [card.container, card.shadow], scaleX: 1, duration: UI.card.flipDuration, ease: 'Linear' });
       },
     });
   }
@@ -239,6 +297,8 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => {
           a.container.setAlpha(UI.card.matchedAlpha);
           b.container.setAlpha(UI.card.matchedAlpha);
+          a.shadow.setAlpha(UI.card.matchedAlpha);
+          b.shadow.setAlpha(UI.card.matchedAlpha);
           a.container.disableInteractive();
           b.container.disableInteractive();
         },

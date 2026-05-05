@@ -186,6 +186,10 @@ export const UI = {
     hoverDuration: 100,
     matchedAlpha:  0.45,
     flipDuration:  140,
+    shadowAlpha:  0.39,
+    shadowOffset: 4,
+    borderColor:      0xC7C7C7 as number,
+    borderWidth:      1.5,
   },
 
 };

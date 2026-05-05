@@ -27,7 +27,7 @@ export function usePlayer(): PlayerState {
   useEffect(() => {
     if (!sdk) return;
     sdk.getPlayer({ scopes: false }).then((p) => {
-      if (p.getMode() === 'lite') {
+      if (!p.isAuthorized()) {
         setPlayer({ isAuthorized: false, name: null, avatarUrl: null });
       } else {
         const photo = p.getPhoto('small');

@@ -47,9 +47,9 @@ declare global {
     };
     getPlayer(opts?: { scopes?: boolean }): Promise<YandexPlayer>;
     leaderboards?: {
-      setLeaderboardScore(name: string, score: number): Promise<void>;
-      getLeaderboardPlayerEntry(name: string): Promise<YandexLeaderboardEntry>;
-      getLeaderboardEntries(name: string, opts?: {
+      setScore(name: string, score: number, extraData?: string): Promise<void>;
+      getPlayerEntry(name: string): Promise<YandexLeaderboardEntry>;
+      getEntries(name: string, opts?: {
         quantityTop?: number;
         includeUser?: boolean;
         quantityAround?: number;
@@ -58,7 +58,7 @@ declare global {
   }
 
   interface YandexPlayer {
-    getMode(): 'lite' | '';
+    isAuthorized(): boolean;
     getName(): string;
     getPhoto(size: 'small' | 'medium' | 'large'): string;
     getData(keys?: string[]): Promise<Record<string, unknown>>;
