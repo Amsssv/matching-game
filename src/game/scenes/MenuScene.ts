@@ -143,21 +143,26 @@ export class MenuScene extends Phaser.Scene {
     // Mobile: single column at 75% width; desktop: single row
     const mobileBtnW = isMobile ? clamp(Math.floor(W * 0.75), 180, 320) : btnW;
     const btnGapV = 10;
+    // Mobile uses compact buttons; desktop keeps the original size
+    const diffBtnH = isMobile ? clamp(Math.floor(H * 0.07), 36, 44) : btnH;
 
-    // Label is anchored to the subtitle; buttons are anchored to the label.
-    const diffLabelY = subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), 48, 90);
+    // On mobile: center the difficulty section (label + 4 buttons) at H/2.
+    // Formula derived from: sectionCenter = H/2, sectionHeight = 16 + 24 + 4*diffBtnH + 3*btnGapV
+    const diffLabelY = isMobile
+      ? Math.max(H / 2 - 27 - 2 * diffBtnH, subtitleText.y + subtitleText.height / 2 + 24)
+      : subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), 48, 90);
     const diffLabel  = createText(this, {
       x: midX, y: diffLabelY,
       text: L.difficulty, variant: 'sectionLabel', localDpr,
     });
 
     // First button center = label bottom + 24 + half-button-height
-    const row0Y = diffLabel.y + diffLabel.height / 2 + 24 + btnH / 2;
+    const row0Y = diffLabel.y + diffLabel.height / 2 + 24 + diffBtnH / 2;
     // diffBottomY = center of last button (row for desktop, column for mobile)
-    const diffBottomY = isMobile ? row0Y + 3 * (btnH + btnGapV) : row0Y;
+    const diffBottomY = isMobile ? row0Y + 3 * (diffBtnH + btnGapV) : row0Y;
 
     const hintText = createText(this, {
-      x: midX, y: diffBottomY + btnH / 2 + 32,
+      x: midX, y: diffBottomY + diffBtnH / 2 + 32,
       text: L.diffHint[this.difficulty],
       variant: 'hint', localDpr,
     });
@@ -169,7 +174,7 @@ export class MenuScene extends Phaser.Scene {
       let bx: number, by: number;
       if (isMobile) {
         bx = midX;
-        by = row0Y + i * (btnH + btnGapV);
+        by = row0Y + i * (diffBtnH + btnGapV);
       } else {
         const gridW = btnW * 4 + gap * 3;
         bx = midX - gridW / 2 + i * (btnW + gap) + btnW / 2;
@@ -189,25 +194,35 @@ export class MenuScene extends Phaser.Scene {
         active:      this.difficulty === diff,
         description: L.diffDesc[diff],
         fixedWidth:  isMobile ? mobileBtnW : btnW,
-        fixedHeight: btnH,
+        fixedHeight: diffBtnH,
         fontSize:    lblSz,
       });
       diffHandles.set(diff, handle);
     });
 
-    // ── Play button ──────────────────────────────────────────────────────────
+    // ── Play + Sound + Leaderboard layout ───────────────────────────────────
     const pW = clamp(Math.floor(W * 0.5), 180, 280);
     const pH = clamp(Math.floor(H * 0.08), 44, 58);
-    const playY = Math.max(
-      hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, pH / 2 + 14),
-      H - 260,
-    );
+    const lbH = isMobile ? Math.round(pH) : Math.round(pH / 1.5);
 
-    // ── Sound toggle ─────────────────────────────────────────────────────────
-    // soundLabelY: at least 24px below Play button bottom
-    const soundGap = Math.max(24, Math.floor(H * 0.04));
-    const soundLabelY = playY + pH / 2 + soundGap + 10;
-    const soundY = soundLabelY + 10 + 8 + sH / 2;
+    let playY: number, soundLabelY: number, soundY: number, lbBtnY: number;
+
+    if (isMobile) {
+      // Anchor from bottom: lb → sound button → sound label → play button
+      lbBtnY      = H - 56 - lbH / 2;
+      soundY      = lbBtnY - lbH / 2 - 24 - sH / 2;
+      soundLabelY = soundY - sH / 2 - 16 - 10;
+      playY       = soundLabelY - 10 - 36 - pH / 2;
+    } else {
+      playY = Math.max(
+        hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, pH / 2 + 14),
+        H - 260,
+      );
+      const soundGap = Math.max(24, Math.floor(H * 0.04));
+      soundLabelY = playY + pH / 2 + soundGap + 10;
+      soundY      = soundLabelY + 10 + 16 + sH / 2;
+      lbBtnY      = soundY + sH / 2 + 14 + lbH / 2;
+    }
 
     // active: true → always renders with gold gradient + ring (primary CTA)
     // noAutoScale: true → background doesn't expand on active; container tween handles it
@@ -246,10 +261,6 @@ export class MenuScene extends Phaser.Scene {
       fixedHeight: sH,
       fontSize:    Math.round(sH * 0.38),
     });
-
-    // ── Leaderboard button ───────────────────────────────────────────────────
-    const lbH    = isMobile ? Math.round(pH) : Math.round(pH / 1.5);
-    const lbBtnY = soundY + sH / 2 + 14 + lbH / 2;
 
     createButton(this, {
       x:           midX,
