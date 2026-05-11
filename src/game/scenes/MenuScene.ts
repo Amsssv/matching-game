@@ -140,9 +140,9 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Difficulty ───────────────────────────────────────────────────────────
     const isMobile = isMobileDevice();
-    const diffBtnW = isMobile
-      ? clamp(Math.floor((W * 0.92 - gap) / 2), 100, 180)
-      : btnW;
+    // Mobile: single column at 75% width; desktop: single row
+    const mobileBtnW = isMobile ? clamp(Math.floor(W * 0.75), 180, 320) : btnW;
+    const btnGapV = 10;
 
     // Label is anchored to the subtitle; buttons are anchored to the label.
     const diffLabelY = subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), 48, 90);
@@ -151,13 +151,10 @@ export class MenuScene extends Phaser.Scene {
       text: L.difficulty, variant: 'sectionLabel', localDpr,
     });
 
-    // Larger gap between the 2×2 cells on mobile for better tap comfort
-    const mobileGap = clamp(Math.floor(H * 0.02), 16, 28);
-
-    // Row 0 center = label bottom + 24 + half-button-height
-    const row0Y       = diffLabel.y + diffLabel.height / 2 + 24 + btnH / 2;
-    const row1Y       = row0Y + btnH + mobileGap;   // mobile row 1
-    const diffBottomY = isMobile ? row1Y : row0Y;   // bottom row center
+    // First button center = label bottom + 24 + half-button-height
+    const row0Y = diffLabel.y + diffLabel.height / 2 + 24 + btnH / 2;
+    // diffBottomY = center of last button (row for desktop, column for mobile)
+    const diffBottomY = isMobile ? row0Y + 3 * (btnH + btnGapV) : row0Y;
 
     const hintText = createText(this, {
       x: midX, y: diffBottomY + btnH / 2 + 32,
@@ -165,23 +162,17 @@ export class MenuScene extends Phaser.Scene {
       variant: 'hint', localDpr,
     });
 
-    // On mobile stretch buttons to fill the usable width (2 columns with one gap)
-    const mobileBtnW = isMobile ? Math.floor((W * 0.92 - mobileGap) / 2) : diffBtnW;
-
     const lblSzBase = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
-    const lblSz = isMobile ? Math.round(lblSzBase * 1.5) : lblSzBase;
+    const lblSz = lblSzBase;
     const diffHandles = new Map<Difficulty, ButtonHandle>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       let bx: number, by: number;
       if (isMobile) {
-        const col   = i % 2;
-        const row   = Math.floor(i / 2);
-        const gridW = mobileBtnW * 2 + mobileGap;
-        bx = midX - gridW / 2 + col * (mobileBtnW + mobileGap) + mobileBtnW / 2;
-        by = row === 0 ? row0Y : row1Y;
+        bx = midX;
+        by = row0Y + i * (btnH + btnGapV);
       } else {
-        const gridW = diffBtnW * 4 + gap * 3;
-        bx = midX - gridW / 2 + i * (diffBtnW + gap) + diffBtnW / 2;
+        const gridW = btnW * 4 + gap * 3;
+        bx = midX - gridW / 2 + i * (btnW + gap) + btnW / 2;
         by = row0Y;
       }
       const handle = createButton(this, {
@@ -197,28 +188,42 @@ export class MenuScene extends Phaser.Scene {
         variant:     'primary',
         active:      this.difficulty === diff,
         description: L.diffDesc[diff],
-        fixedWidth:  isMobile ? mobileBtnW : diffBtnW,
+        fixedWidth:  isMobile ? mobileBtnW : btnW,
         fixedHeight: btnH,
         fontSize:    lblSz,
       });
       diffHandles.set(diff, handle);
     });
 
-    // ── Sound toggle ─────────────────────────────────────────────────────────
-    let soundY = hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, sH / 2 + 14);
+    // ── Play button ──────────────────────────────────────────────────────────
     const pW = clamp(Math.floor(W * 0.5), 180, 280);
     const pH = clamp(Math.floor(H * 0.08), 44, 58);
-    let playY = soundY + sH / 2 + 40 + pH / 2;
-    const minPlayY = H - 200;
-    if (playY < minPlayY) {
-      const shift = minPlayY - playY;
-      soundY += shift;
-      playY  += shift;
-    }
+    const playY = Math.max(
+      hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, pH / 2 + 14),
+      H - 260,
+    );
 
-    const sW = clamp(Math.floor(W * 0.38), 120, 180);
+    // ── Sound toggle ─────────────────────────────────────────────────────────
+    // soundLabelY: at least 24px below Play button bottom
+    const soundGap = Math.max(24, Math.floor(H * 0.04));
+    const soundLabelY = playY + pH / 2 + soundGap + 10;
+    const soundY = soundLabelY + 10 + 8 + sH / 2;
 
-    createText(this, { x: midX, y: soundY - sH / 2 - 28, text: L.sound, variant: 'sectionLabel', localDpr });
+    // active: true → always renders with gold gradient + ring (primary CTA)
+    // noAutoScale: true → background doesn't expand on active; container tween handles it
+    createButton(this, {
+      x:           midX,
+      y:           playY,
+      label:       L.play,
+      onClick:     () => { this.sfx('sfx-click'); this.startGame(); },
+      variant:     'primary',
+      active:      true,
+      noAutoScale: true,
+      fixedWidth:  pW,
+      fixedHeight: pH,
+    });
+
+    createText(this, { x: midX, y: soundLabelY, text: L.sound, variant: 'sectionLabel', localDpr });
 
     let soundHandle: ButtonHandle;
     soundHandle = createButton(this, {
@@ -237,29 +242,14 @@ export class MenuScene extends Phaser.Scene {
       },
       variant:     'primary',
       active:      this.soundEnabled,
-      fixedWidth:  sW,
+      fixedWidth:  pW,
       fixedHeight: sH,
       fontSize:    Math.round(sH * 0.38),
     });
 
-    // ── Play button ──────────────────────────────────────────────────────────
-    // active: true → always renders with gold gradient + ring (primary CTA)
-    // noAutoScale: true → background doesn't expand on active; container tween handles it
-    createButton(this, {
-      x:           midX,
-      y:           playY,
-      label:       L.play,
-      onClick:     () => { this.sfx('sfx-click'); this.startGame(); },
-      variant:     'primary',
-      active:      true,
-      noAutoScale: true,
-      fixedWidth:  pW,
-      fixedHeight: pH,
-    });
-
     // ── Leaderboard button ───────────────────────────────────────────────────
     const lbH    = isMobile ? Math.round(pH) : Math.round(pH / 1.5);
-    const lbBtnY = playY + pH / 2 + 14 + lbH / 2;
+    const lbBtnY = soundY + sH / 2 + 14 + lbH / 2;
 
     createButton(this, {
       x:           midX,

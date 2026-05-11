@@ -73,6 +73,7 @@ export class UIScene extends Phaser.Scene {
       this.gameScene.events.off('match-found',   onMatch,    this);
       this.gameScene.events.off('game-complete', onComplete, this);
       this.scale.off('resize', this.onResize, this);
+      this.am()?.unduck();
     });
 
     this.scale.on('resize', this.onResize, this);
@@ -164,6 +165,7 @@ export class UIScene extends Phaser.Scene {
 
   // ── Victory overlay ──────────────────────────────────────────────────────────
   private showVictory(moves: number, seconds: number) {
+    this.am()?.duck();
     const W  = this.scale.width;
     const H  = this.scale.height;
     const cx = W / 2;
@@ -278,12 +280,12 @@ export class UIScene extends Phaser.Scene {
     // ── Buttons — vertical stack ──────────────────────────────────────────────────
     const restartBtn = createButton(this, {
       x: 0, y: btnPrimaryY, label: this.L.restart,
-      onClick: () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.restartGame(); },
+      onClick: () => { this.sfx('sfx-click'); this.am()?.unduck(); this.scene.stop(); this.gameScene.restartGame(); },
       variant: 'primary', fixedWidth: btnW, fixedHeight: btnH,
     });
     const toMenuBtn = createButton(this, {
       x: 0, y: btnGhostY, label: this.L.toMenu,
-      onClick: () => { this.sfx('sfx-click'); this.scene.stop(); this.gameScene.goToMenu(); },
+      onClick: () => { this.sfx('sfx-click'); this.am()?.unduck(); this.scene.stop(); this.gameScene.goToMenu(); },
       variant: 'ghost', fixedWidth: btnW, fixedHeight: btnH,
     });
     const lbBtn = createButton(this, {
@@ -573,6 +575,10 @@ export class UIScene extends Phaser.Scene {
       btn.container.setDepth(21).setAlpha(0);
       this.tweens.add({ targets: btn.container, alpha: 1, duration: 240, ease: 'Sine.easeOut' });
     }).catch(() => {});
+  }
+
+  private am(): import('../AudioManager').AudioManager | undefined {
+    return this.game.registry.get('audioManager');
   }
 
   private sfx(key: string) {

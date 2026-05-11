@@ -34,7 +34,7 @@ export class GameScene extends Phaser.Scene {
   private lastAdvTime = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000;
   private static readonly CARD_AREA_RATIO = 0.80;
-  private static readonly ISLAND_SLICE = { left: 400, right: 400, top: 360, bottom: 400 };
+  private static readonly ISLAND_SLICE = { left: 60, right: 60, top: 60, bottom: 60 };
 
   private onVisibilityChange = () => {
     if (document.hidden) {

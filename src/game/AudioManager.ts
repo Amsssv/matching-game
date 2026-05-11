@@ -38,4 +38,14 @@ export class AudioManager {
     if (!this.music) return;
     (this.music as unknown as { setMute: (v: boolean) => void }).setMute(muted);
   }
+
+  duck(volume = 0.05): void {
+    if (!this.music) return;
+    (this.music as unknown as { setVolume: (v: number) => void }).setVolume(volume);
+  }
+
+  unduck(): void {
+    if (!this.music) return;
+    (this.music as unknown as { setVolume: (v: number) => void }).setVolume(0.3);
+  }
 }
