@@ -6,10 +6,10 @@ import type { Difficulty } from './layout';
 export const SCORE_BASE = 9999;
 
 export const LB_ID: Record<Difficulty, string> = {
-  easy:   'matching_easy',
-  medium: 'matching_medium',
-  hard:   'matching_hard',
-  expert: 'matching_expert',
+  easy:   'matchingEasy',
+  medium: 'matchingMedium',
+  hard:   'matchingHard',
+  expert: 'matchingExpert',
 };
 
 const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
