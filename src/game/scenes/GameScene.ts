@@ -33,8 +33,12 @@ export class GameScene extends Phaser.Scene {
   private gameActive = true;
   private lastAdvTime = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000;
-  private static readonly CARD_AREA_RATIO = 0.80;
   private static readonly ISLAND_SLICE = { left: 60, right: 60, top: 60, bottom: 60 };
+  // Extra padding inside the 9-slice frame to keep cards within the sandy octagon
+  // Desktop: 40px clears the ~40px diagonal corner cuts (texture: cut at ~100px from corner, slice=60px → 40px into inner area)
+  // Mobile: 16px (smaller screen, different island proportion)
+  private static readonly ISLAND_INNER_PAD         = 40;
+  private static readonly ISLAND_INNER_PAD_MOBILE  = 16;
 
   private onVisibilityChange = () => {
     if (document.hidden) {
@@ -96,10 +100,13 @@ export class GameScene extends Phaser.Scene {
 
   private calcRefCardSize(W: number, H: number): { cardW: number; cardH: number } {
     const availH = H - UI.layout.headerH;
-    const baseAreaW = W * 0.90 * GameScene.CARD_AREA_RATIO;
-    const baseAreaH = availH * 0.90 * GameScene.CARD_AREA_RATIO;
+    const s = GameScene.ISLAND_SLICE;
+    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const maxIslandH = this.isMobile ? availH - 300 : availH * 0.97;
+    const baseAreaW = W * 0.90 - 2 * (s.left + p);
+    const baseAreaH = maxIslandH - 2 * (s.top + p);
     const refRows = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
-    const { cardW, cardH } = calcLayoutFn(refRows, baseAreaW, baseAreaH, 0, 0);
+    const { cardW, cardH } = calcLayoutFn(refRows, Math.max(baseAreaW, 40), Math.max(baseAreaH, 40), 0, 0);
     if (this.isMobile) {
       return { cardW: Math.round(cardW * 1.5), cardH: Math.round(cardH * 1.5) };
     }
@@ -114,25 +121,27 @@ export class GameScene extends Phaser.Scene {
     const maxCols = Math.max(Math.max(...this.rowWidths), Math.max(...medRef));
     const numRows = Math.max(this.rowWidths.length, medRef.length);
 
-    // Natural grid size with max gap (24px) — island grows to fit
+    // Natural grid size with max gap (24px) — island sized to contain grid + frame + inner padding
     const gridW = maxCols * cardW + (maxCols - 1) * 24;
     const gridH = numRows * cardH + (numRows - 1) * 24;
 
-    const r = GameScene.CARD_AREA_RATIO;
+    const s = GameScene.ISLAND_SLICE;
+    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
     const maxIslandH = this.isMobile ? availH - 300 : availH * 0.97;
     return {
       x: W / 2,
       y: UI.layout.headerH + availH / 2,
-      w: Math.min(gridW / r, W * 0.99),
-      h: Math.min(gridH / r, maxIslandH),
+      w: Math.min(gridW + 2 * (s.left + p), W * 0.99),
+      h: Math.min(gridH + 2 * (s.top + p), maxIslandH),
     };
   }
 
   // ── Card layout calculation ──────────────────────────────────────────────────
   private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }, W: number, H: number): Layout {
-    const r = GameScene.CARD_AREA_RATIO;
-    const areaW = island.w * r;
-    const areaH = island.h * r;
+    const s = GameScene.ISLAND_SLICE;
+    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const areaW = island.w - 2 * (s.left + p);
+    const areaH = island.h - 2 * (s.top + p);
     const { cardW, cardH } = this.calcRefCardSize(W, H);
     const maxCols = Math.max(...this.rowWidths);
     const numRows = this.rowWidths.length;

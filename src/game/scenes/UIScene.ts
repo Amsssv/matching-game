@@ -6,8 +6,9 @@ import { getYSDK } from '../../ysdk';
 import { createButton, createText } from '../ui/factory';
 import type { ButtonHandle } from '../ui/factory';
 import { UI } from '../ui/config';
-import { fetchLeaderboard, type LeaderboardData, SCORE_BASE } from '../leaderboard';
+import { fetchLeaderboard, type LeaderboardData, SCORE_BASE, LB_ID } from '../leaderboard';
 import type { Difficulty } from '../layout';
+import { isMobileDevice } from '../device';
 
 export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
@@ -51,16 +52,19 @@ export class UIScene extends Phaser.Scene {
 
     const onMoves    = (n: number) => this.movesText.setText(this.L.moves(n));
     const onMatch    = (n: number) => this.updatePairsText(n);
-    const onComplete = async (n: number) => {
+    const onComplete = (n: number) => {
       this.timerEvent?.remove();
       this.game.registry.set('lastScore', n);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const lb = getYSDK()?.leaderboards;
-      if (lb) {
-        await lb.setScore(difficulty, SCORE_BASE - n).catch(() => {});
-      }
-      this.showVictory(n, this.elapsedSeconds);
+      // Fire-and-forget: don't block victory screen on network call.
+      // Awaiting lb.setScore caused a frozen-game window (timer stopped, no
+      // overlay yet) where the user could accidentally navigate to the menu.
+      const scoreSaved: Promise<void> = lb
+        ? lb.setScore(LB_ID[difficulty], SCORE_BASE - n).then(() => {}).catch(() => {})
+        : Promise.resolve();
+      this.showVictory(n, this.elapsedSeconds, scoreSaved);
     };
 
     this.gameScene.events.on('moves-updated', onMoves,    this);
@@ -164,16 +168,17 @@ export class UIScene extends Phaser.Scene {
   }
 
   // ── Victory overlay ──────────────────────────────────────────────────────────
-  private showVictory(moves: number, seconds: number) {
+  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve()) {
     this.am()?.duck();
     const W  = this.scale.width;
     const H  = this.scale.height;
     const cx = W / 2;
     const cy = H / 2;
-    const pW        = Math.min(W * 0.85, 340);
+    const pW        = Math.min(W * 0.85, isMobileDevice() ? 510 : 340);
     const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
-    const lbPromise = fetchLeaderboard(difficulty);
+    // Chain after score save so the compact LB includes the new result.
+    const lbPromise = scoreSaved.then(() => fetchLeaderboard(difficulty));
     const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
 
     // ── Element sizes ────────────────────────────────────────────────────────────
@@ -347,8 +352,8 @@ export class UIScene extends Phaser.Scene {
     const L         = LOCALES[lang];
     const cx        = W / 2;
     const cy        = H / 2;
-    const pW        = Math.min(W * 0.92, 486);
-    const pH        = Math.min(H * 0.78, 460);
+    const pW        = Math.min(W * 0.92, isMobileDevice() ? 729 : 486);
+    const pH        = Math.min(H * 0.78, 500);
     const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
 
     // depth 24/25 — above victory modal (21) and header elements (22)
@@ -385,7 +390,7 @@ export class UIScene extends Phaser.Scene {
     const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
     let currentDiff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
 
-    const tabH   = Math.max(22, Math.round(26 * (localDpr / 2 + 0.5)));
+    const tabH   = Math.round(32 * (localDpr / 2 + 0.5));
     const tabGap = Math.round(4 * localDpr) + 12;
     const tabW   = Math.floor((pW - tabGap * 3 - 40) / 4);
     const tabsY  = titleY + titleFontSize / 2 + 20 + tabH / 2;
@@ -396,7 +401,9 @@ export class UIScene extends Phaser.Scene {
     const sepY        = tabsY + tabH / 2 + 10;
     const tableStartY = sepY + 20;
     const rowH        = Math.round(28 * (localDpr / 2 + 0.5));
+    const rowGap      = 10;
     const nameFontSz  = Math.max(10, Math.floor(pW * 0.04));
+    const tablePadX   = Math.round(pW * 0.07);
 
     const sep = this.add.graphics();
     sep.lineStyle(1, UI.colors.accent, 0.35);
@@ -430,12 +437,12 @@ export class UIScene extends Phaser.Scene {
       }
       const rowTexts: Phaser.GameObjects.Text[] = [];
       data.rows.forEach((row, i) => {
-        const rowY  = tableStartY + i * (rowH + 6) + rowH / 2;
+        const rowY  = tableStartY + i * (rowH + rowGap) + rowH / 2;
         const color = row.isPlayer ? accentHex : undefined;
         rowTexts.push(
-          createText(this, { x: -(pW / 2 - 20), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  0,             y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  pW / 2 - 20,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x: -(pW / 2 - tablePadX), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  0,                    y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
         );
       });
       tableContainer.add(rowTexts);
@@ -562,7 +569,7 @@ export class UIScene extends Phaser.Scene {
               if (!p.isAuthorized()) return;
               const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
               const lastMoves: number = this.game.registry.get('lastScore') ?? moves;
-              sdk.leaderboards?.setScore(diff, SCORE_BASE - lastMoves).catch(() => {});
+              sdk.leaderboards?.setScore(LB_ID[diff], SCORE_BASE - lastMoves).catch(() => {});
             });
           }).catch(() => {});
         },

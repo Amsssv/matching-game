@@ -140,11 +140,11 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Difficulty ───────────────────────────────────────────────────────────
     const isMobile = isMobileDevice();
-    // Mobile: single column at 75% width; desktop: single row
-    const mobileBtnW = isMobile ? clamp(Math.floor(W * 0.75), 180, 320) : btnW;
+    // Mobile: single column at 80% width; desktop: single row
+    const mobileBtnW = isMobile ? Math.floor(W * 0.80) : btnW;
     const btnGapV = 10;
     // Mobile uses compact buttons; desktop keeps the original size
-    const diffBtnH = isMobile ? clamp(Math.floor(H * 0.07), 36, 44) : btnH;
+    const diffBtnH = isMobile ? clamp(Math.floor(H * 0.137), 70, 86) : btnH;
 
     // On mobile: center the difficulty section (label + 4 buttons) at H/2.
     // Formula derived from: sectionCenter = H/2, sectionHeight = 16 + 24 + 4*diffBtnH + 3*btnGapV
@@ -168,7 +168,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     const lblSzBase = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
-    const lblSz = lblSzBase;
+    const lblSz = isMobile ? Math.round(lblSzBase * 1.5) : lblSzBase;
     const diffHandles = new Map<Difficulty, ButtonHandle>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       let bx: number, by: number;
@@ -293,8 +293,8 @@ export class MenuScene extends Phaser.Scene {
     const L         = LOCALES[this.lang];
     const cx        = W / 2;
     const cy        = H / 2;
-    const pW        = Math.min(W * 0.92, 486);
-    const pH        = Math.min(H * 0.78, 460);
+    const pW        = Math.min(W * 0.92, isMobileDevice() ? 729 : 486);
+    const pH        = Math.min(H * 0.78, 500);
     const accentHex = '#' + UI.colors.accent.toString(16).padStart(6, '0');
 
     // Backdrop
@@ -332,7 +332,7 @@ export class MenuScene extends Phaser.Scene {
     const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
     let currentDiff: Difficulty = this.difficulty;
 
-    const tabH   = Math.max(22, Math.round(26 * (localDpr / 2 + 0.5)));
+    const tabH   = Math.round(32 * (localDpr / 2 + 0.5));
     const tabGap = Math.round(4 * localDpr) + 12;
     const tabW   = Math.floor((pW - tabGap * 3 - 40) / 4);
     const tabsY  = titleY + titleFontSize / 2 + 20 + tabH / 2;
@@ -343,7 +343,9 @@ export class MenuScene extends Phaser.Scene {
     const sepY        = tabsY + tabH / 2 + 10;
     const tableStartY = sepY + 20;
     const rowH        = Math.round(28 * (localDpr / 2 + 0.5));
+    const rowGap      = 10;
     const nameFontSz  = Math.max(10, Math.floor(pW * 0.04));
+    const tablePadX   = Math.round(pW * 0.07);
 
     const sep = this.add.graphics();
     sep.lineStyle(1, UI.colors.accent, 0.35);
@@ -377,12 +379,12 @@ export class MenuScene extends Phaser.Scene {
       }
       const rowTexts: Phaser.GameObjects.Text[] = [];
       data.rows.forEach((row, i) => {
-        const rowY  = tableStartY + i * (rowH + 6) + rowH / 2;
+        const rowY  = tableStartY + i * (rowH + rowGap) + rowH / 2;
         const color = row.isPlayer ? accentHex : undefined;
         rowTexts.push(
-          createText(this, { x: -(pW / 2 - 20), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  0,             y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  pW / 2 - 20,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x: -(pW / 2 - tablePadX), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  0,                    y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
         );
       });
       tableContainer.add(rowTexts);
