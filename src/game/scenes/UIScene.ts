@@ -6,7 +6,7 @@ import { getYSDK } from '../../ysdk';
 import { createButton, createText } from '../ui/factory';
 import type { ButtonHandle } from '../ui/factory';
 import { UI } from '../ui/config';
-import { fetchLeaderboard, type LeaderboardData, SCORE_BASE, LB_ID } from '../leaderboard';
+import { fetchLeaderboard, formatTime, type LeaderboardData, SCORE_BASE, LB_ID } from '../leaderboard';
 import type { Difficulty } from '../layout';
 import { isMobileDevice } from '../device';
 
@@ -598,10 +598,4 @@ export class UIScene extends Phaser.Scene {
     const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
     am?.playSfx(key);
   }
-}
-
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }

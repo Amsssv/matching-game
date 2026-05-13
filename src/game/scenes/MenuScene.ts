@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { LOCALES } from '../i18n';
 import type { Lang } from '../i18n';
 import { getYSDK } from '../../ysdk';
-import { fetchLeaderboard } from '../leaderboard';
+import { fetchLeaderboard, formatTime } from '../leaderboard';
 import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
 import { type Difficulty } from '../layout';
 import { createButton, createTitle, createSubtitle, createIconButton, createText, preWarmGradients } from '../ui/factory';
@@ -384,7 +384,7 @@ export class MenuScene extends Phaser.Scene {
         rowTexts.push(
           createText(this, { x: -(pW / 2 - tablePadX), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
           createText(this, { x:  0,                    y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: formatTime(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
         );
       });
       tableContainer.add(rowTexts);

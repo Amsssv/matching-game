@@ -5,6 +5,12 @@ import type { Difficulty } from './layout';
 // Convert back to seconds for display: seconds = SCORE_BASE - yandexScore.
 export const SCORE_BASE = 9999;
 
+export function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 export const LB_ID: Record<Difficulty, string> = {
   easy:   'matchingEasy',
   medium: 'matchingMedium',

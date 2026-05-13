@@ -161,8 +161,8 @@ export const UI = {
   animation: {
     /** Camera fadeIn / fadeOut between scenes */
     fadeScene:      300,
-    /** Delay between flipping 2nd card and running match check */
-    cardFlipDelay:  800,
+    /** Delay after 2nd card flip before checking match (lets card finish opening) */
+    cardFlipDelay:  300,
     /** Delay between last pair found and game-complete event */
     cardMatchDelay: 600,
     /** Alpha yoyo duration for matched-pair flash */

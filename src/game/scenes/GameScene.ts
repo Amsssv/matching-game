@@ -21,7 +21,6 @@ interface Card {
 export class GameScene extends Phaser.Scene {
   private cards: Card[] = [];
   private flippedCards: Card[] = [];
-  private isLocked = false;
   private moves = 0;
   private matchedPairs = 0;
   totalPairs = 0;
@@ -55,7 +54,6 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.cards = [];
     this.flippedCards = [];
-    this.isLocked = false;
     this.moves = 0;
     this.matchedPairs = 0;
     this.gameActive = true;
@@ -187,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     const card: Card = { container, back, front, maskGfx, shadow, border, symbol, index, isFlipped: false, isMatched: false };
 
     container.on('pointerover', () => {
-      if (!card.isFlipped && !card.isMatched && !this.isLocked) {
+      if (!card.isFlipped && !card.isMatched) {
         this.tweens.add({ targets: container, scaleX: UI.card.hoverScale, scaleY: UI.card.hoverScale, duration: UI.card.hoverDuration });
       }
     });
@@ -255,7 +253,7 @@ export class GameScene extends Phaser.Scene {
 
   // ── Game logic ───────────────────────────────────────────────────────────────
   private onCardClick(card: Card) {
-    if (this.isLocked || card.isFlipped || card.isMatched) return;
+    if (card.isFlipped || card.isMatched) return;
     if (this.flippedCards.length >= 2) return;
 
     this.tweens.killTweensOf(card.container);
@@ -268,8 +266,9 @@ export class GameScene extends Phaser.Scene {
     if (this.flippedCards.length === 2) {
       this.moves++;
       this.events.emit('moves-updated', this.moves);
-      this.isLocked = true;
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch());
+      const [a, b] = this.flippedCards;
+      this.flippedCards = [];
+      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch(a, b));
     }
   }
 
@@ -289,8 +288,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private checkMatch() {
-    const [a, b] = this.flippedCards;
+  private checkMatch(a: Card, b: Card) {
 
     if (a.symbol === b.symbol) {
       this.matchedPairs++;
@@ -322,12 +320,11 @@ export class GameScene extends Phaser.Scene {
           this.events.emit('game-complete', this.moves);
         });
     } else {
-      this.flipCard(a, false);
-      this.flipCard(b, false);
+      this.time.delayedCall(UI.animation.cardFlipDelay, () => {
+        this.flipCard(a, false);
+        this.flipCard(b, false);
+      });
     }
-
-    this.flippedCards = [];
-    this.isLocked = false;
   }
 
   // ── SFX helper ───────────────────────────────────────────────────────────────
