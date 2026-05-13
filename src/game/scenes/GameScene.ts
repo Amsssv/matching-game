@@ -242,7 +242,9 @@ export class GameScene extends Phaser.Scene {
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
-      card.container.setSize(layout.cardW, layout.cardH).setInteractive();
+      card.container.setSize(layout.cardW, layout.cardH);
+      const io = card.container.input;
+      if (io) (io.hitArea as Phaser.Geom.Rectangle).setTo(0, 0, layout.cardW, layout.cardH);
       card.back.setDisplaySize(layout.cardW, layout.cardH);
       card.front.setDisplaySize(layout.cardW, layout.cardH);
       this.drawCardMask(card.maskGfx, x, y, layout.cardW, layout.cardH);
@@ -345,13 +347,28 @@ export class GameScene extends Phaser.Scene {
     const am = this.game.registry.get('audioManager') as AM | undefined;
     const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? true;
 
-    sdk.adv.showFullscreenAdv({
-      callbacks: {
-        onOpen:  () => am?.setMuted(true),
-        onClose: () => { this.lastAdvTime = Date.now(); am?.setMuted(!soundEnabled); proceed(); },
-        onError: () => { am?.setMuted(!soundEnabled); proceed(); },
-      },
-    });
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      proceed();
+    };
+
+    // Fallback: unblock if SDK callbacks never fire (broken SDK, MIME error, etc.)
+    const fallback = window.setTimeout(() => { am?.setMuted(!soundEnabled); finish(); }, 15_000);
+
+    try {
+      sdk.adv.showFullscreenAdv({
+        callbacks: {
+          onOpen:  () => { window.clearTimeout(fallback); am?.setMuted(true); },
+          onClose: () => { window.clearTimeout(fallback); this.lastAdvTime = Date.now(); am?.setMuted(!soundEnabled); finish(); },
+          onError: () => { window.clearTimeout(fallback); am?.setMuted(!soundEnabled); finish(); },
+        },
+      });
+    } catch {
+      window.clearTimeout(fallback);
+      finish();
+    }
   }
 
   // ── Public API for UIScene ───────────────────────────────────────────────────

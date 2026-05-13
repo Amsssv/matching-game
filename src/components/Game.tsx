@@ -58,14 +58,14 @@ export function Game() {
         game.canvas.style.transformOrigin = '';
       }
       // Sync Phaser's input transform with the new visual canvas size.
-      // updateBounds() re-reads getBoundingClientRect(); displayScale.set() updates
-      // the multiplier used in transformX/transformY without emitting a RESIZE event
-      // (which would cause an infinite loop if we called refresh() instead).
+      // updateBounds() re-reads getBoundingClientRect() for the canvas LEFT/TOP offset.
+      // displayScale must equal `cur` so that touch coords (CSS px) map 1:1 to game
+      // coords (DPR-scaled).  Computing it as baseSize/canvasBounds is fragile: on some
+      // Samsung/Android WebViews, getBoundingClientRect().width returns the parent
+      // container's width (dpr * viewport) instead of canvas.style.width (viewport),
+      // giving displayScale = 1 instead of dpr and shrinking the tap area by dpr².
       sm.updateBounds();
-      sm.displayScale.set(
-        sm.baseSize.width / sm.canvasBounds.width,
-        sm.baseSize.height / sm.canvasBounds.height,
-      );
+      sm.displayScale.set(cur, cur);
     };
     if (game.canvas) apply(); else game.events.once('ready', apply);
     game.scale.on('resize', apply);
