@@ -24,9 +24,9 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     activePointers: 2, // support multi-touch
   },
   render: {
-    // Keep the last rendered frame in the WebGL drawing buffer so that
-    // screenshot tools (Playwright) always read a complete, consistent frame
-    // rather than a partially-cleared back-buffer.
-    preserveDrawingBuffer: true,
+    // Playwright needs the last frame preserved to read a consistent screenshot.
+    // In production this must be false — mobile tile-based GPUs (Mali, Adreno)
+    // copy the entire framebuffer every frame when this is true, causing severe drops.
+    preserveDrawingBuffer: isTestEnv,
   },
 };

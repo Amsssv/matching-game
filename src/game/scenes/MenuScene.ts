@@ -213,6 +213,15 @@ export class MenuScene extends Phaser.Scene {
       soundY      = lbBtnY - lbH / 2 - 24 - sH / 2;
       soundLabelY = soundY - sH / 2 - 16 - 10;
       playY       = soundLabelY - 10 - 36 - pH / 2;
+
+      // On small screens recompute top-down if play button would overlap difficulty hint
+      const minPlayY = hintText.y + hintText.height / 2 + 24 + pH / 2;
+      if (playY < minPlayY) {
+        playY       = minPlayY;
+        soundLabelY = playY       + pH / 2 + 36 + 10;
+        soundY      = soundLabelY + 10 + 16 + sH / 2;
+        lbBtnY      = soundY      + sH / 2 + 24 + lbH / 2;
+      }
     } else {
       playY = Math.max(
         hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, pH / 2 + 14),
