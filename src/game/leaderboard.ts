@@ -1,8 +1,8 @@
 import { getYSDK } from '../ysdk';
 import type { Difficulty } from './layout';
 
-// Stored in Yandex as (SCORE_BASE - moves) so fewer moves = higher rank.
-// Convert back to moves for display: moves = SCORE_BASE - yandexScore.
+// Stored in Yandex as (SCORE_BASE - seconds) so less time = higher rank.
+// Convert back to seconds for display: seconds = SCORE_BASE - yandexScore.
 export const SCORE_BASE = 9999;
 
 export const LB_ID: Record<Difficulty, string> = {
@@ -14,32 +14,32 @@ export const LB_ID: Record<Difficulty, string> = {
 
 const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
   easy:   { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 6,  isPlayer: false },
-    { rank: 2, name: 'Ты',             score: 8,  isPlayer: true  },
-    { rank: 3, name: 'КальмарМастер',  score: 10, isPlayer: false },
-    { rank: 4, name: 'АкулаСпорта',    score: 14, isPlayer: false },
-    { rank: 5, name: 'РыбаПилот',      score: 17, isPlayer: false },
+    { rank: 1, name: 'Морской Волк',   score: 28,  isPlayer: false },
+    { rank: 2, name: 'Ты',             score: 35,  isPlayer: true  },
+    { rank: 3, name: 'КальмарМастер',  score: 47,  isPlayer: false },
+    { rank: 4, name: 'АкулаСпорта',    score: 61,  isPlayer: false },
+    { rank: 5, name: 'РыбаПилот',      score: 80,  isPlayer: false },
   ], playerRank: 2 },
   medium: { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 12, isPlayer: false },
-    { rank: 2, name: 'КальмарМастер',  score: 15, isPlayer: false },
-    { rank: 3, name: 'АкулаСпорта',    score: 18, isPlayer: false },
-    { rank: 4, name: 'Ты',             score: 22, isPlayer: true  },
-    { rank: 5, name: 'РыбаПилот',      score: 28, isPlayer: false },
+    { rank: 1, name: 'Морской Волк',   score: 55,  isPlayer: false },
+    { rank: 2, name: 'КальмарМастер',  score: 72,  isPlayer: false },
+    { rank: 3, name: 'АкулаСпорта',    score: 89,  isPlayer: false },
+    { rank: 4, name: 'Ты',             score: 114, isPlayer: true  },
+    { rank: 5, name: 'РыбаПилот',      score: 138, isPlayer: false },
   ], playerRank: 4 },
   hard:   { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 14, isPlayer: false },
-    { rank: 2, name: 'КальмарМастер',  score: 20, isPlayer: false },
-    { rank: 3, name: 'АкулаСпорта',    score: 25, isPlayer: false },
-    { rank: 4, name: 'РыбаПилот',      score: 31, isPlayer: false },
-    { rank: 7, name: 'Ты',             score: 44, isPlayer: true  },
+    { rank: 1, name: 'Морской Волк',   score: 98,  isPlayer: false },
+    { rank: 2, name: 'КальмарМастер',  score: 135, isPlayer: false },
+    { rank: 3, name: 'АкулаСпорта',    score: 172, isPlayer: false },
+    { rank: 4, name: 'РыбаПилот',      score: 214, isPlayer: false },
+    { rank: 7, name: 'Ты',             score: 287, isPlayer: true  },
   ], playerRank: 7 },
   expert: { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 16, isPlayer: false },
-    { rank: 2, name: 'КальмарМастер',  score: 24, isPlayer: false },
-    { rank: 3, name: 'АкулаСпорта',    score: 30, isPlayer: false },
-    { rank: 4, name: 'РыбаПилот',      score: 38, isPlayer: false },
-    { rank: 5, name: 'Ты',             score: 42, isPlayer: true  },
+    { rank: 1, name: 'Морской Волк',   score: 142, isPlayer: false },
+    { rank: 2, name: 'КальмарМастер',  score: 198, isPlayer: false },
+    { rank: 3, name: 'АкулаСпорта',    score: 251, isPlayer: false },
+    { rank: 4, name: 'РыбаПилот',      score: 319, isPlayer: false },
+    { rank: 5, name: 'Ты',             score: 374, isPlayer: true  },
   ], playerRank: 5 },
 };
 

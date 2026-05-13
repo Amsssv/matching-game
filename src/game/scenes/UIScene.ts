@@ -54,15 +54,21 @@ export class UIScene extends Phaser.Scene {
     const onMatch    = (n: number) => this.updatePairsText(n);
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
-      this.game.registry.set('lastScore', n);
+      this.game.registry.set('lastScore', this.elapsedSeconds);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const lb = getYSDK()?.leaderboards;
       // Fire-and-forget: don't block victory screen on network call.
       // Awaiting lb.setScore caused a frozen-game window (timer stopped, no
       // overlay yet) where the user could accidentally navigate to the menu.
+      // Yandex setScore always overwrites — guard with getPlayerEntry so we
+      // only submit when the new score is strictly better (higher = faster).
+      const newYScore = SCORE_BASE - this.elapsedSeconds;
       const scoreSaved: Promise<void> = lb
-        ? lb.setScore(LB_ID[difficulty], SCORE_BASE - n).then(() => {}).catch(() => {})
+        ? lb.getPlayerEntry(LB_ID[difficulty])
+            .then(entry => { if (newYScore > entry.score) return lb.setScore(LB_ID[difficulty], newYScore); })
+            .catch(() => lb.setScore(LB_ID[difficulty], newYScore))
+            .then(() => {}).catch(() => {})
         : Promise.resolve();
       this.showVictory(n, this.elapsedSeconds, scoreSaved);
     };
@@ -442,7 +448,7 @@ export class UIScene extends Phaser.Scene {
         rowTexts.push(
           createText(this, { x: -(pW / 2 - tablePadX), y: rowY, text: `#${row.rank}`,    variant: 'timer', localDpr, fontSize: nameFontSz, color }),
           createText(this, { x:  0,                    y: rowY, text: row.name,          variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
-          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: String(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+          createText(this, { x:  pW / 2 - tablePadX,  y: rowY, text: formatTime(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
         );
       });
       tableContainer.add(rowTexts);
@@ -518,7 +524,7 @@ export class UIScene extends Phaser.Scene {
       rowTexts.push(
         createText(this, { x: -pW * 0.36, y: rowY, text: `#${row.rank}`,     variant: 'timer', localDpr, fontSize: nameFontSz, color }),
         createText(this, { x:  pW * 0.02, y: rowY, text: row.name,            variant: 'stat',  localDpr, fontSize: nameFontSz, color }),
-        createText(this, { x:  pW * 0.40, y: rowY, text: String(row.score),   variant: 'timer', localDpr, fontSize: nameFontSz, color }),
+        createText(this, { x:  pW * 0.40, y: rowY, text: formatTime(row.score), variant: 'timer', localDpr, fontSize: nameFontSz, color }),
       );
     });
 
@@ -531,7 +537,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   private showAuthPromptIfNeeded(
-    moves:        number,
+    _moves:       number,
     _W:           number,
     H:            number,
     cx:           number,
@@ -568,8 +574,8 @@ export class UIScene extends Phaser.Scene {
             sdk.getPlayer({ scopes: false }).then(p => {
               if (!p.isAuthorized()) return;
               const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
-              const lastMoves: number = this.game.registry.get('lastScore') ?? moves;
-              sdk.leaderboards?.setScore(LB_ID[diff], SCORE_BASE - lastMoves).catch(() => {});
+              const lastSeconds: number = this.game.registry.get('lastScore') ?? this.elapsedSeconds;
+              sdk.leaderboards?.setScore(LB_ID[diff], SCORE_BASE - lastSeconds).catch(() => {});
             });
           }).catch(() => {});
         },
