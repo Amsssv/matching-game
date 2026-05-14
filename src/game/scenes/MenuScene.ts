@@ -115,6 +115,9 @@ export class MenuScene extends Phaser.Scene {
           this.sfx('sfx-click');
           this.game.registry.set('lang', lng);
           saveLang(lng);
+          document.title = LOCALES[lng].title;
+          document.documentElement.lang = lng;
+          document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', LOCALES[lng].description);
           this.scene.restart();
         },
         active: lng === this.lang,

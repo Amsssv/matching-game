@@ -2,6 +2,7 @@ export type Lang = 'ru' | 'en' | 'tr' | 'es' | 'pt' | 'ar';
 
 export interface Locale {
   title: string;
+  description: string;
   subtitle: string;
   difficulty: string;
   diffLabels: Record<'easy' | 'medium' | 'hard' | 'expert', string>;
@@ -31,7 +32,8 @@ export interface Locale {
 
 export const LOCALES: Record<Lang, Locale> = {
   ru: {
-    title:    'МОРСКИЕ ПАРЫ',
+    title:       'МОРСКИЕ ПАРЫ',
+    description: 'Морские пары — весёлая игра на память для детей от 6 лет. Переворачивай карточки, находи совпадения и тренируй внимание вместе с морскими обитателями!',
     subtitle: 'Карточная игра на память',
     difficulty: 'СЛОЖНОСТЬ',
     diffLabels: { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО', expert: 'ЭКСПЕРТ' },
@@ -70,7 +72,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   en: {
-    title:    'SEA PAIRS',
+    title:       'SEA PAIRS',
+    description: 'Sea Pairs — a fun memory game for kids 6+. Flip cards, find matches, and train your focus with sea creatures!',
     subtitle: 'A memory card game',
     difficulty: 'DIFFICULTY',
     diffLabels: { easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', expert: 'EXPERT' },
@@ -109,7 +112,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   tr: {
-    title:    'DENİZ ÇİFTLERİ',
+    title:       'DENİZ ÇİFTLERİ',
+    description: 'Deniz Çiftleri — 6 yaş ve üzeri çocuklar için eğlenceli bir hafıza oyunu. Kartları çevir, eşleşmeleri bul ve deniz canlılarıyla dikkatini geliştir!',
     subtitle: 'Hafıza kartı oyunu',
     difficulty: 'ZORLUK',
     diffLabels: { easy: 'KOLAY', medium: 'ORTA', hard: 'ZOR', expert: 'UZMAN' },
@@ -148,7 +152,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   es: {
-    title:    'PARES MARINOS',
+    title:       'PARES MARINOS',
+    description: '¡Pares Marinos — un divertido juego de memoria para niños desde 6 años. Voltea las cartas, encuentra las parejas y entrena la atención con los habitantes del mar!',
     subtitle: 'Juego de memoria con cartas',
     difficulty: 'DIFICULTAD',
     diffLabels: { easy: 'FÁCIL', medium: 'MEDIO', hard: 'DIFÍCIL', expert: 'EXPERTO' },
@@ -187,7 +192,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   pt: {
-    title:    'PARES DO MAR',
+    title:       'PARES DO MAR',
+    description: 'Pares do Mar — um divertido jogo de memória para crianças a partir de 6 anos. Vire as cartas, encontre os pares e treine a atenção com os habitantes do mar!',
     subtitle: 'Jogo de memória com cartas',
     difficulty: 'DIFICULDADE',
     diffLabels: { easy: 'FÁCIL', medium: 'MÉDIO', hard: 'DIFÍCIL', expert: 'ESPECIALISTA' },
@@ -229,7 +235,8 @@ export const LOCALES: Record<Lang, Locale> = {
   // diffDesc uses correct Arabic grammar: plural (أزواج) for counts 3–10,
   // singular (زوج) for counts 11+ (standard Arabic number agreement).
   ar: {
-    title:    'أزواج البحر',
+    title:       'أزواج البحر',
+    description: 'أزواج البحر — لعبة ذاكرة ممتعة للأطفال من عمر 6 سنوات. اقلب البطاقات وابحث عن التطابقات وتدرب على التركيز مع مخلوقات البحر!',
     subtitle: 'لعبة ذاكرة بالبطاقات',
     difficulty: 'الصعوبة',
     diffLabels: { easy: 'سهل', medium: 'متوسط', hard: 'صعب', expert: 'خبير' },
