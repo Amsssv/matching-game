@@ -40,6 +40,20 @@ test.describe('MenuScene', () => {
     await expect(page).toHaveScreenshot('menu-sound-off.png');
     await resumePhaser(page);
   });
+
+  test('leaderboard panel', async ({ page }) => {
+    await page.evaluate(() => {
+      const game = (window as any).__game;
+      game.registry.set('difficulty', 'medium');
+      const scene = game.scene.getScene('MenuScene') as any;
+      scene.openLeaderboardModal(scene.scale.width, scene.scale.height);
+    });
+    // Wait for modal fade-in (300ms) + mock-data render
+    await page.waitForTimeout(700);
+    await pausePhaser(page);
+    await expect(page).toHaveScreenshot('menu-leaderboard.png');
+    await resumePhaser(page);
+  });
 });
 
 test.describe('MenuScene — language variants', () => {

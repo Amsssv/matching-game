@@ -20,28 +20,37 @@ for (const lang of LANGS) {
       await expect(page).toHaveScreenshot(`${lang}_menu.png`);
     });
 
-    test('game', async ({ page }) => {
-      await page.evaluate((l: string) => {
+    const startGameScene = async (page: import('@playwright/test').Page, l: string) => {
+      await page.evaluate((lng: string) => {
         const g = (window as any).__game;
         g.registry.set('difficulty', 'medium');
         g.registry.set('soundEnabled', false);
-        g.registry.set('lang', l);
+        g.registry.set('lang', lng);
         g.scene.stop('MenuScene');
         g.scene.start('GameScene');
-      }, lang);
+      }, l);
+      // Wait until GameScene has dealt cards AND UIScene has registered the
+      // 'game-complete' listener. Emitting the event before subscription is a
+      // silent no-op → produces an empty/game screenshot instead of the modal.
+      await page.waitForFunction(() => {
+        const g = (window as any).__game;
+        const gs = g?.scene?.getScene('GameScene') as any;
+        if (!Array.isArray(gs?.cards) || gs.cards.length === 0) return false;
+        // GameScene registers its own once-listener (count=1); UIScene adds
+        // its handler in create() → count=2. Wait until both are present.
+        return typeof gs.events.listenerCount === 'function'
+          && gs.events.listenerCount('game-complete') >= 2;
+      }, { timeout: 5000 });
+    };
+
+    test('game', async ({ page }) => {
+      await startGameScene(page, lang);
       await pausePhaser(page);
       await expect(page).toHaveScreenshot(`${lang}_game.png`);
     });
 
     test('victory', async ({ page }) => {
-      await page.evaluate((l: string) => {
-        const g = (window as any).__game;
-        g.registry.set('difficulty', 'medium');
-        g.registry.set('soundEnabled', false);
-        g.registry.set('lang', l);
-        g.scene.stop('MenuScene');
-        g.scene.start('GameScene');
-      }, lang);
+      await startGameScene(page, lang);
       await pausePhaser(page);
       // Wake loop so the victory modal animation can run
       await page.evaluate(() => {
@@ -49,7 +58,15 @@ for (const lang of LANGS) {
         g?.loop.wake();
         g?.scene?.getScene('GameScene')?.events.emit('game-complete', 18);
       });
-      await page.waitForTimeout(1500);
+      // Wait until the victory modal is actually rendered (backdrop depth=20).
+      // Replaces fixed 1.5s wait — under WebGL boot the modal can take longer.
+      await page.waitForFunction(() => {
+        const g = (window as any).__game;
+        const ui = g?.scene?.getScene('UIScene') as any;
+        return ui?.children?.list?.some((o: any) => o.depth === 20);
+      }, { timeout: 5000 });
+      // Let modal fade-in tween settle
+      await page.waitForTimeout(400);
       await pausePhaser(page);
       await expect(page).toHaveScreenshot(`${lang}_victory.png`);
     });

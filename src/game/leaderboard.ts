@@ -34,19 +34,30 @@ const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
     { rank: 5, name: 'РыбаПилот',      score: 138, isPlayer: false },
   ], playerRank: 4 },
   hard:   { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 98,  isPlayer: false },
-    { rank: 2, name: 'КальмарМастер',  score: 135, isPlayer: false },
-    { rank: 3, name: 'АкулаСпорта',    score: 172, isPlayer: false },
-    { rank: 4, name: 'РыбаПилот',      score: 214, isPlayer: false },
-    { rank: 7, name: 'Ты',             score: 287, isPlayer: true  },
-  ], playerRank: 7 },
+    { rank:   1, name: 'Морской Волк',   score:  98, isPlayer: false },
+    { rank:   2, name: 'КальмарМастер',  score: 135, isPlayer: false },
+    { rank:   3, name: 'АкулаСпорта',   score: 172, isPlayer: false },
+    { rank:   4, name: 'РыбаПилот',     score: 214, isPlayer: false },
+    { rank:   5, name: 'ОсьминогПро',   score: 251, isPlayer: false },
+    { rank:   6, name: 'КитКапитан',    score: 289, isPlayer: false },
+    { rank:   7, name: 'МедузаСпид',    score: 312, isPlayer: false },
+    { rank:   8, name: 'КрабМастер',    score: 341, isPlayer: false },
+    { rank:   9, name: 'ЕжИголка',      score: 378, isPlayer: false },
+    { rank:  10, name: 'ЗвездаМоря',    score: 405, isPlayer: false },
+    { rank: 101, name: 'Ты',            score: 892, isPlayer: true  },
+  ], playerRank: 101 },
   expert: { rows: [
-    { rank: 1, name: 'Морской Волк',   score: 142, isPlayer: false },
-    { rank: 2, name: 'КальмарМастер',  score: 198, isPlayer: false },
-    { rank: 3, name: 'АкулаСпорта',    score: 251, isPlayer: false },
-    { rank: 4, name: 'РыбаПилот',      score: 319, isPlayer: false },
-    { rank: 5, name: 'Ты',             score: 374, isPlayer: true  },
-  ], playerRank: 5 },
+    { rank:  1, name: 'Морской Волк',   score: 142, isPlayer: false },
+    { rank:  2, name: 'КальмарМастер',  score: 198, isPlayer: false },
+    { rank:  3, name: 'АкулаСпорта',   score: 251, isPlayer: false },
+    { rank:  4, name: 'РыбаПилот',     score: 319, isPlayer: false },
+    { rank:  5, name: 'ОсьминогПро',   score: 374, isPlayer: false },
+    { rank:  6, name: 'КитКапитан',    score: 412, isPlayer: false },
+    { rank:  7, name: 'МедузаСпид',    score: 453, isPlayer: false },
+    { rank:  8, name: 'КрабМастер',    score: 498, isPlayer: false },
+    { rank:  9, name: 'ЕжИголка',      score: 541, isPlayer: false },
+    { rank: 10, name: 'Ты',            score: 587, isPlayer: true  },
+  ], playerRank: 10 },
 };
 
 export interface LeaderboardRow {
@@ -72,7 +83,7 @@ export async function fetchLeaderboard(difficulty: Difficulty): Promise<Leaderbo
     const isGuest = !player.isAuthorized();
 
     const [topResult, playerResult] = await Promise.allSettled([
-      lb.getEntries(LB_ID[difficulty], { quantityTop: 5, includeUser: !isGuest }),
+      lb.getEntries(LB_ID[difficulty], { quantityTop: 10, includeUser: !isGuest }),
       isGuest ? Promise.reject('guest') : lb.getPlayerEntry(LB_ID[difficulty]),
     ]);
 

@@ -1,8 +1,5 @@
 import { Page } from '@playwright/test';
-import { calcLayout, DIFF_ROWS } from '../src/game/layout';
 import { SYMBOLS } from '../src/game/assets-config';
-
-const HEADER_H = 56; // DPR=1 in all E2E projects
 
 // ── Seeded random (matches the injected Math.random in tests) ────────────────
 const SEED = 42;
@@ -96,15 +93,34 @@ export async function goToGameScene(
 
 // ── Canvas interaction ────────────────────────────────────────────────────────
 
+/**
+ * Read a card's on-screen CSS-pixel position from the live GameScene.
+ * Phaser positions are in internal coords (DPR-scaled); we divide by displayScale
+ * and add the canvas's getBoundingClientRect offset to get viewport CSS pixels
+ * that page.mouse expects.
+ */
+async function getCardViewportPos(page: Page, index: number): Promise<{ x: number; y: number }> {
+  const pos = await page.evaluate((i) => {
+    const game = (window as any).__game;
+    const scene = game?.scene?.getScene('GameScene') as any;
+    const card = scene?.cards?.[i];
+    if (!card) return null;
+    const canvas = game.canvas as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    const sx = game.scale.displayScale?.x ?? 1;
+    const sy = game.scale.displayScale?.y ?? 1;
+    return {
+      x: rect.left + card.container.x / sx,
+      y: rect.top  + card.container.y / sy,
+    };
+  }, index);
+  if (!pos) throw new Error(`Card index ${index} not found in GameScene`);
+  return pos;
+}
+
 /** Click a card by its index in the current GameScene layout. */
-export async function clickCard(
-  page: Page,
-  index: number,
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert' = 'easy',
-) {
-  const viewport = page.viewportSize()!;
-  const layout = calcLayout(DIFF_ROWS[difficulty], viewport.width, viewport.height, HEADER_H);
-  const { x, y } = layout.positions[index];
+export async function clickCard(page: Page, index: number) {
+  const { x, y } = await getCardViewportPos(page, index);
   await page.mouse.click(x, y);
 }
 /**
@@ -155,14 +171,8 @@ export async function resumePhaser(page: Page) {
 }
 
 /** Hover over a card by its index. */
-export async function hoverCard(
-  page: Page,
-  index: number,
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert' = 'easy',
-) {
-  const viewport = page.viewportSize()!;
-  const layout = calcLayout(DIFF_ROWS[difficulty], viewport.width, viewport.height, HEADER_H);
-  const { x, y } = layout.positions[index];
+export async function hoverCard(page: Page, index: number) {
+  const { x, y } = await getCardViewportPos(page, index);
   await page.mouse.move(x, y);
   await page.waitForTimeout(150); // allow hover animation to settle
 }

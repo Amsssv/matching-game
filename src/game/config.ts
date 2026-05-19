@@ -5,13 +5,14 @@ import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { UI } from './ui/config';
 
-// In test environments (Playwright adds ?canvas=1) force Canvas renderer for
-// deterministic pixel output. WebGL sub-pixel rounding varies between frames.
+// Playwright adds ?canvas=1 to flag a screenshot run. We still use WebGL
+// (Canvas can't render NineSlice, used for the game-island), but enable
+// preserveDrawingBuffer so screenshots see a stable last frame.
 const isTestEnv = typeof window !== 'undefined' &&
   new URLSearchParams(window.location.search).has('canvas');
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
-  type: isTestEnv ? Phaser.CANVAS : Phaser.AUTO,
+  type: Phaser.AUTO,
   backgroundColor: UI.colors.bgDark,
   scene: [BootScene, MenuScene, GameScene, UIScene],
   scale: {
