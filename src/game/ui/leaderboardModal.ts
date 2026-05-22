@@ -3,7 +3,7 @@ import { LOCALES, type Lang } from '../i18n';
 import { fetchLeaderboard, formatTime, type LeaderboardRow } from '../leaderboard';
 import { type Difficulty } from '../layout';
 import { createButton, createText, type ButtonHandle } from './factory';
-import { isMobileDevice } from '../device';
+import { isMobileDevice, getLocalDpr } from '../device';
 import { UI } from './config';
 import { getYSDK } from '../../ysdk';
 
@@ -32,7 +32,7 @@ export async function openLeaderboardModal(
     am?.playSfx(key);
   };
 
-  const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+  const localDpr  = getLocalDpr();
   const L         = LOCALES[lang];
   const cx        = W / 2;
   const cy        = H / 2;

@@ -6,7 +6,7 @@ import { openLeaderboardModal } from '../ui/leaderboardModal';
 import { saveLang, saveSoundEnabled, SUPPORTED } from '../settings';
 import { type Difficulty } from '../layout';
 import { createButton, createTitle, createSubtitle, createIconButton, createText, preWarmGradients } from '../ui/factory';
-import { isMobileDevice } from '../device';
+import { isMobileDevice, getLocalDpr } from '../device';
 import type { ButtonHandle } from '../ui/factory';
 import { UI, clamp } from '../ui/config';
 
@@ -106,7 +106,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createUI(W: number, H: number) {
-    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const localDpr = getLocalDpr();
     const cssW = Math.round(W / localDpr);
 
     const L    = LOCALES[this.lang];

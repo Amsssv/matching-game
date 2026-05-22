@@ -1,3 +1,5 @@
+import { getLocalDpr } from '../device';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function clamp(val: number, min: number, max: number): number {
@@ -154,7 +156,7 @@ export const UI = {
   // ── Layout ───────────────────────────────────────────────────────────────────
   layout: {
     /** Header bar height in game pixels (= 56 CSS px × DPR). */
-    get headerH() { return Math.round(56 * Math.min(window.devicePixelRatio || 1, 2)); },
+    get headerH() { return Math.round(56 * getLocalDpr()); },
   },
 
   // ── Animation durations (ms) ─────────────────────────────────────────────────

@@ -8,7 +8,7 @@ import type { ButtonHandle } from '../ui/factory';
 import { UI } from '../ui/config';
 import { fetchLeaderboard, formatTime, type LeaderboardData, SCORE_BASE, LB_ID } from '../leaderboard';
 import type { Difficulty } from '../layout';
-import { isMobileDevice } from '../device';
+import { isMobileDevice, getLocalDpr } from '../device';
 import { openLeaderboardModal } from '../ui/leaderboardModal';
 
 export class UIScene extends Phaser.Scene {
@@ -97,7 +97,7 @@ export class UIScene extends Phaser.Scene {
     this.drawHeaderBg(W);
 
     const cy       = HEADER_H / 2;
-    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const localDpr = getLocalDpr();
     const BW       = Math.round(52 * localDpr), BH = Math.round(30 * localDpr);
     const bx       = W - BW - 10;
     const by       = (HEADER_H - BH) / 2;
@@ -159,7 +159,7 @@ export class UIScene extends Phaser.Scene {
     const W        = gameSize.width;
     const HEADER_H = UI.layout.headerH;
     const cy       = HEADER_H / 2;
-    const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const localDpr = getLocalDpr();
     const BW       = Math.round(52 * localDpr), BH = Math.round(30 * localDpr);
     const bx       = W - BW - 10;
     const by       = (HEADER_H - BH) / 2;
@@ -182,7 +182,7 @@ export class UIScene extends Phaser.Scene {
     const cx = W / 2;
     const cy = H / 2;
     const pW        = Math.min(W * 0.85, isMobileDevice() ? 510 : 340);
-    const localDpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const localDpr  = getLocalDpr();
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     // Chain after score save so the compact LB includes the new result.
     const lbPromise = scoreSaved.then(() => fetchLeaderboard(difficulty));

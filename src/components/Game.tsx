@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { gameConfig } from '../game/config';
+import { getLocalDpr } from '../game/device';
 import { getYSDK } from '../ysdk';
 
 declare global {
@@ -16,12 +17,12 @@ type ScaleManagerInternal = Phaser.Scale.ScaleManager & {
 
 export function Game() {
   const gameRef = useRef<Phaser.Game | null>(null);
-  const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, 2));
+  const [dpr, setDpr] = useState(getLocalDpr);
 
   // Update dpr state when DevTools device switch changes devicePixelRatio
   useEffect(() => {
     const update = () => {
-      const d = Math.min(window.devicePixelRatio || 1, 2);
+      const d = getLocalDpr();
       setDpr(prev => prev !== d ? d : prev);
     };
     window.addEventListener('resize', update);
@@ -101,7 +102,7 @@ export function Game() {
     const game = gameRef.current;
     if (!game) return;
     const apply = () => {
-      const cur = Math.min(window.devicePixelRatio || 1, 2);
+      const cur = getLocalDpr();
       const sm = game.scale as ScaleManagerInternal;
       if (cur > 1) {
         // Phaser RESIZE mode sets canvas.width/height but never sets style.width/height.

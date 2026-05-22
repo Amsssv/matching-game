@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { UI, clamp } from './config';
+import { getLocalDpr } from '../device';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -219,7 +220,7 @@ export function createButton(
 
   const vcfg     = UI.button.variants[variant];
   const bc       = UI.button;
-  const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+  const localDpr = getLocalDpr();
   const fontSize = opts.fontSize ?? Math.round(16 * localDpr);
 
   // ── Measure texts ────────────────────────────────────────────────────────
@@ -438,7 +439,7 @@ export function createIconButton(
   const { lx, ly, w, h, label, onClick, active, depth = 5 } = opts;
   const C   = UI.colors;
   const bg  = scene.add.graphics().setDepth(depth);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = getLocalDpr();
 
   bg.fillStyle(active ? C.primary : C.bgMid, active ? 1 : 0.8);
   bg.fillRoundedRect(lx, ly, w, h, 5);
