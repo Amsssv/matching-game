@@ -5,6 +5,7 @@ import { type Difficulty } from '../layout';
 import { createButton, createText, type ButtonHandle } from './factory';
 import { isMobileDevice } from '../device';
 import { UI } from './config';
+import { getYSDK } from '../../ysdk';
 
 export interface OpenLeaderboardModalOptions {
   W: number;
@@ -90,7 +91,25 @@ export async function openLeaderboardModal(
   const closeBtnH   = Math.max(36, Math.round(40 * (localDpr / 2 + 0.5)));
   const closeBtnW   = Math.min(pW * 0.55, 180);
   const closeBtnY   = pH / 2 - closeBtnH / 2 - 14;
-  const tableAvailH = closeBtnY - closeBtnH / 2 - 12 - tableStartY;
+
+  // Determine guest state up-front so the login CTA reserves space before rows render.
+  // Per Yandex rule 1.2.1, auth dialog only opens via this explicit button.
+  let isGuest = false;
+  try {
+    const sdk = getYSDK();
+    if (sdk) {
+      const player = await sdk.getPlayer({ scopes: false });
+      isGuest = !player.isAuthorized();
+    }
+  } catch {
+    isGuest = false;
+  }
+
+  const loginBtnH = isGuest ? Math.max(32, Math.round(34 * (localDpr / 2 + 0.5))) : 0;
+  const loginBtnGap = isGuest ? 10 : 0;
+  const loginBtnY = isGuest ? closeBtnY - closeBtnH / 2 - loginBtnGap - loginBtnH / 2 : 0;
+  const tableBottomLimit = isGuest ? loginBtnY - loginBtnH / 2 - 8 : closeBtnY - closeBtnH / 2 - 12;
+  const tableAvailH = tableBottomLimit - tableStartY;
   const maxRows     = Math.max(1, Math.min(10, Math.floor(tableAvailH / (rowH + rowGap))));
 
   const sep = scene.add.graphics();
@@ -108,6 +127,27 @@ export async function openLeaderboardModal(
   });
 
   modal.add([panelGfx, titleText, sep, loadingText, tableContainer, closeBtn.container]);
+
+  if (isGuest) {
+    const loginBtnW = Math.min(pW * 0.7, 240);
+    const loginBtn = createButton(scene, {
+      x: 0, y: loginBtnY, label: L.loginToSave,
+      onClick: () => {
+        sfx('sfx-click');
+        const sdk = getYSDK();
+        if (!sdk) return;
+        sdk.auth.openAuthDialog().then(result => {
+          if (result.action !== 'login' || !modal.active) return;
+          renderTable(currentDiff);
+        }).catch(() => {});
+      },
+      variant: 'ghost',
+      fixedWidth: loginBtnW,
+      fixedHeight: loginBtnH,
+      fontSize: Math.round(10 * localDpr),
+    });
+    modal.add(loginBtn.container);
+  }
 
   const renderTable = async (diff: Difficulty) => {
     tableContainer.removeAll(true);
@@ -127,7 +167,7 @@ export async function openLeaderboardModal(
       ? [...data.rows.slice(0, Math.max(0, maxRows - 2)), 'separator', data.rows[playerIdx]]
       : data.rows.slice(0, maxRows);
 
-    const safeBottomY = closeBtnY - closeBtnH / 2 - 6;
+    const safeBottomY = isGuest ? loginBtnY - loginBtnH / 2 - 6 : closeBtnY - closeBtnH / 2 - 6;
     const rowTexts: Phaser.GameObjects.Text[] = [];
     for (let i = 0; i < displayRows.length; i++) {
       const row  = displayRows[i];

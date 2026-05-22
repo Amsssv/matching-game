@@ -57,8 +57,16 @@ export class MenuScene extends Phaser.Scene {
       this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
     }
 
-    // Show sticky banner while in menu; hide when leaving
-    getYSDK()?.adv.showBannerAdv();
+    // Show sticky banner while in menu, but hide it in mobile landscape where it
+    // would crop game elements (Yandex rules 1.10.1 + 1.6.2.3). Hidden when scene
+    // leaves either way.
+    const sdk = getYSDK();
+    const isMobileLandscape = isMobileDevice() && W > H;
+    if (!isMobileLandscape) {
+      sdk?.adv.showBannerAdv();
+    } else {
+      sdk?.adv.hideBannerAdv();
+    }
     this.events.once('shutdown', () => {
       getYSDK()?.adv.hideBannerAdv();
     });
@@ -68,10 +76,23 @@ export class MenuScene extends Phaser.Scene {
     // emit 'resize' — so this.scale.on('resize') reliably catches DevTools device switches.
     // Using Phaser's event (not window.resize) avoids spurious restarts from mobile browser
     // viewport changes (iOS address bar, keyboard) that don't affect the Phaser canvas.
+    //
+    // Yandex rule 1.14: iOS Safari emits a storm of resize events during orientation
+    // changes. The previous 150ms debounce was too short — multiple scene.restart()
+    // calls would queue and stall the main thread. We now wait 400ms and ignore
+    // micro-changes (< 6px on either axis) to avoid spurious restarts from the
+    // iOS address bar collapsing or the soft keyboard appearing.
     let resizeTimer: Phaser.Time.TimerEvent | null = null;
-    const onResize = () => {
+    let lastSeenW = W;
+    let lastSeenH = H;
+    const onResize = (gameSize: Phaser.Structs.Size) => {
+      const nw = gameSize.width;
+      const nh = gameSize.height;
+      if (Math.abs(nw - lastSeenW) < 6 && Math.abs(nh - lastSeenH) < 6) return;
+      lastSeenW = nw;
+      lastSeenH = nh;
       if (resizeTimer) resizeTimer.remove();
-      resizeTimer = this.time.delayedCall(150, () => this.scene.restart({ fromResize: true }));
+      resizeTimer = this.time.delayedCall(400, () => this.scene.restart({ fromResize: true }));
     };
     this.scale.on('resize', onResize);
     this.events.once('shutdown', () => {
@@ -142,42 +163,55 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── Difficulty ───────────────────────────────────────────────────────────
-    const isMobile = isMobileDevice();
-    // Mobile: single column at 80% width; desktop: single row
-    const mobileBtnW = isMobile ? Math.floor(W * 0.80) : btnW;
+    const isMobile          = isMobileDevice();
+    // Portrait mobile = vertical stack; landscape mobile or desktop = single row.
+    // For very short screens (mobile landscape ≤ 560px tall) we further switch to
+    // a 2×2 grid so the play/sound/leaderboard stack still fits below.
+    // Yandex rules 1.6.2.3 (desktop & mobile) + 1.10.1 (iOS banner crop) demand
+    // that nothing falls off the bottom even at 430-CSS-px landscape heights.
+    const usePortraitMobile = isMobile && H >= W;
+    const useTwoColGrid     = !usePortraitMobile && H < 560;
+    const mobileBtnW = usePortraitMobile ? Math.floor(W * 0.80) : btnW;
     const btnGapV = 10;
-    // Mobile uses compact buttons; desktop keeps the original size
-    const diffBtnH = isMobile ? clamp(Math.floor(H * 0.137), 70, 86) : btnH;
+    const diffBtnH = usePortraitMobile
+      ? clamp(Math.floor(H * 0.137), 70, 86)
+      : (useTwoColGrid ? clamp(Math.floor(H * 0.13), 44, 64) : btnH);
 
-    // On mobile: center the difficulty section (label + 4 buttons) at H/2.
-    // Formula derived from: sectionCenter = H/2, sectionHeight = 16 + 24 + 4*diffBtnH + 3*btnGapV
-    const diffLabelY = isMobile
+    const diffLabelY = usePortraitMobile
       ? Math.max(H / 2 - 27 - 2 * diffBtnH, subtitleText.y + subtitleText.height / 2 + 24)
-      : subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), 48, 90);
+      : subtitleText.y + subtitleText.height / 2 + clamp(Math.floor(H * 0.07), useTwoColGrid ? 16 : 48, 90);
     const diffLabel  = createText(this, {
       x: midX, y: diffLabelY,
       text: L.difficulty, variant: 'sectionLabel', localDpr,
     });
 
-    // First button center = label bottom + 24 + half-button-height
-    const row0Y = diffLabel.y + diffLabel.height / 2 + 24 + diffBtnH / 2;
-    // diffBottomY = center of last button (row for desktop, column for mobile)
-    const diffBottomY = isMobile ? row0Y + 3 * (diffBtnH + btnGapV) : row0Y;
+    const row0Y = diffLabel.y + diffLabel.height / 2 + (useTwoColGrid ? 12 : 24) + diffBtnH / 2;
+    // diffBottomY = Y of last row of buttons (so we can place the hint below)
+    const diffBottomY = usePortraitMobile
+      ? row0Y + 3 * (diffBtnH + btnGapV)
+      : (useTwoColGrid ? row0Y + 1 * (diffBtnH + btnGapV) : row0Y);
 
     const hintText = createText(this, {
-      x: midX, y: diffBottomY + diffBtnH / 2 + 32,
+      x: midX, y: diffBottomY + diffBtnH / 2 + (useTwoColGrid ? 12 : 32),
       text: L.diffHint[this.difficulty],
       variant: 'hint', localDpr,
     });
 
     const lblSzBase = clamp(Math.round(mobileBtnW * 0.1), Math.round(7 * localDpr), 16);
-    const lblSz = isMobile ? Math.round(lblSzBase * 1.5) : lblSzBase;
+    const lblSz = usePortraitMobile ? Math.round(lblSzBase * 1.5) : lblSzBase;
     const diffHandles = new Map<Difficulty, ButtonHandle>();
     (['easy', 'medium', 'hard', 'expert'] as Difficulty[]).forEach((diff, i) => {
       let bx: number, by: number;
-      if (isMobile) {
+      if (usePortraitMobile) {
         bx = midX;
         by = row0Y + i * (diffBtnH + btnGapV);
+      } else if (useTwoColGrid) {
+        // 2×2 — column index = i % 2, row index = floor(i / 2)
+        const gridW = btnW * 2 + gap;
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        bx = midX - gridW / 2 + col * (btnW + gap) + btnW / 2;
+        by = row0Y + row * (diffBtnH + btnGapV);
       } else {
         const gridW = btnW * 4 + gap * 3;
         bx = midX - gridW / 2 + i * (btnW + gap) + btnW / 2;
@@ -196,7 +230,7 @@ export class MenuScene extends Phaser.Scene {
         variant:     'primary',
         active:      this.difficulty === diff,
         description: L.diffDesc[diff],
-        fixedWidth:  isMobile ? mobileBtnW : btnW,
+        fixedWidth:  usePortraitMobile ? mobileBtnW : btnW,
         fixedHeight: diffBtnH,
         fontSize:    lblSz,
       });
@@ -205,12 +239,14 @@ export class MenuScene extends Phaser.Scene {
 
     // ── Play + Sound + Leaderboard layout ───────────────────────────────────
     const pW = clamp(Math.floor(W * 0.5), 180, 280);
-    const pH = clamp(Math.floor(H * 0.08), 44, 58);
-    const lbH = isMobile ? Math.round(pH) : Math.round(pH / 1.5);
+    const pH = useTwoColGrid
+      ? clamp(Math.floor(H * 0.10), 36, 48)
+      : clamp(Math.floor(H * 0.08), 44, 58);
+    const lbH = usePortraitMobile ? Math.round(pH) : Math.round(pH / 1.5);
 
     let playY: number, soundLabelY: number, soundY: number, lbBtnY: number;
 
-    if (isMobile) {
+    if (usePortraitMobile) {
       // Anchor from bottom: lb → sound button → sound label → play button
       lbBtnY      = H - 56 - lbH / 2;
       soundY      = lbBtnY - lbH / 2 - 24 - sH / 2;
@@ -225,6 +261,23 @@ export class MenuScene extends Phaser.Scene {
         soundY      = soundLabelY + 10 + 16 + sH / 2;
         lbBtnY      = soundY      + sH / 2 + 24 + lbH / 2;
       }
+    } else if (useTwoColGrid) {
+      // Compact landscape (short height): pack tightly from the bottom up,
+      // then clamp so nothing falls off-screen.
+      const bottomPad = 12;
+      lbBtnY      = H - bottomPad - lbH / 2;
+      soundY      = lbBtnY - lbH / 2 - 10 - sH / 2;
+      soundLabelY = soundY - sH / 2 - 10 - 8;
+      playY       = soundLabelY - 8 - 14 - pH / 2;
+
+      // Ensure stack doesn't overlap the difficulty hint
+      const minPlayY = hintText.y + hintText.height / 2 + 12 + pH / 2;
+      if (playY < minPlayY) {
+        playY       = minPlayY;
+        soundLabelY = playY       + pH / 2 + 14 + 8;
+        soundY      = soundLabelY + 8 + 10 + sH / 2;
+        lbBtnY      = soundY      + sH / 2 + 10 + lbH / 2;
+      }
     } else {
       playY = Math.max(
         hintText.y + hintText.height / 2 + 40 + Math.max(H * 0.04, pH / 2 + 14),
@@ -234,6 +287,17 @@ export class MenuScene extends Phaser.Scene {
       soundLabelY = playY + pH / 2 + soundGap + 10;
       soundY      = soundLabelY + 10 + 16 + sH / 2;
       lbBtnY      = soundY + sH / 2 + 14 + lbH / 2;
+    }
+
+    // Final safety: clamp the whole bottom stack within the visible area.
+    // Yandex rule 1.6.2.3 — no element may extend past the bottom edge.
+    const bottomBound = H - 8;
+    if (lbBtnY + lbH / 2 > bottomBound) {
+      const overshoot = lbBtnY + lbH / 2 - bottomBound;
+      lbBtnY      -= overshoot;
+      soundY      -= overshoot;
+      soundLabelY -= overshoot;
+      playY       -= overshoot;
     }
 
     // active: true → always renders with gold gradient + ring (primary CTA)
@@ -286,26 +350,16 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
-  private async requireAuthIfNeeded(): Promise<void> {
-    const sdk = getYSDK();
-    if (!sdk) return;
-    try {
-      const player = await sdk.getPlayer({ scopes: false });
-      if (player.isAuthorized()) return;
-      await sdk.auth.openAuthDialog();
-    } catch {
-      // auth unavailable or dismissed — proceed anyway
-    }
-  }
-
   private async openLeaderboardModal(W: number, H: number): Promise<void> {
+    // Per Yandex Games rule 1.2.1: authorization only happens after explicit user
+    // action on a dedicated button. We open the leaderboard as a guest and let
+    // the modal show a "Login to save" CTA inside, which is the explicit action.
     await openLeaderboardModal(this, {
       W, H,
       lang:          this.lang,
       difficulty:    this.difficulty,
       backdropDepth: 20,
       modalDepth:    21,
-      onBeforeOpen:  () => this.requireAuthIfNeeded(),
     });
   }
 

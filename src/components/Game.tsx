@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { gameConfig } from '../game/config';
+import { getYSDK } from '../ysdk';
 
 export function Game() {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -14,6 +15,60 @@ export function Game() {
     };
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
+  }, []);
+
+  // Yandex Games rule 1.6.2.7: suppress the native context menu on long-press
+  // and right-click over the game canvas/container. CSS `-webkit-touch-callout: none`
+  // covers iOS Safari, but we still need this for desktop right-click and
+  // Android Chrome long-press, which fire `contextmenu` regardless of CSS.
+  useEffect(() => {
+    const onContextMenu = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', onContextMenu);
+    return () => document.removeEventListener('contextmenu', onContextMenu);
+  }, []);
+
+  // Yandex Games rule 1.10.1: the sticky banner on iOS overlaps the canvas and
+  // clips game elements. Yandex SDK does not report banner height directly, so
+  // we poll getBannerAdvStatus() and use a conservative reserve (54px) when the
+  // banner is showing. The root container reads --banner-h via CSS padding,
+  // which makes ResizeObserver shrink the Phaser canvas accordingly.
+  useEffect(() => {
+    const STICKY_BANNER_H = 54; // measured on iOS Safari Yandex sticky banner
+    let cancelled = false;
+    let timer: number | undefined;
+    let lastShowing: boolean | null = null;
+
+    const apply = (showing: boolean) => {
+      if (showing === lastShowing) return;
+      lastShowing = showing;
+      document.documentElement.style.setProperty(
+        '--banner-h',
+        showing ? `${STICKY_BANNER_H}px` : '0px',
+      );
+    };
+
+    const tick = async () => {
+      if (cancelled) return;
+      const ysdk = getYSDK();
+      if (ysdk?.adv?.getBannerAdvStatus) {
+        try {
+          const status = await ysdk.adv.getBannerAdvStatus();
+          apply(!!status?.stickyAdvIsShowing);
+        } catch {
+          apply(false);
+        }
+      } else {
+        apply(false);
+      }
+      if (!cancelled) timer = window.setTimeout(tick, 800);
+    };
+
+    timer = window.setTimeout(tick, 400);
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+      document.documentElement.style.setProperty('--banner-h', '0px');
+    };
   }, []);
 
   // Initialize Phaser once
@@ -81,7 +136,10 @@ export function Game() {
         left: 0,
         width: `${dpr * 100}vw`,
         height: `${dpr * 100}vh`,
-        padding: 0,
+        // Reserve room for the Yandex sticky banner so it doesn't overlap the
+        // canvas (rule 1.10.1). Other paddings are zero to keep the existing
+        // DPR-aware sizing intact — Phaser's ResizeObserver reads the inner box.
+        padding: '0 0 var(--banner-h, 0px) 0',
       }}
     />
   );

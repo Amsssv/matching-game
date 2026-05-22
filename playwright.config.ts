@@ -69,5 +69,30 @@ export default defineConfig({
         deviceScaleFactor: 1,
       },
     },
+
+    // ── Promo screenshot projects ───────────────────────────────────────────
+    // Used by promo-screenshots.spec.ts — emits raw PNG files into
+    // screenshots/promo/, no baseline comparison. Targets the dimensions
+    // Yandex Games accepts for store listings:
+    //   promo-mobile  → 1080×1920 portrait (Pixel 5 emulation, dpr=3)
+    //   promo-desktop → 1920×1080 landscape (Full HD)
+    {
+      name: 'promo-mobile',
+      testMatch: '**/promo-screenshots.spec.ts',
+      use: {
+        ...devices['Pixel 5'],
+        viewport: { width: 360, height: 640 },
+        deviceScaleFactor: 3,
+      },
+    },
+    {
+      name: 'promo-desktop',
+      testMatch: '**/promo-screenshots.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 },
+        deviceScaleFactor: 1,
+      },
+    },
   ],
 });

@@ -31,6 +31,9 @@ export class GameScene extends Phaser.Scene {
   private islandObj?: Phaser.GameObjects.NineSlice;
   private gameActive = true;
   private lastAdvTime = 0;
+  private resizeTimer: Phaser.Time.TimerEvent | null = null;
+  private lastResizeW = 0;
+  private lastResizeH = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000;
   private static readonly ISLAND_SLICE = { left: 60, right: 60, top: 60, bottom: 60 };
   // Extra padding inside the 9-slice frame to keep cards within the sandy octagon
@@ -75,11 +78,28 @@ export class GameScene extends Phaser.Scene {
     getYSDK()?.features.GameplayAPI?.start();
     this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
-    this.scale.on('resize', this.onResize, this);
+    // Yandex rule 1.14: iOS orientation change emits 5–10 resize events back-to-back.
+    // Running the heavy onResize on each one (re-laying out every card + redrawing
+    // shadows/masks) freezes the main thread for >1s on real devices. We debounce
+    // with a 200ms tail so only the final stable size triggers the relayout.
+    this.lastResizeW = this.scale.width;
+    this.lastResizeH = this.scale.height;
+    const onResizeDebounced = (gameSize: Phaser.Structs.Size) => {
+      const nw = gameSize.width;
+      const nh = gameSize.height;
+      if (Math.abs(nw - this.lastResizeW) < 6 && Math.abs(nh - this.lastResizeH) < 6) return;
+      this.lastResizeW = nw;
+      this.lastResizeH = nh;
+      if (this.resizeTimer) this.resizeTimer.remove();
+      this.resizeTimer = this.time.delayedCall(200, () => this.onResize(gameSize));
+    };
+    this.scale.on('resize', onResizeDebounced, this);
     this.events.once('game-complete', () => { this.gameActive = false; });
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.events.once('shutdown', () => {
-      this.scale.off('resize', this.onResize, this);
+      this.scale.off('resize', onResizeDebounced, this);
+      this.resizeTimer?.remove();
+      this.resizeTimer = null;
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       this.cards.forEach(card => { card.maskGfx.destroy(); card.shadow.destroy(); });
       this.islandObj?.destroy();

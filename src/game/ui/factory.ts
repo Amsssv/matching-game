@@ -371,7 +371,14 @@ export function createText(
   }).setOrigin(0.5);
 
   if ('letterSpacingRatio' in style && style.letterSpacingRatio) {
-    t.setLetterSpacing(Math.round(sz * style.letterSpacingRatio));
+    // Canvas2D letter-spacing disables Arabic shaping → letters render unjoined
+    // in logical (LTR) order. Skip the tracking when the string contains any
+    // character from the core Arabic block (U+0600–U+06FF). The visual hierarchy
+    // is preserved by font weight + size; tracking is a stylistic flourish
+    // only meaningful for Latin/Cyrillic scripts.
+    if (!/[؀-ۿ]/.test(text)) {
+      t.setLetterSpacing(Math.round(sz * style.letterSpacingRatio));
+    }
   }
   if ('depth' in style && style.depth !== undefined) {
     t.setDepth(style.depth);

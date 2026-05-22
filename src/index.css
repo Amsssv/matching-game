@@ -236,6 +236,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Yandex Games rule 1.6.2.7: prevent text selection / iOS callout / tap highlight
+     so long-press and double-tap on the canvas don't break the game feel. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -245,15 +251,17 @@ body {
   overflow: hidden;
   background: #071528;
   touch-action: none;
+  overscroll-behavior: none;
 }
 
 #root,
 #game-container {
   width: 100%;
   height: 100%;
-  /* Fill safe area on devices with notches */
+  /* Fill safe area on devices with notches; reserve space for the Yandex
+     sticky banner via --banner-h (set by Game.tsx when banner is visible). */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
+           calc(env(safe-area-inset-bottom) + var(--banner-h, 0px)) env(safe-area-inset-left);
 }
 
 #game-container canvas {
