@@ -28,7 +28,6 @@ test.describe('GameScene', () => {
     // Read the actual card order from the live GameScene — avoids relying on
     // Math.random seed state which differs between WebGL and Canvas renderers.
     const deck = await getActualDeck(page);
-    const totalPairs = deck.length / 2;
 
     // Build a map: symbol → [indices in deck]
     const pairMap = new Map<string, number[]>();

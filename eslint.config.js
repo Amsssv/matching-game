@@ -19,5 +19,18 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    files: ['e2e/**/*.{ts,tsx}'],
+    rules: {
+      // Playwright's page.evaluate returns unknown/any from the browser context.
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
 ])

@@ -316,8 +316,7 @@ export class MenuScene extends Phaser.Scene {
 
     createText(this, { x: midX, y: soundLabelY, text: L.sound, variant: 'sectionLabel', localDpr });
 
-    let soundHandle: ButtonHandle;
-    soundHandle = createButton(this, {
+    const soundHandle: ButtonHandle = createButton(this, {
       x:           midX,
       y:           soundY,
       label:       this.soundEnabled ? L.soundOn : L.soundOff,

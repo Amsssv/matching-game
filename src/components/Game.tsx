@@ -3,6 +3,17 @@ import Phaser from 'phaser';
 import { gameConfig } from '../game/config';
 import { getYSDK } from '../ysdk';
 
+declare global {
+  interface Window {
+    __game?: Phaser.Game;
+  }
+}
+
+type ScaleManagerInternal = Phaser.Scale.ScaleManager & {
+  updateBounds: () => void;
+  displayScale: { set: (x: number, y: number) => void };
+};
+
 export function Game() {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, 2));
@@ -77,7 +88,7 @@ export function Game() {
     const game = new Phaser.Game({ ...gameConfig, parent: 'game-container' });
     gameRef.current = game;
     if (import.meta.env.DEV) {
-      (window as any).__game = game;
+      window.__game = game;
     }
     return () => {
       gameRef.current?.destroy(true);
@@ -91,7 +102,7 @@ export function Game() {
     if (!game) return;
     const apply = () => {
       const cur = Math.min(window.devicePixelRatio || 1, 2);
-      const sm = game.scale as any;
+      const sm = game.scale as ScaleManagerInternal;
       if (cur > 1) {
         // Phaser RESIZE mode sets canvas.width/height but never sets style.width/height.
         // We set style.width/height to shrink the rendered canvas back to CSS-pixel size.
