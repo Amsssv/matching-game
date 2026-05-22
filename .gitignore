@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 game.zip
-screenshots/promo/
+screenshots/promo/promo.zip
 
 # Git worktrees
 .worktrees
