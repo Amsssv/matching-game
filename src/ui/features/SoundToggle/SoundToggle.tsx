@@ -1,4 +1,4 @@
-import { Button } from '../Button';
+import { Button } from '@ui/Button';
 import styles from './SoundToggle.module.scss';
 import type { Locale } from '../../../game/i18n';
 

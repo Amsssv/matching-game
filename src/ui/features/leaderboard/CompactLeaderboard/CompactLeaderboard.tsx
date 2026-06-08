@@ -1,5 +1,5 @@
-import { formatTime, type LeaderboardData } from '../../../game/leaderboard';
-import { cx } from '../../cx';
+import { formatTime, type LeaderboardData } from '../../../../game/leaderboard';
+import { cx } from '@ui/cx';
 import styles from './CompactLeaderboard.module.scss';
 
 export function CompactLeaderboard({ data }: { data: LeaderboardData }) {

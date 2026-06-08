@@ -1,7 +1,7 @@
-import { useUi } from '../../hooks/useUiStore';
-import { bus } from '../../../state/eventBus';
+import { useUi } from '@hooks/useUiStore';
+import { bus } from '@state/eventBus';
 import { LOCALES } from '../../../game/i18n';
-import { Button } from '../Button';
+import { Button } from '@ui/Button';
 import styles from './Header.module.scss';
 
 export function Header() {

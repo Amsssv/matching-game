@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { useUi } from '../../hooks/useUiStore';
+import { useUi } from '@hooks/useUiStore';
 import { LOCALES } from '../../../game/i18n';
-import { Button } from '../Button';
-import { LeaderboardTabs } from '../LeaderboardTabs';
-import { LeaderboardTable } from '../LeaderboardTable';
-import { closeLeaderboard, switchLeaderboardDifficulty, leaderboardLogin } from '../../../state/leaderboardController';
+import { Button } from '@ui/Button';
+import { LeaderboardTabs } from '@features/leaderboard/LeaderboardTabs';
+import { LeaderboardTable } from '@features/leaderboard/LeaderboardTable';
+import { closeLeaderboard, switchLeaderboardDifficulty, leaderboardLogin } from '@state/leaderboardController';
 import styles from './LeaderboardModal.module.scss';
 
 export function LeaderboardModal() {

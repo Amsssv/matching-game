@@ -6,6 +6,14 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@ui/*":       ["src/ui/ui/*"],
+      "@features/*": ["src/ui/features/*"],
+      "@widgets/*":  ["src/ui/widgets/*"],
+      "@hooks/*":    ["src/ui/hooks/*"],
+      "@state/*":    ["src/state/*"]
+    },
     "skipLibCheck": true,
 
     /* Bundler mode */

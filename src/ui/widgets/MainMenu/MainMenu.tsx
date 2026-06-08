@@ -1,12 +1,12 @@
-import { useUi } from '../../hooks/useUiStore';
-import { bus } from '../../../state/eventBus';
+import { useUi } from '@hooks/useUiStore';
+import { bus } from '@state/eventBus';
 import { LOCALES } from '../../../game/i18n';
-import { Title } from '../Title';
-import { Subtitle } from '../Subtitle';
-import { DifficultyPicker } from '../DifficultyPicker';
-import { SoundToggle } from '../SoundToggle';
-import { Button } from '../Button';
-import { LanguageFlags } from '../LanguageFlags';
+import { Title } from './Title';
+import { Subtitle } from './Subtitle';
+import { DifficultyPicker } from '@features/DifficultyPicker';
+import { SoundToggle } from '@features/SoundToggle';
+import { Button } from '@ui/Button';
+import { LanguageFlags } from '@features/LanguageFlags';
 import styles from './MainMenu.module.scss';
 
 export function MainMenu() {

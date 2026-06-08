@@ -1,7 +1,7 @@
-import { Button } from '../Button';
+import { Button } from '@ui/Button';
 import styles from './LeaderboardTabs.module.scss';
-import type { Difficulty } from '../../../game/layout';
-import type { Locale } from '../../../game/i18n';
+import type { Difficulty } from '../../../../game/layout';
+import type { Locale } from '../../../../game/i18n';
 
 const ORDER: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
 export function LeaderboardTabs({ L, current, onPick }:

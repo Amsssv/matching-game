@@ -1,4 +1,4 @@
-import { Button } from '../Button';
+import { Button } from '@ui/Button';
 import styles from './LanguageFlags.module.scss';
 import { SUPPORTED } from '../../../game/settings';
 import type { Lang } from '../../../game/i18n';

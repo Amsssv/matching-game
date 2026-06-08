@@ -1,9 +1,9 @@
-import { useUi } from '../../hooks/useUiStore';
-import { bus } from '../../../state/eventBus';
+import { useUi } from '@hooks/useUiStore';
+import { bus } from '@state/eventBus';
 import { LOCALES } from '../../../game/i18n';
 import { formatTime } from '../../../game/leaderboard';
-import { Button } from '../Button';
-import { CompactLeaderboard } from '../CompactLeaderboard';
+import { Button } from '@ui/Button';
+import { CompactLeaderboard } from '@features/leaderboard/CompactLeaderboard';
 import styles from './VictoryModal.module.scss';
 
 export function VictoryModal() {

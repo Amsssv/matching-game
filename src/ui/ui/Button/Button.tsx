@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cx } from '../../cx';
+import { cx } from '../cx';
 import styles from './Button.module.scss';
 
 export type ButtonType = 'primary' | 'secondary';

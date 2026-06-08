@@ -1,4 +1,4 @@
-import { Button } from '../Button';
+import { Button } from '@ui/Button';
 import styles from './DifficultyPicker.module.scss';
 import type { Difficulty } from '../../../game/layout';
 import type { Locale } from '../../../game/i18n';

@@ -1,6 +1,6 @@
-import { formatTime, type LeaderboardData } from '../../../game/leaderboard';
-import type { Locale } from '../../../game/i18n';
-import { cx } from '../../cx';
+import { formatTime, type LeaderboardData } from '../../../../game/leaderboard';
+import type { Locale } from '../../../../game/i18n';
+import { cx } from '@ui/cx';
 import styles from './LeaderboardTable.module.scss';
 
 export function LeaderboardTable({ L, data }: { L: Locale; data: LeaderboardData | null }) {

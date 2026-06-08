@@ -1,9 +1,9 @@
 import { GameMount } from './GameMount';
 import { useUi } from './hooks/useUiStore';
-import { MainMenu } from './components/MainMenu';
-import { Header } from './components/Header';
-import { VictoryModal } from './components/VictoryModal';
-import { LeaderboardModal } from './components/LeaderboardModal';
+import { MainMenu } from '@widgets/MainMenu';
+import { Header } from '@widgets/Header';
+import { VictoryModal } from '@widgets/VictoryModal';
+import { LeaderboardModal } from '@widgets/LeaderboardModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);

@@ -12,7 +12,7 @@ import { openLeaderboard } from '../../state/leaderboardController';
 /**
  * Thin UIScene: owns the play-clock, score submission, SDK/auth flow and the
  * GameScene event wiring. It renders nothing on the canvas — the header/HUD and
- * the victory modal are React (`src/ui/components`), fed via the UI store, and
+ * the victory modal are React (`src/ui/widgets`), fed via the UI store, and
  * drive these actions via `cmd:*` events on the command bus.
  */
 export class UIScene extends Phaser.Scene {
