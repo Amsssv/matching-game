@@ -9,8 +9,8 @@ export function LeaderboardTabs({ L, current, onPick }:
   return (
     <div className={styles.root} data-testid="lb-tabs">
       {ORDER.map((d) => (
-        <Button key={d} testId={`lb-tab-${d}`} label={L.diffLabels[d]} variant="primary"
-                active={d === current} onClick={() => onPick(d)} />
+        <Button key={d} testId={`lb-tab-${d}`} type="primary" size="small"
+                active={d === current} onClick={() => onPick(d)}>{L.diffLabels[d]}</Button>
       ))}
     </div>
   );

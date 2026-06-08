@@ -16,12 +16,14 @@ export function DifficultyPicker({
           <Button
             key={d}
             testId={`diff-${d}`}
-            label={L.diffLabels[d]}
-            description={L.diffDesc[d]}
-            variant="primary"
+            type="primary"
+            size="medium"
             active={d === current}
             onClick={() => onPick(d)}
-          />
+          >
+            <span>{L.diffLabels[d]}</span>
+            <span className={styles.optionDesc}>{L.diffDesc[d]}</span>
+          </Button>
         ))}
       </div>
       <p className={styles.hint}>{L.diffHint[current]}</p>

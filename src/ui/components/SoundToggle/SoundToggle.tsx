@@ -10,11 +10,11 @@ export function SoundToggle({
       <p className={styles.label}>{L.sound}</p>
       <Button
         testId="sound-toggle"
-        label={enabled ? L.soundOn : L.soundOff}
-        variant="primary"
+        type="primary"
+        size="large"
         active={enabled}
         onClick={onToggle}
-      />
+      >{enabled ? L.soundOn : L.soundOff}</Button>
     </div>
   );
 }

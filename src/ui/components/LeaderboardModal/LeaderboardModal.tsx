@@ -25,9 +25,9 @@ export function LeaderboardModal() {
         <hr className={styles.separator} />
         <LeaderboardTable L={L} data={leaderboard.data} />
         {leaderboard.isGuest && (
-          <Button testId="lb-login" label={L.loginToSave} variant="ghost" onClick={leaderboardLogin} />
+          <Button testId="lb-login" type="secondary" size="large" onClick={leaderboardLogin}>{L.loginToSave}</Button>
         )}
-        <Button testId="lb-close" label={L.lbClose} variant="ghost" onClick={closeLeaderboard} />
+        <Button testId="lb-close" type="secondary" size="large" onClick={closeLeaderboard}>{L.lbClose}</Button>
       </div>
     </div>
   );

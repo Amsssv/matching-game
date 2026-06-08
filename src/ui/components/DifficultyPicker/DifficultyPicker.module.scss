@@ -9,6 +9,9 @@
 }
 .hint { color: rgba($white, 0.9); margin-top: 14px; }
 
+// Second line inside each difficulty Button (pair/card count) — was Button's `description` prop.
+.optionDesc { font-size: 0.75em; font-weight: 400; color: rgba($white, 0.7); }
+
 @media (max-width: 767px) and (orientation: portrait) {
   .grid { grid-template-columns: 1fr; width: 80vw; }
   .root { margin-top: clamp(12px, 3vh, 28px); }

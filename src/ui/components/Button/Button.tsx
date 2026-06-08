@@ -2,42 +2,47 @@ import type { ReactNode } from 'react';
 import { cx } from '../../cx';
 import styles from './Button.module.scss';
 
-export type ButtonVariant = 'primary' | 'ghost' | 'secondary';
+export type ButtonType = 'primary' | 'secondary';
+export type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonShape = 'default' | 'icon';
 
 export interface ButtonProps {
-  label: ReactNode;
-  onClick: () => void;
-  variant?: ButtonVariant;
+  children?: ReactNode;
+  onClick?: () => void;
+  type?: ButtonType;
+  size?: ButtonSize;
+  shape?: ButtonShape;
+  block?: boolean;
   active?: boolean;
-  description?: string;
-  className?: string;
-  /** CSS px sizing when the layout fixes button dimensions */
-  width?: number;
-  height?: number;
-  fontSize?: number;
-  testId?: string;
   disabled?: boolean;
+  className?: string;
+  testId?: string;
 }
 
+const SIZE_CLASS: Record<ButtonSize, string> = {
+  small: styles.small, medium: styles.medium, large: styles.large,
+};
+
 export function Button({
-  label, onClick, variant = 'primary', active = false, description,
-  className = '', width, height, fontSize, testId, disabled,
+  children, onClick, type = 'secondary', size = 'large', shape = 'default',
+  block = false, active = false, disabled, className = '', testId,
 }: ButtonProps) {
-  const style: React.CSSProperties & Record<string, string> = {};
-  if (width != null) style['--button-width'] = `${width}px`;
-  if (height != null) style['--button-height'] = `${height}px`;
-  if (fontSize != null) style['--button-font-size'] = `${fontSize}px`;
   return (
     <button
       type="button"
       data-testid={testId}
       disabled={disabled}
-      className={cx(styles.button, styles[variant], active && styles.active, className)}
-      style={style}
-      onClick={() => { if (!disabled) onClick(); }}
+      className={cx(
+        styles.button,
+        styles[type],
+        shape === 'icon' ? styles.icon : SIZE_CLASS[size],
+        block && styles.block,
+        active && styles.active,
+        className,
+      )}
+      onClick={() => { if (!disabled) onClick?.(); }}
     >
-      <span className={styles.label}>{label}</span>
-      {description && <span className={styles.description}>{description}</span>}
+      {children}
     </button>
   );
 }

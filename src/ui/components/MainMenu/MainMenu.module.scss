@@ -14,6 +14,7 @@
   display: grid; justify-items: center;
   gap: clamp(10px, 2vh, 22px); align-content: end;
 }
+.actions > button { width: clamp(180px, 50vw, 280px); }
 
 @media (orientation: landscape) and (max-height: 560px) {
   .root { padding-top: 8px; gap: 6px; }

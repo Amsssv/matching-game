@@ -22,13 +22,13 @@ export function VictoryModal() {
           <div><span className={styles.statLabel}>{L.timeLabel}</span><span className={styles.statValue}>{formatTime(victory.seconds)}</span></div>
         </div>
         <div className={styles.actions}>
-          <Button testId="victory-restart" label={L.restart} variant="primary" onClick={() => bus.emit('cmd:victory-restart')} />
-          <Button testId="victory-menu" label={L.toMenu} variant="ghost" onClick={() => bus.emit('cmd:victory-to-menu')} />
-          <Button testId="victory-lb" label={`🏆 ${L.leaderboard}`} variant="ghost" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'victory' })} />
+          <Button testId="victory-restart" type="primary" size="large" onClick={() => bus.emit('cmd:victory-restart')}>{L.restart}</Button>
+          <Button testId="victory-menu" type="secondary" size="large" onClick={() => bus.emit('cmd:victory-to-menu')}>{L.toMenu}</Button>
+          <Button testId="victory-lb" type="secondary" size="large" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'victory' })}>{`🏆 ${L.leaderboard}`}</Button>
         </div>
         {victory.compact && <CompactLeaderboard data={victory.compact} />}
         {victory.showAuthCta && (
-          <Button testId="victory-login" label={L.loginToSave} variant="ghost" onClick={() => bus.emit('cmd:login-and-save')} />
+          <Button testId="victory-login" type="secondary" size="large" onClick={() => bus.emit('cmd:login-and-save')}>{L.loginToSave}</Button>
         )}
       </div>
     </div>

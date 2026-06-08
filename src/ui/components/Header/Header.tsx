@@ -16,14 +16,10 @@ export function Header() {
         <span className={styles.pairs} data-testid="hud-pairs">{pairs}</span>
         <Button
           testId="hud-menu"
-          className={styles.menuButton}
-          label={L.menu}
-          variant="ghost"
-          width={52}
-          height={30}
-          fontSize={10}
+          type="secondary"
+          size="small"
           onClick={() => bus.emit('cmd:exit-to-menu')}
-        />
+        >{L.menu}</Button>
       </span>
     </header>
   );
