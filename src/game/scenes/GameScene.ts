@@ -4,6 +4,7 @@ import { SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
 import { DIFF_ROWS, DIFF_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
 import { isMobileDevice } from '../device';
+import { setTransition } from '../../state/store';
 
 interface Card {
   container: Phaser.GameObjects.Container;
@@ -68,14 +69,17 @@ export class GameScene extends Phaser.Scene {
     this.rowWidths = (this.isMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[difficulty];
     this.totalPairs = this.rowWidths.reduce((s, n) => s + n, 0) / 2;
 
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const canvasWidth = this.scale.width;
+    const canvasHeight = this.scale.height;
 
-    this.drawBackground(W, H);
-    this.dealCards(W, H);
+    this.drawBackground(canvasWidth, canvasHeight);
+    this.dealCards(canvasWidth, canvasHeight);
 
     this.scene.launch('UIScene', { gameScene: this });
     getYSDK()?.features.GameplayAPI?.start();
+    // Fade the DOM overlay (menu → game) back in together with the camera. MenuScene
+    // set visible:false before its fade-out; restore it as the board fades in.
+    setTransition(true);
     this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
     // Yandex rule 1.14: iOS orientation change emits 5–10 resize events back-to-back.
@@ -85,11 +89,11 @@ export class GameScene extends Phaser.Scene {
     this.lastResizeW = this.scale.width;
     this.lastResizeH = this.scale.height;
     const onResizeDebounced = (gameSize: Phaser.Structs.Size) => {
-      const nw = gameSize.width;
-      const nh = gameSize.height;
-      if (Math.abs(nw - this.lastResizeW) < 6 && Math.abs(nh - this.lastResizeH) < 6) return;
-      this.lastResizeW = nw;
-      this.lastResizeH = nh;
+      const newWidth = gameSize.width;
+      const newHeight = gameSize.height;
+      if (Math.abs(newWidth - this.lastResizeW) < 6 && Math.abs(newHeight - this.lastResizeH) < 6) return;
+      this.lastResizeW = newWidth;
+      this.lastResizeH = newHeight;
       if (this.resizeTimer) this.resizeTimer.remove();
       this.resizeTimer = this.time.delayedCall(200, () => this.onResize(gameSize));
     };
@@ -107,99 +111,99 @@ export class GameScene extends Phaser.Scene {
   }
 
   // ── Background ───────────────────────────────────────────────────────────────
-  private drawBackground(W: number, H: number) {
-    this.bgObj = this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(-1);
+  private drawBackground(canvasWidth: number, canvasHeight: number) {
+    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight).setDepth(-1);
     if (!this.islandObj) {
-      const { x, y, w, h } = this.calcIslandBounds(W, H);
-      const s = GameScene.ISLAND_SLICE;
-      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, s.left, s.right, s.top, s.bottom).setDepth(0);
+      const { x, y, w, h } = this.calcIslandBounds(canvasWidth, canvasHeight);
+      const islandSlice = GameScene.ISLAND_SLICE;
+      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, islandSlice.left, islandSlice.right, islandSlice.top, islandSlice.bottom).setDepth(0);
     }
   }
 
-  private calcRefCardSize(W: number, H: number): { cardW: number; cardH: number } {
-    const availH = H - UI.layout.headerH;
-    const s = GameScene.ISLAND_SLICE;
-    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
-    const maxIslandH = this.isMobile ? availH - 300 : availH * 0.97;
-    const baseAreaW = W * 0.90 - 2 * (s.left + p);
-    const baseAreaH = maxIslandH - 2 * (s.top + p);
+  private calcRefCardSize(canvasWidth: number, canvasHeight: number): { cardWidth: number; cardHeight: number } {
+    const availableHeight = canvasHeight - UI.layout.headerHeight;
+    const islandSlice = GameScene.ISLAND_SLICE;
+    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const maxIslandH = this.isMobile ? availableHeight - 300 : availableHeight * 0.97;
+    const baseAreaW = canvasWidth * 0.90 - 2 * (islandSlice.left + islandPadding);
+    const baseAreaH = maxIslandH - 2 * (islandSlice.top + islandPadding);
     const refRows = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
-    const { cardW, cardH } = calcLayoutFn(refRows, Math.max(baseAreaW, 40), Math.max(baseAreaH, 40), 0, 0);
+    const { cardWidth, cardHeight } = calcLayoutFn(refRows, Math.max(baseAreaW, 40), Math.max(baseAreaH, 40), 0, 0);
     if (this.isMobile) {
-      return { cardW: Math.round(cardW * 1.5), cardH: Math.round(cardH * 1.5) };
+      return { cardWidth: Math.round(cardWidth * 1.5), cardHeight: Math.round(cardHeight * 1.5) };
     }
-    return { cardW, cardH };
+    return { cardWidth, cardHeight };
   }
 
-  private calcIslandBounds(W: number, H: number): { x: number; y: number; w: number; h: number } {
-    const availH = H - UI.layout.headerH;
-    const { cardW, cardH } = this.calcRefCardSize(W, H);
+  private calcIslandBounds(canvasWidth: number, canvasHeight: number): { x: number; y: number; w: number; h: number } {
+    const availableHeight = canvasHeight - UI.layout.headerHeight;
+    const { cardWidth, cardHeight } = this.calcRefCardSize(canvasWidth, canvasHeight);
     // Island never shrinks below medium size (easy has fewer cards but same island)
     const medRef = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
-    const maxCols = Math.max(Math.max(...this.rowWidths), Math.max(...medRef));
-    const numRows = Math.max(this.rowWidths.length, medRef.length);
+    const maxColumns = Math.max(Math.max(...this.rowWidths), Math.max(...medRef));
+    const rowCount = Math.max(this.rowWidths.length, medRef.length);
 
     // Natural grid size with max gap (24px) — island sized to contain grid + frame + inner padding
-    const gridW = maxCols * cardW + (maxCols - 1) * 24;
-    const gridH = numRows * cardH + (numRows - 1) * 24;
+    const gridWidth = maxColumns * cardWidth + (maxColumns - 1) * 24;
+    const gridHeight = rowCount * cardHeight + (rowCount - 1) * 24;
 
-    const s = GameScene.ISLAND_SLICE;
-    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
-    const maxIslandH = this.isMobile ? availH - 300 : availH * 0.97;
+    const islandSlice = GameScene.ISLAND_SLICE;
+    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const maxIslandH = this.isMobile ? availableHeight - 300 : availableHeight * 0.97;
     return {
-      x: W / 2,
-      y: UI.layout.headerH + availH / 2,
-      w: Math.min(gridW + 2 * (s.left + p), W * 0.99),
-      h: Math.min(gridH + 2 * (s.top + p), maxIslandH),
+      x: canvasWidth / 2,
+      y: UI.layout.headerHeight + availableHeight / 2,
+      w: Math.min(gridWidth + 2 * (islandSlice.left + islandPadding), canvasWidth * 0.99),
+      h: Math.min(gridHeight + 2 * (islandSlice.top + islandPadding), maxIslandH),
     };
   }
 
   // ── Card layout calculation ──────────────────────────────────────────────────
-  private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }, W: number, H: number): Layout {
-    const s = GameScene.ISLAND_SLICE;
-    const p = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
-    const areaW = island.w - 2 * (s.left + p);
-    const areaH = island.h - 2 * (s.top + p);
-    const { cardW, cardH } = this.calcRefCardSize(W, H);
-    const maxCols = Math.max(...this.rowWidths);
-    const numRows = this.rowWidths.length;
+  private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }, canvasWidth: number, canvasHeight: number): Layout {
+    const islandSlice = GameScene.ISLAND_SLICE;
+    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const areaWidth = island.w - 2 * (islandSlice.left + islandPadding);
+    const areaHeight = island.h - 2 * (islandSlice.top + islandPadding);
+    const { cardWidth, cardHeight } = this.calcRefCardSize(canvasWidth, canvasHeight);
+    const maxColumns = Math.max(...this.rowWidths);
+    const rowCount = this.rowWidths.length;
     // Use fixed card size if it fits (island may be viewport-clamped for expert on small screens)
-    const fits = maxCols * cardW + (maxCols - 1) * 8 <= areaW &&
-                 numRows * cardH + (numRows - 1) * 8 <= areaH;
-    return calcLayoutFn(this.rowWidths, areaW, areaH, island.x, island.y, fits ? cardW : undefined, fits ? cardH : undefined);
+    const fits = maxColumns * cardWidth + (maxColumns - 1) * 8 <= areaWidth &&
+                 rowCount * cardHeight + (rowCount - 1) * 8 <= areaHeight;
+    return calcLayoutFn(this.rowWidths, areaWidth, areaHeight, island.x, island.y, fits ? cardWidth : undefined, fits ? cardHeight : undefined);
   }
 
-  private calcLayout(W: number, H: number): Layout {
-    return this.calcLayoutFromIsland(this.calcIslandBounds(W, H), W, H);
+  private calcLayout(canvasWidth: number, canvasHeight: number): Layout {
+    return this.calcLayoutFromIsland(this.calcIslandBounds(canvasWidth, canvasHeight), canvasWidth, canvasHeight);
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
-  private dealCards(W: number, H: number) {
+  private dealCards(canvasWidth: number, canvasHeight: number) {
     const picked = [...SYMBOLS].slice(0, this.totalPairs);
     const symbolPool = Phaser.Utils.Array.Shuffle([...picked, ...picked]) as string[];
 
-    const layout = this.calcLayout(W, H);
+    const layout = this.calcLayout(canvasWidth, canvasHeight);
 
     symbolPool.forEach((symbol, i) => {
       const { x, y } = layout.positions[i];
-      this.cards.push(this.createCard(x, y, symbol, i, layout.cardW, layout.cardH));
+      this.cards.push(this.createCard(x, y, symbol, i, layout.cardWidth, layout.cardHeight));
     });
   }
 
-  private createCard(x: number, y: number, symbol: string, index: number, cardW: number, cardH: number): Card {
+  private createCard(x: number, y: number, symbol: string, index: number, cardWidth: number, cardHeight: number): Card {
     const shadow = this.add.graphics().setDepth(1);
-    this.drawCardShadow(shadow, x, y, cardW, cardH);
+    this.drawCardShadow(shadow, x, y, cardWidth, cardHeight);
 
-    const back   = this.add.image(0, 0, 'card-back').setDisplaySize(cardW, cardH);
-    const front  = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardW, cardH).setVisible(false);
+    const back   = this.add.image(0, 0, 'card-back').setDisplaySize(cardWidth, cardHeight);
+    const front  = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardWidth, cardHeight).setVisible(false);
     const border = this.add.graphics();
-    this.drawCardBorderInner(border, cardW, cardH);
+    this.drawCardBorderInner(border, cardWidth, cardHeight);
 
     const maskGfx = this.add.graphics().setVisible(false);
-    this.drawCardMask(maskGfx, x, y, cardW, cardH);
+    this.drawCardMask(maskGfx, x, y, cardWidth, cardHeight);
 
     const container = this.add.container(x, y, [back, front, border]);
-    container.setSize(cardW, cardH).setInteractive().setDepth(2);
+    container.setSize(cardWidth, cardHeight).setInteractive().setDepth(2);
     container.setMask(maskGfx.createGeometryMask());
 
     const card: Card = { container, back, front, maskGfx, shadow, border, symbol, index, isFlipped: false, isMatched: false };
@@ -228,28 +232,28 @@ export class GameScene extends Phaser.Scene {
   private drawCardShadow(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
     gfx.setPosition(x, y);
     gfx.clear();
-    const o = UI.card.shadowOffset;
+    const shadowOffset = UI.card.shadowOffset;
     gfx.fillStyle(0x000000, UI.card.shadowAlpha);
-    gfx.fillRoundedRect(-w / 2 + o, -h / 2 + o, w, h, UI.card.radius);
+    gfx.fillRoundedRect(-w / 2 + shadowOffset, -h / 2 + shadowOffset, w, h, UI.card.radius);
   }
 
   private drawCardBorderInner(gfx: Phaser.GameObjects.Graphics, w: number, h: number) {
     gfx.clear();
-    const bw = UI.card.borderWidth;
-    gfx.lineStyle(bw, UI.card.borderColor, 1);
-    gfx.strokeRoundedRect(-w / 2 + bw / 2, -h / 2 + bw / 2, w - bw, h - bw, UI.card.radius - bw / 2);
+    const borderWidth = UI.card.borderWidth;
+    gfx.lineStyle(borderWidth, UI.card.borderColor, 1);
+    gfx.strokeRoundedRect(-w / 2 + borderWidth / 2, -h / 2 + borderWidth / 2, w - borderWidth, h - borderWidth, UI.card.radius - borderWidth / 2);
   }
 
   // ── Resize ───────────────────────────────────────────────────────────────────
   private onResize(gameSize: Phaser.Structs.Size) {
-    const W = gameSize.width;
-    const H = gameSize.height;
+    const canvasWidth = gameSize.width;
+    const canvasHeight = gameSize.height;
 
     // Reposition / rescale background
-    this.bgObj?.setPosition(W / 2, H / 2).setDisplaySize(W, H);
+    this.bgObj?.setPosition(canvasWidth / 2, canvasHeight / 2).setDisplaySize(canvasWidth, canvasHeight);
 
     // Compute island bounds once — reused for island reposition and card layout
-    const island = this.calcIslandBounds(W, H);
+    const island = this.calcIslandBounds(canvasWidth, canvasHeight);
 
     // Reposition island
     if (this.islandObj) {
@@ -258,18 +262,18 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Relayout cards
-    const layout = this.calcLayoutFromIsland(island, W, H);
+    const layout = this.calcLayoutFromIsland(island, canvasWidth, canvasHeight);
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
-      card.container.setSize(layout.cardW, layout.cardH);
+      card.container.setSize(layout.cardWidth, layout.cardHeight);
       const io = card.container.input;
-      if (io) (io.hitArea as Phaser.Geom.Rectangle).setTo(0, 0, layout.cardW, layout.cardH);
-      card.back.setDisplaySize(layout.cardW, layout.cardH);
-      card.front.setDisplaySize(layout.cardW, layout.cardH);
-      this.drawCardMask(card.maskGfx, x, y, layout.cardW, layout.cardH);
-      this.drawCardShadow(card.shadow, x, y, layout.cardW, layout.cardH);
-      this.drawCardBorderInner(card.border, layout.cardW, layout.cardH);
+      if (io) (io.hitArea as Phaser.Geom.Rectangle).setTo(0, 0, layout.cardWidth, layout.cardHeight);
+      card.back.setDisplaySize(layout.cardWidth, layout.cardHeight);
+      card.front.setDisplaySize(layout.cardWidth, layout.cardHeight);
+      this.drawCardMask(card.maskGfx, x, y, layout.cardWidth, layout.cardHeight);
+      this.drawCardShadow(card.shadow, x, y, layout.cardWidth, layout.cardHeight);
+      this.drawCardBorderInner(card.border, layout.cardWidth, layout.cardHeight);
     });
   }
 
@@ -288,9 +292,9 @@ export class GameScene extends Phaser.Scene {
     if (this.flippedCards.length === 2) {
       this.moves++;
       this.events.emit('moves-updated', this.moves);
-      const [a, b] = this.flippedCards;
+      const [cardA, cardB] = this.flippedCards;
       this.flippedCards = [];
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch(a, b));
+      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
     }
   }
 
@@ -310,26 +314,26 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private checkMatch(a: Card, b: Card) {
+  private checkMatch(cardA: Card, cardB: Card) {
 
-    if (a.symbol === b.symbol) {
+    if (cardA.symbol === cardB.symbol) {
       this.matchedPairs++;
-      a.isMatched = true;
-      b.isMatched = true;
+      cardA.isMatched = true;
+      cardB.isMatched = true;
 
       this.tweens.add({
-        targets: [a.container, b.container],
+        targets: [cardA.container, cardB.container],
         alpha: 0.55,
         yoyo: true,
         repeat: 1,
         duration: UI.animation.cardMatchFlash,
         onComplete: () => {
-          a.container.setAlpha(UI.card.matchedAlpha);
-          b.container.setAlpha(UI.card.matchedAlpha);
-          a.shadow.setAlpha(UI.card.matchedAlpha);
-          b.shadow.setAlpha(UI.card.matchedAlpha);
-          a.container.disableInteractive();
-          b.container.disableInteractive();
+          cardA.container.setAlpha(UI.card.matchedAlpha);
+          cardB.container.setAlpha(UI.card.matchedAlpha);
+          cardA.shadow.setAlpha(UI.card.matchedAlpha);
+          cardB.shadow.setAlpha(UI.card.matchedAlpha);
+          cardA.container.disableInteractive();
+          cardB.container.disableInteractive();
         },
       });
 
@@ -343,16 +347,16 @@ export class GameScene extends Phaser.Scene {
         });
     } else {
       this.time.delayedCall(UI.animation.cardFlipDelay, () => {
-        this.flipCard(a, false);
-        this.flipCard(b, false);
+        this.flipCard(cardA, false);
+        this.flipCard(cardB, false);
       });
     }
   }
 
   // ── SFX helper ───────────────────────────────────────────────────────────────
   private sfx(key: string, volume?: number) {
-    const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
-    am?.playSfx(key, volume);
+    const audioManager: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
+    audioManager?.playSfx(key, volume);
   }
 
   // ── Ad helper ────────────────────────────────────────────────────────────────
@@ -364,7 +368,7 @@ export class GameScene extends Phaser.Scene {
     if (now - this.lastAdvTime < GameScene.ADV_MIN_INTERVAL) { proceed(); return; }
 
     type AM = import('../AudioManager').AudioManager;
-    const am = this.game.registry.get('audioManager') as AM | undefined;
+    const audioManager = this.game.registry.get('audioManager') as AM | undefined;
     const soundEnabled: boolean = this.game.registry.get('soundEnabled') ?? true;
 
     let done = false;
@@ -375,14 +379,14 @@ export class GameScene extends Phaser.Scene {
     };
 
     // Fallback: unblock if SDK callbacks never fire (broken SDK, MIME error, etc.)
-    const fallback = window.setTimeout(() => { am?.setMuted(!soundEnabled); finish(); }, 15_000);
+    const fallback = window.setTimeout(() => { audioManager?.setMuted(!soundEnabled); finish(); }, 15_000);
 
     try {
       sdk.adv.showFullscreenAdv({
         callbacks: {
-          onOpen:  () => { window.clearTimeout(fallback); am?.setMuted(true); },
-          onClose: () => { window.clearTimeout(fallback); this.lastAdvTime = Date.now(); am?.setMuted(!soundEnabled); finish(); },
-          onError: () => { window.clearTimeout(fallback); am?.setMuted(!soundEnabled); finish(); },
+          onOpen:  () => { window.clearTimeout(fallback); audioManager?.setMuted(true); },
+          onClose: () => { window.clearTimeout(fallback); this.lastAdvTime = Date.now(); audioManager?.setMuted(!soundEnabled); finish(); },
+          onError: () => { window.clearTimeout(fallback); audioManager?.setMuted(!soundEnabled); finish(); },
         },
       });
     } catch {
@@ -400,6 +404,7 @@ export class GameScene extends Phaser.Scene {
   goToMenu() {
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => {
+      setTransition(false);   // fade the DOM overlay (header) out with the camera
       this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
     });

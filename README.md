@@ -78,7 +78,7 @@ public/assets/
 
 ## Цветовая схема
 
-Палитра темы — в `src/game/constants.ts`:
+Палитра темы (`C`) — в `src/game/config.ts`:
 
 ```typescript
 export const C = {
@@ -95,28 +95,59 @@ export const C = {
 
 ## Структура проекта
 
+Слоёная архитектура: **состояние и связь** (`state/`) отделены от **React-слоя** (`ui/`) и **Phaser-слоя** (`game/`). Раскладка построена по образцу проекта Merge.
+
 ```
 src/
-  game/
-    config.ts          ← конфигурация Phaser
-    constants.ts       ← цвета и размеры
-    assets-config.ts   ← список символов
-    layout.ts          ← раскладки карточек по уровням
-    i18n.ts            ← локализация (6 языков)
-    settings.ts        ← пользовательские настройки
-    AudioManager.ts    ← музыка и звуки
-    device.ts          ← определение устройства
-    leaderboard.ts     ← топ результатов
+  main.tsx               ← точка входа: Яндекс SDK, язык, рендер <App/>
+  index.css              ← глобальные шрифты + reset
+  ysdk.ts · YSDKContext.tsx · yandex-sdk.d.ts   ← интеграция с Яндекс.Играми
+
+  state/                 ← слой состояния и связи (без React/Phaser)
+    store.ts             ← единый uiStore (слайсы menu/hud/modal/transition) + сеттеры
+    createStore.ts       ← мини-стор на useSyncExternalStore + useStore(store, selector)
+    eventBus.ts          ← типизированная командная шина: bus.emit('cmd:*')
+    types.ts             ← общие типы UI
+    leaderboardController.ts  ← логика модалки лидерборда (React-сторона)
+    __tests__/           ← unit-тесты стора и шины
+
+  ui/                    ← React-слой (DOM-оверлей поверх канваса)
+    App.tsx              ← корневой компонент: композиция оверлея внутри GameMount
+    GameMount.tsx        ← монтирование Phaser + сайзинг канваса (DPR / баннер)
+    hooks/
+      useUiStore.ts      ← useUi(selector) — чтение среза стора
+      useBusEvent.ts     ← подписка на командную шину
+    components/          ← все компоненты плоско: меню, HUD, модалки, кнопки (16 шт.)
+
+  styles/                ← SCSS: _tokens, _mixins, menu, hud, modals, button
+
+  game/                  ← Phaser-слой (игровая логика + канвас)
+    main.ts              ← createGame(parent)
+    config.ts            ← конфигурация Phaser + палитра C
+    assets-config.ts     ← список символов (морские существа)
+    layout.ts            ← раскладки карточек по уровням
+    i18n.ts              ← локализация (6 языков)
+    settings.ts          ← пользовательские настройки
+    AudioManager.ts      ← музыка и звуки
+    device.ts            ← определение устройства / DPR
+    leaderboard.ts       ← топ результатов (Яндекс)
     scenes/
-      BootScene.ts     ← загрузка ассетов
-      MenuScene.ts     ← главное меню
-      GameScene.ts     ← игровая логика
-      UIScene.ts       ← HUD поверх игры
-    ui/                ← React-компоненты поверх Phaser
-  components/
-    Game.tsx           ← монтирование игры
-public/
-  assets/              ← изображения и звуки
-e2e/                   ← Playwright-тесты + промо-скриншоты
-screenshots/promo/     ← готовые промо-кадры
+      BootScene.ts       ← генерация текстур, загрузка ассетов
+      MenuScene.ts       ← меню: настройки + старт игры (на канвасе рисует только фон)
+      GameScene.ts       ← игровая логика + карточки на канвасе
+      UIScene.ts         ← часы/счёт/победа, проксирует события игры в стор
+    ui/
+      config.ts          ← UI-токены канваса (зеркалятся в styles/_tokens.scss)
+      factory.ts         ← вспомогательные функции отрисовки
+
+public/assets/           ← изображения и звуки
+e2e/                     ← Playwright-тесты + промо-скриншоты
+screenshots/promo/       ← готовые промо-кадры
 ```
+
+### Связь слоёв
+
+- **Источник истины** настроек — `game.registry` (Phaser).
+- **React → Phaser** (команды): клик в DOM → `bus.emit('cmd:…')` → активная сцена, подписанная в `create()` (отписка в `shutdown`), выполняет действие. Прямых ссылок React↔сцена нет.
+- **Phaser → React** (состояние): сцены пишут в `uiStore` через `setMenu/setHud/setModal/setTransition`; компоненты читают срез через `useUi(s => …)` и перерисовываются только при изменении своего среза.
+- Канвас рисует фон + остров + карточки; меню, HUD и модалки — React-DOM поверх канваса (`pointer-events:none` на контейнере, интерактивные виджеты включают ввод сами).

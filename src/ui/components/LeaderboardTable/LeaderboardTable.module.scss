@@ -1,0 +1,11 @@
+@use '../../../styles/tokens' as *;
+
+.root {
+  display: grid; gap: 10px; width: 100%;
+}
+.row {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 8px; color: $text-muted;
+  &.player { color: $gold; font-weight: 700; }
+}
+.separator { text-align: center; color: $text-muted; }
+.state { color: $text-muted; padding: 16px; }

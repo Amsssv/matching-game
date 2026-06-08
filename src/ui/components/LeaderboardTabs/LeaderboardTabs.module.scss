@@ -1,0 +1,4 @@
+.root {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%;
+  button { min-width: 0; padding: 6px 4px; }
+}

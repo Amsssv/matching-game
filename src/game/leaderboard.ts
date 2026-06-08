@@ -75,41 +75,41 @@ export interface LeaderboardData {
 export async function fetchLeaderboard(difficulty: Difficulty): Promise<LeaderboardData | null> {
   const sdk = getYSDK();
   if (!sdk) return (import.meta.env.DEV && import.meta.env.MODE !== 'test') ? MOCK_LEADERBOARD[difficulty] : null;
-  const lb = sdk.leaderboards;
-  if (!lb) return null;
+  const leaderboard = sdk.leaderboards;
+  if (!leaderboard) return null;
 
   try {
     const player  = await sdk.getPlayer({ scopes: false });
     const isGuest = !player.isAuthorized();
 
     const [topResult, playerResult] = await Promise.allSettled([
-      lb.getEntries(LB_ID[difficulty], { quantityTop: 10, includeUser: !isGuest }),
-      isGuest ? Promise.reject('guest') : lb.getPlayerEntry(LB_ID[difficulty]),
+      leaderboard.getEntries(LB_ID[difficulty], { quantityTop: 10, includeUser: !isGuest }),
+      isGuest ? Promise.reject('guest') : leaderboard.getPlayerEntry(LB_ID[difficulty]),
     ]);
 
     if (topResult.status === 'rejected') return null;
 
-    const rows: LeaderboardRow[] = topResult.value.entries.map(e => ({
-      rank:     e.rank,
-      name:     e.player.publicName || '—',
-      score:    Math.max(0, SCORE_BASE - e.score),
+    const rows: LeaderboardRow[] = topResult.value.entries.map(entry => ({
+      rank:     entry.rank,
+      name:     entry.player.publicName || '—',
+      score:    Math.max(0, SCORE_BASE - entry.score),
       isPlayer: false,
     }));
 
     if (playerResult.status === 'fulfilled') {
-      const pe    = playerResult.value;
-      const inTop = rows.find(r => r.rank === pe.rank);
+      const playerEntry = playerResult.value;
+      const inTop = rows.find(r => r.rank === playerEntry.rank);
       if (inTop) {
         inTop.isPlayer = true;
       } else {
         rows.push({
-          rank:     pe.rank,
+          rank:     playerEntry.rank,
           name:     player.getName(),
-          score:    Math.max(0, SCORE_BASE - pe.score),
+          score:    Math.max(0, SCORE_BASE - playerEntry.score),
           isPlayer: true,
         });
       }
-      return { rows, playerRank: pe.rank };
+      return { rows, playerRank: playerEntry.rank };
     }
 
     return { rows };

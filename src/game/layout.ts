@@ -1,8 +1,8 @@
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
 export interface Layout {
-  cardW: number;
-  cardH: number;
+  cardWidth: number;
+  cardHeight: number;
   positions: { x: number; y: number }[];
 }
 
@@ -23,60 +23,60 @@ export const DIFF_ROWS_MOBILE: Record<Difficulty, readonly number[]> = {
 
 export function calcLayout(
   rowWidths: readonly number[],
-  areaW: number,
-  areaH: number,
+  areaWidth: number,
+  areaHeight: number,
   originX: number,
   originY: number,
-  fixedCardW?: number,
-  fixedCardH?: number,
+  fixedCardWidth?: number,
+  fixedCardHeight?: number,
 ): Layout {
-  const numRows = rowWidths.length;
-  const maxCols = Math.max(...rowWidths);
+  const rowCount = rowWidths.length;
+  const maxColumns = Math.max(...rowWidths);
   const minGap = 8;
 
-  let cardW: number;
-  let cardH: number;
+  let cardWidth: number;
+  let cardHeight: number;
 
-  if (fixedCardW !== undefined && fixedCardH !== undefined) {
-    cardW = fixedCardW;
-    cardH = fixedCardH;
+  if (fixedCardWidth !== undefined && fixedCardHeight !== undefined) {
+    cardWidth = fixedCardWidth;
+    cardHeight = fixedCardHeight;
   } else {
-    cardW = Math.floor((areaW - (maxCols - 1) * minGap) / maxCols);
-    cardH = Math.round(cardW * (4 / 3));
-    const maxCardH = Math.floor((areaH - (numRows - 1) * minGap) / numRows);
-    if (cardH > maxCardH) {
-      cardH = maxCardH;
-      cardW = Math.round(cardH * (3 / 4));
+    cardWidth = Math.floor((areaWidth - (maxColumns - 1) * minGap) / maxColumns);
+    cardHeight = Math.round(cardWidth * (4 / 3));
+    const maxCardHeight = Math.floor((areaHeight - (rowCount - 1) * minGap) / rowCount);
+    if (cardHeight > maxCardHeight) {
+      cardHeight = maxCardHeight;
+      cardWidth = Math.round(cardHeight * (3 / 4));
     }
-    cardH = Math.round(cardW * (4 / 3));
+    cardHeight = Math.round(cardWidth * (4 / 3));
   }
 
-  const gapX = Math.min(
-    Math.max(Math.floor((areaW - maxCols * cardW) / Math.max(1, maxCols - 1)), minGap),
+  const horizontalGap = Math.min(
+    Math.max(Math.floor((areaWidth - maxColumns * cardWidth) / Math.max(1, maxColumns - 1)), minGap),
     24,
   );
-  let gapY = Math.min(
-    Math.max(Math.floor((areaH - numRows * cardH) / Math.max(1, numRows - 1)), minGap),
+  let verticalGap = Math.min(
+    Math.max(Math.floor((areaHeight - rowCount * cardHeight) / Math.max(1, rowCount - 1)), minGap),
     24,
   );
   // Ensure grid actually fits
-  let gridH = numRows * cardH + (numRows - 1) * gapY;
-  if (gridH > areaH && numRows > 1) {
-    gapY = Math.floor((areaH - numRows * cardH) / (numRows - 1));
-    gridH = numRows * cardH + (numRows - 1) * gapY;
+  let gridHeight = rowCount * cardHeight + (rowCount - 1) * verticalGap;
+  if (gridHeight > areaHeight && rowCount > 1) {
+    verticalGap = Math.floor((areaHeight - rowCount * cardHeight) / (rowCount - 1));
+    gridHeight = rowCount * cardHeight + (rowCount - 1) * verticalGap;
   }
 
-  const startY = originY - gridH / 2 + cardH / 2;
+  const startY = originY - gridHeight / 2 + cardHeight / 2;
 
   const positions: { x: number; y: number }[] = [];
-  rowWidths.forEach((cols, rowIdx) => {
-    const rowW = cols * cardW + (cols - 1) * gapX;
-    const rowStartX = originX - rowW / 2 + cardW / 2;
-    const y = startY + rowIdx * (cardH + gapY);
-    for (let col = 0; col < cols; col++) {
-      positions.push({ x: rowStartX + col * (cardW + gapX), y });
+  rowWidths.forEach((columns, rowIdx) => {
+    const rowWidth = columns * cardWidth + (columns - 1) * horizontalGap;
+    const rowStartX = originX - rowWidth / 2 + cardWidth / 2;
+    const y = startY + rowIdx * (cardHeight + verticalGap);
+    for (let col = 0; col < columns; col++) {
+      positions.push({ x: rowStartX + col * (cardWidth + horizontalGap), y });
     }
   });
 
-  return { cardW, cardH, positions };
+  return { cardWidth, cardHeight, positions };
 }

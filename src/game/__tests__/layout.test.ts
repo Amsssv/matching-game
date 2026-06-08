@@ -43,37 +43,37 @@ describe('calcLayout', () => {
   });
 
   it('card aspect ratio is 3:4 (height/width ≈ 1.333)', () => {
-    const { cardW, cardH } = layoutForScreen(DIFF_ROWS.easy, 800, 600, HEADER_H);
-    expect(cardH / cardW).toBeCloseTo(4 / 3, 1);
+    const { cardWidth, cardHeight } = layoutForScreen(DIFF_ROWS.easy, 800, 600, HEADER_H);
+    expect(cardHeight / cardWidth).toBeCloseTo(4 / 3, 1);
   });
 
   it('all x positions keep cards within the area', () => {
     const W = 800, availH = 600 - HEADER_H;
     const originX = W / 2, originY = HEADER_H + availH / 2;
-    const { positions, cardW } = calcLayout(DIFF_ROWS.easy, W, availH, originX, originY);
+    const { positions, cardWidth } = calcLayout(DIFF_ROWS.easy, W, availH, originX, originY);
     for (const { x } of positions) {
-      expect(x - cardW / 2).toBeGreaterThanOrEqual(0);
-      expect(x + cardW / 2).toBeLessThanOrEqual(W);
+      expect(x - cardWidth / 2).toBeGreaterThanOrEqual(0);
+      expect(x + cardWidth / 2).toBeLessThanOrEqual(W);
     }
   });
 
   it('all y positions keep cards within the area', () => {
     const W = 800, H = 600, availH = H - HEADER_H;
     const originX = W / 2, originY = HEADER_H + availH / 2;
-    const { positions, cardH } = calcLayout(DIFF_ROWS.easy, W, availH, originX, originY);
+    const { positions, cardHeight } = calcLayout(DIFF_ROWS.easy, W, availH, originX, originY);
     for (const { y } of positions) {
-      expect(y - cardH / 2).toBeGreaterThanOrEqual(HEADER_H);
-      expect(y + cardH / 2).toBeLessThanOrEqual(H);
+      expect(y - cardHeight / 2).toBeGreaterThanOrEqual(HEADER_H);
+      expect(y + cardHeight / 2).toBeLessThanOrEqual(H);
     }
   });
 
   it('grid is centered around originX and originY', () => {
     const areaW = 600, areaH = 400, originX = 400, originY = 300;
-    const { positions, cardW, cardH } = calcLayout(DIFF_ROWS.easy, areaW, areaH, originX, originY);
+    const { positions, cardWidth, cardHeight } = calcLayout(DIFF_ROWS.easy, areaW, areaH, originX, originY);
     const xs = positions.map(p => p.x);
     const ys = positions.map(p => p.y);
-    const midX = (Math.min(...xs) - cardW / 2 + Math.max(...xs) + cardW / 2) / 2;
-    const midY = (Math.min(...ys) - cardH / 2 + Math.max(...ys) + cardH / 2) / 2;
+    const midX = (Math.min(...xs) - cardWidth / 2 + Math.max(...xs) + cardWidth / 2) / 2;
+    const midY = (Math.min(...ys) - cardHeight / 2 + Math.max(...ys) + cardHeight / 2) / 2;
     expect(midX).toBeCloseTo(originX, 0);
     expect(midY).toBeCloseTo(originY, 0);
   });
@@ -81,14 +81,14 @@ describe('calcLayout', () => {
   it('small mobile screen (360×640) — valid layout', () => {
     const layout = layoutForScreen(DIFF_ROWS.easy, 360, 640, HEADER_H);
     expect(layout.positions.length).toBe(12);
-    expect(layout.cardW).toBeGreaterThan(0);
-    expect(layout.cardH).toBeGreaterThan(0);
+    expect(layout.cardWidth).toBeGreaterThan(0);
+    expect(layout.cardHeight).toBeGreaterThan(0);
   });
 
   it('large desktop screen (1920×1080) — valid layout', () => {
     const layout = layoutForScreen(DIFF_ROWS.expert, 1920, 1080, HEADER_H);
     expect(layout.positions.length).toBe(28);
-    expect(layout.cardW).toBeGreaterThan(0);
+    expect(layout.cardWidth).toBeGreaterThan(0);
   });
 
   it('square screen (600×600) — height constrains card size', () => {
@@ -96,8 +96,8 @@ describe('calcLayout', () => {
     expect(layout.positions.length).toBe(20);
     const availH = 600 - HEADER_H;
     for (const { y } of layout.positions) {
-      expect(y - layout.cardH / 2).toBeGreaterThanOrEqual(HEADER_H);
-      expect(y + layout.cardH / 2).toBeLessThanOrEqual(HEADER_H + availH);
+      expect(y - layout.cardHeight / 2).toBeGreaterThanOrEqual(HEADER_H);
+      expect(y + layout.cardHeight / 2).toBeLessThanOrEqual(HEADER_H + availH);
     }
   });
 });

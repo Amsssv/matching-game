@@ -1,0 +1,54 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.button {
+  pointer-events: auto;
+  appearance: none;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px;
+  font-family: $font-body;
+  font-weight: 700;
+  border-radius: $radius-button;
+  border: 1px solid transparent;
+  transition: transform $duration-hover ease-out, background $duration-hover ease-out, box-shadow $duration-hover;
+  width: var(--button-width, auto);
+  height: var(--button-height, auto);
+  padding: 14px 28px;
+  min-width: 120px;
+  @include focus-ring;
+
+  &:hover { transform: scale(1.05); }
+  &:active { transform: scale(0.98); }
+  &:disabled { cursor: default; }
+}
+
+.label { font-size: var(--button-font-size, 16px); line-height: 1.1; }
+.description { font-size: calc(var(--button-font-size, 16px) * 0.75); font-weight: 400; color: rgba($white, 0.7); }
+
+.primary {
+  color: #f5e6c8;
+  background: $gradient-button-idle;
+  border-color: rgba($gold-border, 0.2);
+  &:hover { background: $gradient-button-hover; border-color: rgba($gold-border, 0.35); }
+  &.active {
+    background: $gradient-button-active;
+    border-color: rgba($gold-border, 0.5);
+    box-shadow: 0 0 0 3px rgba($gold-border, 0.7);
+    transform: none;
+  }
+}
+
+.ghost {
+  color: $text-muted;
+  background: $navy-soft;
+  border-color: $blue-mid;
+  &:hover { background: $blue; color: $white; }
+}
+
+.secondary {
+  color: $white;
+  background: $blue;
+  border-color: $blue;
+  &:hover { background: $blue-mid; }
+}

@@ -1,0 +1,20 @@
+@use 'tokens' as *;
+
+@mixin panel {
+  background: $navy-soft;
+  border: $panel-border-width solid rgba($blue, $panel-border-alpha);
+  border-radius: $radius-panel;
+}
+
+@mixin focus-ring {
+  &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+}
+
+// Apply on the overlay root for Arabic
+@mixin rtl { :global([dir='rtl']) & { @content; } }
+
+// Shared section label ("СЛОЖНОСТЬ", "ЗВУК") used by DifficultyPicker + SoundToggle
+@mixin section-label {
+  font-weight: 700; color: #f5f5f0; letter-spacing: 0.3em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9); margin-bottom: 10px;
+}

@@ -252,6 +252,11 @@ body {
   background: #071528;
   touch-action: none;
   overscroll-behavior: none;
+  /* Base UI font for the whole DOM overlay. Without this, any element that does
+     not set font-family (section labels, hints, modal body text, leaderboard
+     rows) falls back to the browser default (Times New Roman). Title/subtitle
+     override to "Indira K"; the canvas is unaffected. */
+  font-family: 'Rubik', sans-serif;
 }
 
 #root,
@@ -259,9 +264,9 @@ body {
   width: 100%;
   height: 100%;
   /* Fill safe area on devices with notches; reserve space for the Yandex
-     sticky banner via --banner-h (set by Game.tsx when banner is visible). */
+     sticky banner via --banner-height (set by Game.tsx when banner is visible). */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           calc(env(safe-area-inset-bottom) + var(--banner-h, 0px)) env(safe-area-inset-left);
+           calc(env(safe-area-inset-bottom) + var(--banner-height, 0px)) env(safe-area-inset-left);
 }
 
 #game-container canvas {

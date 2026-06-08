@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import Phaser from 'phaser';
-import { gameConfig } from '../game/config';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type Phaser from 'phaser';
+import { createGame } from '../game/main';
 import { getLocalDpr } from '../game/device';
 import { getYSDK } from '../ysdk';
+import { resetUi } from '../state/store';
 
 declare global {
   interface Window {
@@ -15,15 +16,20 @@ type ScaleManagerInternal = Phaser.Scale.ScaleManager & {
   displayScale: { set: (x: number, y: number) => void };
 };
 
-export function Game() {
+/**
+ * Mounts the Phaser game into #game-container and owns the canvas DPR + Yandex
+ * sticky-banner sizing. The DOM overlay (menu, HUD, modals) is passed in as
+ * `children` and rendered as a sibling above the canvas.
+ */
+export function GameMount({ children }: { children?: ReactNode }) {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [dpr, setDpr] = useState(getLocalDpr);
 
   // Update dpr state when DevTools device switch changes devicePixelRatio
   useEffect(() => {
     const update = () => {
-      const d = getLocalDpr();
-      setDpr(prev => prev !== d ? d : prev);
+      const dpr = getLocalDpr();
+      setDpr(prev => prev !== dpr ? dpr : prev);
     };
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
@@ -42,7 +48,7 @@ export function Game() {
   // Yandex Games rule 1.10.1: the sticky banner on iOS overlaps the canvas and
   // clips game elements. Yandex SDK does not report banner height directly, so
   // we poll getBannerAdvStatus() and use a conservative reserve (54px) when the
-  // banner is showing. The root container reads --banner-h via CSS padding,
+  // banner is showing. The root container reads --banner-height via CSS padding,
   // which makes ResizeObserver shrink the Phaser canvas accordingly.
   useEffect(() => {
     const STICKY_BANNER_H = 54; // measured on iOS Safari Yandex sticky banner
@@ -54,7 +60,7 @@ export function Game() {
       if (showing === lastShowing) return;
       lastShowing = showing;
       document.documentElement.style.setProperty(
-        '--banner-h',
+        '--banner-height',
         showing ? `${STICKY_BANNER_H}px` : '0px',
       );
     };
@@ -79,14 +85,14 @@ export function Game() {
     return () => {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
-      document.documentElement.style.setProperty('--banner-h', '0px');
+      document.documentElement.style.setProperty('--banner-height', '0px');
     };
   }, []);
 
   // Initialize Phaser once
   useEffect(() => {
     if (gameRef.current) return;
-    const game = new Phaser.Game({ ...gameConfig, parent: 'game-container' });
+    const game = createGame('game-container');
     gameRef.current = game;
     if (import.meta.env.DEV) {
       window.__game = game;
@@ -94,6 +100,7 @@ export function Game() {
     return () => {
       gameRef.current?.destroy(true);
       gameRef.current = null;
+      resetUi();
     };
   }, []);
 
@@ -103,7 +110,7 @@ export function Game() {
     if (!game) return;
     const apply = () => {
       const cur = getLocalDpr();
-      const sm = game.scale as ScaleManagerInternal;
+      const scaleManager = game.scale as ScaleManagerInternal;
       if (cur > 1) {
         // Phaser RESIZE mode sets canvas.width/height but never sets style.width/height.
         // We set style.width/height to shrink the rendered canvas back to CSS-pixel size.
@@ -131,8 +138,8 @@ export function Game() {
       // Samsung/Android WebViews, getBoundingClientRect().width returns the parent
       // container's width (dpr * viewport) instead of canvas.style.width (viewport),
       // giving displayScale = 1 instead of dpr and shrinking the tap area by dpr².
-      sm.updateBounds();
-      sm.displayScale.set(cur, cur);
+      scaleManager.updateBounds();
+      scaleManager.displayScale.set(cur, cur);
     };
     if (game.canvas) apply(); else game.events.once('ready', apply);
     game.scale.on('resize', apply);
@@ -140,19 +147,22 @@ export function Game() {
   }, [dpr]);
 
   return (
-    <div
-      id="game-container"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: `${dpr * 100}vw`,
-        height: `${dpr * 100}vh`,
-        // Reserve room for the Yandex sticky banner so it doesn't overlap the
-        // canvas (rule 1.10.1). Other paddings are zero to keep the existing
-        // DPR-aware sizing intact — Phaser's ResizeObserver reads the inner box.
-        padding: '0 0 var(--banner-h, 0px) 0',
-      }}
-    />
+    <>
+      <div
+        id="game-container"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: `${dpr * 100}vw`,
+          height: `${dpr * 100}vh`,
+          // Reserve room for the Yandex sticky banner so it doesn't overlap the
+          // canvas (rule 1.10.1). Other paddings are zero to keep the existing
+          // DPR-aware sizing intact — Phaser's ResizeObserver reads the inner box.
+          padding: '0 0 var(--banner-height, 0px) 0',
+        }}
+      />
+      {children}
+    </>
   );
 }

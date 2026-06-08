@@ -2,8 +2,8 @@ import { getYSDK } from '../ysdk';
 import type { Lang } from './i18n';
 
 export const SUPPORTED: Lang[] = ['ru', 'en', 'tr', 'es', 'pt', 'ar'];
-const LS_KEY       = 'sea-pairs-lang';
-const LS_SOUND_KEY = 'sea-pairs-sound';
+const LANG_STORAGE_KEY  = 'sea-pairs-lang';
+const SOUND_STORAGE_KEY = 'sea-pairs-sound';
 
 function isLang(value: unknown): value is Lang {
   return typeof value === 'string' && (SUPPORTED as string[]).includes(value);
@@ -55,7 +55,7 @@ export async function resolveLang(): Promise<Lang> {
 
   // 3. localStorage — explicit in-game choice for offline / non-SDK users
   try {
-    const stored = localStorage.getItem(LS_KEY);
+    const stored = localStorage.getItem(LANG_STORAGE_KEY);
     if (isLang(stored)) return (_cachedLang = stored);
   } catch {
     // storage access blocked (e.g. private browsing)
@@ -71,7 +71,7 @@ export async function resolveLang(): Promise<Lang> {
  */
 export function readSoundEnabled(): boolean {
   try {
-    const stored = localStorage.getItem(LS_SOUND_KEY);
+    const stored = localStorage.getItem(SOUND_STORAGE_KEY);
     if (stored === 'true')  return true;
     if (stored === 'false') return false;
   } catch {
@@ -85,7 +85,7 @@ export function readSoundEnabled(): boolean {
  */
 export function saveSoundEnabled(enabled: boolean): void {
   try {
-    localStorage.setItem(LS_SOUND_KEY, String(enabled));
+    localStorage.setItem(SOUND_STORAGE_KEY, String(enabled));
   } catch {
     // storage access blocked (e.g. private browsing)
   }
@@ -98,7 +98,7 @@ export function saveSoundEnabled(enabled: boolean): void {
  */
 export function saveLang(lang: Lang): void {
   try {
-    localStorage.setItem(LS_KEY, lang);
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
   } catch {
     // storage access blocked (e.g. private browsing)
   }
