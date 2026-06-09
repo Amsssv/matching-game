@@ -28,6 +28,8 @@ export interface Locale {
   lbTitle:     string;
   lbLoading:   string;
   lbClose:     string;
+  lbPlayer:    string;       // leaderboard column header (player)
+  lbEmpty:     string;       // leaderboard empty state
   shop: string;            // menu button + modal title, e.g. "Коллекция"
   shopBuy: string;
   shopEquip: string;
@@ -90,6 +92,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Таблица рекордов',
     lbLoading:   'Загрузка...',
     lbClose:     'ЗАКРЫТЬ',
+    lbPlayer: 'Игрок', lbEmpty: 'Пока нет рекордов',
     shop: 'Коллекция', shopBuy: 'Купить', shopEquip: 'Надеть', shopEquipped: 'Надето',
     shopTabSea: 'Море', shopTabBack: 'Рубашка', shopTabPalette: 'Палитра', shopCollected: 'Собрано',
     shopItems: { seaLagoon:'Лагуна', seaReef:'Риф', seaAbyss:'Бездна', seaArctic:'Арктика',
@@ -139,6 +142,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Leaderboard',
     lbLoading:   'Loading...',
     lbClose:     'CLOSE',
+    lbPlayer: 'Player', lbEmpty: 'No records yet',
     shop: 'Collection', shopBuy: 'Buy', shopEquip: 'Equip', shopEquipped: 'Equipped',
     shopTabSea: 'Sea', shopTabBack: 'Card back', shopTabPalette: 'Palette', shopCollected: 'Collected',
     shopItems: { seaLagoon:'Lagoon', seaReef:'Reef', seaAbyss:'Abyss', seaArctic:'Arctic',
@@ -188,6 +192,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Liderlik Tablosu',
     lbLoading:   'Yükleniyor...',
     lbClose:     'KAPAT',
+    lbPlayer: 'Oyuncu', lbEmpty: 'Henüz rekor yok',
     shop: 'Koleksiyon', shopBuy: 'SATIN AL', shopEquip: 'TAK', shopEquipped: 'TAKILI',
     shopTabSea: 'Deniz', shopTabBack: 'Kart Arkası', shopTabPalette: 'Palet', shopCollected: 'Toplandı',
     shopItems: { seaLagoon:'Lagün', seaReef:'Resif', seaAbyss:'Uçurum', seaArctic:'Kutup',
@@ -237,6 +242,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Tabla de líderes',
     lbLoading:   'Cargando...',
     lbClose:     'CERRAR',
+    lbPlayer: 'Jugador', lbEmpty: 'Aún no hay récords',
     shop: 'Colección', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
     shopTabSea: 'Mar', shopTabBack: 'Reverso', shopTabPalette: 'Paleta', shopCollected: 'Coleccionados',
     shopItems: { seaLagoon:'Laguna', seaReef:'Arrecife', seaAbyss:'Abismo', seaArctic:'Ártico',
@@ -286,6 +292,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Placar',
     lbLoading:   'Carregando...',
     lbClose:     'FECHAR',
+    lbPlayer: 'Jogador', lbEmpty: 'Ainda não há recordes',
     shop: 'Coleção', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
     shopTabSea: 'Mar', shopTabBack: 'Verso', shopTabPalette: 'Paleta', shopCollected: 'Coletados',
     shopItems: { seaLagoon:'Lagoa', seaReef:'Recife', seaAbyss:'Abismo', seaArctic:'Ártico',
@@ -338,6 +345,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'لوحة المتصدرين',
     lbLoading:   'جارٍ التحميل...',
     lbClose:     'إغلاق',
+    lbPlayer: 'اللاعب', lbEmpty: 'لا توجد أرقام قياسية بعد',
     shop: 'المجموعة', shopBuy: 'شراء', shopEquip: 'تجهيز', shopEquipped: 'مُجهَّز',
     shopTabSea: 'البحر', shopTabBack: 'ظهر البطاقة', shopTabPalette: 'الألوان', shopCollected: 'تم الجمع',
     shopItems: { seaLagoon:'بحيرة', seaReef:'شعاب', seaAbyss:'هاوية', seaArctic:'قطبي',

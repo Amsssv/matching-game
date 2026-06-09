@@ -23,7 +23,7 @@ export async function openLeaderboard(source: 'menu' | 'victory') {
   const data = await fetchLeaderboard(difficulty);
   const cur = uiStore.get().modal.leaderboard;
   if (cur && cur.difficulty === difficulty) {
-    setModal({ leaderboard: { ...cur, data: data ?? null } });
+    setModal({ leaderboard: { ...cur, data: data ?? { rows: [] } } }); // null (no SDK/error) → empty state (fallback A)
   }
 }
 
@@ -34,7 +34,7 @@ export async function switchLeaderboardDifficulty(difficulty: Difficulty) {
   const data = await fetchLeaderboard(difficulty);
   const now = uiStore.get().modal.leaderboard;
   if (now && now.difficulty === difficulty) {
-    setModal({ leaderboard: { ...now, data: data ?? null } });
+    setModal({ leaderboard: { ...now, data: data ?? { rows: [] } } }); // null (no SDK/error) → empty state (fallback A)
   }
 }
 
