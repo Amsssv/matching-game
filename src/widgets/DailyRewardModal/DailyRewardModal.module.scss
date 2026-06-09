@@ -1,18 +1,45 @@
 @use '../../styles/modal' as *;
 @use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
 
 @include modal-keyframes;
 
 .backdrop { @include modal-backdrop; }
 .panel { @include modal-panel; width: min(92vw, 420px); }
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
-.dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; width: 100%; }
-.dot {
-  display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
-  border-radius: 8px; font-size: 12px; font-weight: 700;
+
+// ── 7-day ladder (desktop 7-in-row, mobile 4+3) ──
+.ladder { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; }
+.cell {
+  position: relative; aspect-ratio: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-radius: 10px; border: 2px solid transparent;
+  font-weight: 800; font-size: clamp(11px, 3.4vw, 15px);
   background: rgb(var(--color-navy-rgb, 0 20 40) / 0.6); color: $text-muted;
 }
-.dot.past { background: rgb(var(--color-blue-rgb, 13 71 161) / 0.5); color: $white; }
-.dot.current { background: $gold; color: $navy; outline: 2px solid $white; }
+.cell.got   { background: rgb(var(--color-blue-rgb, 13 71 161) / 0.45); color: $white; }
+.cell.today {
+  background: $gold; color: $navy;
+  box-shadow: 0 0 0 2px rgb(var(--color-white-rgb, 255 255 255) / 0.9), 0 0 14px rgb(var(--color-gold-rgb, 247 208 119) / 0.5);
+}
+.cell.special { border-color: $gold-border; }   // day 7 = big reward
+.cell.today.special { border-color: $navy; }    // gold bg already; navy frame for contrast
+.crown { font-size: 0.9em; line-height: 1; }
+.amt   { line-height: 1; }
+.check { position: absolute; top: 2px; right: 4px; font-size: 10px; color: $gold; }
+
 .reward { color: $gold; font-weight: 800; font-size: clamp(20px, 7vw, 30px); }
 .comeBack { color: $text-muted; font-size: 14px; margin: 0; }
+
+// ── Actions ──
+.actions { @include modal-actions; }
+.claimCta {
+  border: 2px solid $gold-border;
+  background: $gradient-button-active;
+  box-shadow: 0 0 16px rgb(var(--color-gold-rgb, 247 208 119) / 0.3);
+  &:hover { background: $gradient-button-active; border-color: $gold-border; } // keep the gold CTA look on hover
+}
+
+@media (max-width: 480px) {
+  .ladder { grid-template-columns: repeat(4, 1fr); } // 4 + 3
+}

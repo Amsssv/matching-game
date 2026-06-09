@@ -12,29 +12,42 @@ export function DailyRewardModal() {
   if (!daily) return null;
   const L = LOCALES[lang];
   const { day, reward, claimed, doubled } = daily;
-  const cyclePos = ((day - 1) % DAILY_REWARDS.length) + 1;   // 1..7 highlight
+  const cyclePos = ((day - 1) % DAILY_REWARDS.length) + 1;   // 1..7 position in the cycle
   const shown = doubled ? reward * 2 : reward;
   return (
     <div className={styles.backdrop} data-testid="daily" onClick={closeDaily}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{L.dailyTitle}</h2>
-        <div className={styles.dots}>
+
+        <div className={styles.ladder}>
           {DAILY_REWARDS.map((r, i) => {
             const n = i + 1;
-            const cls = n < cyclePos ? styles.past : n === cyclePos ? styles.current : styles.future;
-            return <span key={n} className={cx(styles.dot, cls)}>{r}</span>;
+            const got = n < cyclePos || (n === cyclePos && claimed); // claimed days
+            const today = n === cyclePos && !claimed;                 // claimable now
+            const special = n === DAILY_REWARDS.length;               // day 7 = big reward
+            return (
+              <div key={n} className={cx(styles.cell, got && styles.got, today && styles.today, !got && !today && styles.locked, special && styles.special)}>
+                {special && <span className={styles.crown} aria-hidden>🎁</span>}
+                <span className={styles.amt}>{r}</span>
+                {got && <span className={styles.check} aria-hidden>✓</span>}
+              </div>
+            );
           })}
         </div>
+
         <div className={styles.reward}>{`+${shown} 🦪`}</div>
-        {!claimed ? (
-          <Button testId="daily-claim" type="primary" size="large" onClick={claim}>{L.dailyClaim}</Button>
-        ) : (
-          <>
-            {!doubled && <Button testId="daily-double" type="primary" size="large" onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
-            {doubled && <p className={styles.comeBack}>{L.dailyComeBack}</p>}
-            <Button testId="daily-close" type="secondary" size="large" onClick={closeDaily}>{L.lbClose}</Button>
-          </>
-        )}
+
+        <div className={styles.actions}>
+          {!claimed ? (
+            <Button testId="daily-claim" type="primary" size="large" className={styles.claimCta} onClick={claim}>{L.dailyClaim}</Button>
+          ) : (
+            <>
+              {!doubled && <Button testId="daily-double" type="primary" size="large" className={styles.claimCta} onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
+              {doubled && <p className={styles.comeBack}>{L.dailyComeBack}</p>}
+              <Button testId="daily-close" type="secondary" size="large" onClick={closeDaily}>{L.lbClose}</Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
