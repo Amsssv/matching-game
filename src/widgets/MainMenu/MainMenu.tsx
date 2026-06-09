@@ -9,6 +9,7 @@ import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
 import { LanguageFlags } from '@features/LanguageFlags';
 import { PearlBalance } from '@features/PearlBalance';
+import { DailyButton } from '@features/DailyButton';
 import styles from './MainMenu.module.scss';
 
 export function MainMenu() {
@@ -16,7 +17,10 @@ export function MainMenu() {
   const L = LOCALES[lang];
   return (
     <div className={styles.root} data-testid="menu">
-      <PearlBalance />
+      <div className={styles.topLeft}>
+        <PearlBalance />
+        <DailyButton />
+      </div>
       <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
       <Title text={L.title} />
       <Subtitle text={L.subtitle} />

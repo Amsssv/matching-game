@@ -20,6 +20,7 @@ export type BusEvents = {
   'cmd:victory-to-menu': undefined;
   'cmd:login-and-save': undefined;
   'cmd:equip-changed': undefined;
+  'cmd:set-muted': boolean;
 };
 
 type Handler<T> = (payload: T) => void;

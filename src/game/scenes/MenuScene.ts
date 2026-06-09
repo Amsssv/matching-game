@@ -58,6 +58,10 @@ export class MenuScene extends Phaser.Scene {
       bus.on('cmd:play', () => this.play()),
       bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') this.openLeaderboard(); }),
       bus.on('cmd:equip-changed', () => this.applySeaTint()),
+      bus.on('cmd:set-muted', (muted) => {
+        const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
+        am?.setMuted(muted);
+      }),
     ];
     this.events.once('shutdown', () => offBus.forEach((off) => off()));
 

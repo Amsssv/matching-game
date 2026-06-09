@@ -2,6 +2,7 @@ import type { Difficulty } from '../game/layout';
 import { createStore } from './createStore';
 import { getYSDK } from '../ysdk';
 import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
+import { computeClaim, rewardForDay } from './daily';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -28,16 +29,18 @@ export interface ProgressStats {
   bestSeconds: Record<Difficulty, number | null>;
   winsByDifficulty: Record<Difficulty, number>;
 }
+export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
 export interface ProgressState {
-  version: 2;
+  version: 3;
   pearls: number;
   stats: ProgressStats;
   unlocked: string[];
   equipped: Record<CustomAxis, string>;
+  streak: StreakState;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
-  version: 2,
+  version: 3,
   pearls: 0,
   stats: {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
@@ -46,6 +49,7 @@ export const INITIAL_PROGRESS: ProgressState = {
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
+  streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -62,21 +66,31 @@ function validEquipped(e: unknown): Partial<Record<CustomAxis, string>> {
   return out;
 }
 
+function validStreak(s: unknown): StreakState {
+  const o = (s && typeof s === 'object') ? s as Record<string, unknown> : {};
+  const current = typeof o.current === 'number' && o.current >= 0 ? Math.floor(o.current) : 0;
+  const best = typeof o.best === 'number' && o.best >= 0 ? Math.floor(o.best) : 0;
+  const lastClaimDate = typeof o.lastClaimDate === 'string' ? o.lastClaimDate : null;
+  const doubledDate = typeof o.doubledDate === 'string' ? o.doubledDate : null;
+  return { current, lastClaimDate, best: Math.max(best, current), doubledDate };
+}
+
 function mergeProgress(raw: unknown): ProgressState {
   const d = INITIAL_PROGRESS;
   if (!raw || typeof raw !== 'object') {
     return {
-      version: 2,
+      version: 3,
       pearls: 0,
       stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty } },
       unlocked: [],
       equipped: { ...DEFAULT_EQUIPPED },
+      streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown };
   const s = r.stats ?? {};
   return {
-    version: 2,
+    version: 3,
     pearls: num(r.pearls),
     stats: {
       gamesPlayed:  num(s.gamesPlayed),
@@ -89,6 +103,7 @@ function mergeProgress(raw: unknown): ProgressState {
       ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
       : [],
     equipped: { ...DEFAULT_EQUIPPED, ...validEquipped(r.equipped) },
+    streak: validStreak(r.streak),
   };
 }
 
@@ -136,6 +151,35 @@ export function awardPearls(amount: number): void {
   progressStore.set({ pearls: progressStore.get().pearls + amount });
   saveLocal(progressStore.get());
   saveCloud(progressStore.get());
+}
+
+/** Claim today's streak reward. Returns {day, reward} or null if already claimed today. */
+export function claimDaily(today: string): { day: number; reward: number } | null {
+  const cur = progressStore.get();
+  const info = computeClaim(cur.streak, today);
+  if (!info.available) return null;
+  progressStore.set({
+    pearls: cur.pearls + info.reward,
+    streak: { current: info.day, lastClaimDate: today, best: Math.max(cur.streak.best, info.day), doubledDate: null },
+  });
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  return { day: info.day, reward: info.reward };
+}
+
+/** Add the same reward again (rewarded-video ×2). Self-guarding + idempotent: no-op (returns 0) if no claim today or already doubled. Returns the bonus added. */
+export function doubleDaily(today: string): number {
+  const cur = progressStore.get();
+  if (cur.streak.lastClaimDate !== today || cur.streak.doubledDate === today) return 0;  // no claim today, or already doubled
+  const bonus = rewardForDay(cur.streak.current);
+  progressStore.set({ pearls: cur.pearls + bonus, streak: { ...cur.streak, doubledDate: today } });
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  return bonus;
+}
+
+export function isDailyAvailable(today: string): boolean {
+  return computeClaim(progressStore.get().streak, today).available;
 }
 
 export function isUnlocked(id: string): boolean {

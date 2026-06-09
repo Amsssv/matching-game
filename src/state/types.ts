@@ -33,10 +33,18 @@ export interface LeaderboardView {
   source: 'menu' | 'victory';
 }
 
+export interface DailyView {
+  day: number;
+  reward: number;
+  claimed: boolean;
+  doubled: boolean;
+}
+
 export interface ModalState {
   victory: VictoryView | null;
   leaderboard: LeaderboardView | null;
   shop: { tab: CustomAxis } | null;
+  daily: DailyView | null;
 }
 
 export interface TransitionState {

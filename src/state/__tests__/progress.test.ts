@@ -3,6 +3,7 @@ import { computePearls } from '../progress';
 import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
   buyItem, equipItem, isUnlocked,
+  claimDaily, doubleDaily, isDailyAvailable,
 } from '../progress';
 
 describe('computePearls', () => {
@@ -58,7 +59,7 @@ describe('resolveProgress', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const { resolveProgress } = await import('../progress');
     const p = await resolveProgress();
-    expect(p.pearls).toBe(0); expect(p.version).toBe(2);
+    expect(p.pearls).toBe(0); expect(p.version).toBe(3);
   });
   it('loads from localStorage', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 42, stats: {} }));
@@ -120,15 +121,15 @@ describe('shop economy (progress v2)', () => {
     const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
     expect(saved.unlocked).toContain('back.gold');
     expect(saved.equipped.cardBack).toBe('back.gold');
-    expect(saved.version).toBe(2);
+    expect(saved.version).toBe(3);
   });
-  it('mergeProgress upgrades a v1 blob to v2 defaults', async () => {
+  it('mergeProgress upgrades a v1 blob to current defaults', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 50, stats: {} }));
     vi.resetModules();
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const m = await import('../progress');
     const p = await m.resolveProgress();
-    expect(p.version).toBe(2);
+    expect(p.version).toBe(3);
     expect(p.pearls).toBe(50);
     expect(p.unlocked).toEqual([]);
     expect(p.equipped.seaTheme).toBe('sea.lagoon');
@@ -145,5 +146,52 @@ describe('shop economy (progress v2)', () => {
     expect(p.equipped.seaTheme).toBe('sea.lagoon');   // bogus id → default
     expect(p.equipped.cardBack).toBe('back.gold');    // real cardBack item → retained (existence+axis only, no ownership check)
     expect(p.equipped.uiPalette).toBe('ui.ocean');    // valid default → unchanged
+  });
+});
+
+describe('daily streak (progress v3)', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+  it('first claim awards day-1 reward and sets streak', () => {
+    expect(claimDaily('2026-06-09')).toEqual({ day: 1, reward: 10 });
+    expect(progressStore.get().pearls).toBe(10);
+    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-09', best: 1, doubledDate: null });
+  });
+  it('second claim same day is a no-op (null)', () => {
+    claimDaily('2026-06-09');
+    expect(claimDaily('2026-06-09')).toBeNull();
+    expect(progressStore.get().pearls).toBe(10);
+  });
+  it('consecutive day continues the streak', () => {
+    claimDaily('2026-06-09');
+    expect(claimDaily('2026-06-10')).toEqual({ day: 2, reward: 15 });
+    expect(progressStore.get().pearls).toBe(25);
+    expect(progressStore.get().streak.current).toBe(2);
+  });
+  it('gap resets to day 1 but keeps best', () => {
+    claimDaily('2026-06-09'); claimDaily('2026-06-10');
+    expect(claimDaily('2026-06-13')).toEqual({ day: 1, reward: 10 });
+    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-13', best: 2, doubledDate: null });
+  });
+  it('doubleDaily adds the reward again, only once, only after a claim', () => {
+    expect(doubleDaily('2026-06-09')).toBe(0);     // no claim yet → no-op
+    claimDaily('2026-06-09');                       // +10
+    expect(doubleDaily('2026-06-09')).toBe(10);     // +10
+    expect(doubleDaily('2026-06-09')).toBe(0);      // already doubled → no-op
+    expect(progressStore.get().pearls).toBe(20);
+  });
+  it('isDailyAvailable reflects claim state', () => {
+    expect(isDailyAvailable('2026-06-09')).toBe(true);
+    claimDaily('2026-06-09');
+    expect(isDailyAvailable('2026-06-09')).toBe(false);
+  });
+  it('v2 save (no streak) upgrades to v3 with default streak', async () => {
+    localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 2, pearls: 5, stats: {}, unlocked: [], equipped: {} }));
+    vi.resetModules();
+    vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
+    const m = await import('../progress');
+    const p = await m.resolveProgress();
+    expect(p.version).toBe(3);
+    expect(p.streak).toEqual({ current: 0, lastClaimDate: null, best: 0, doubledDate: null });
+    expect(p.pearls).toBe(5);
   });
 });

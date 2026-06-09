@@ -1,0 +1,18 @@
+@use '../../styles/modal' as *;
+@use '../../styles/tokens' as *;
+
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; }
+.panel { @include modal-panel; width: min(92vw, 420px); }
+.title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
+.dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; width: 100%; }
+.dot {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
+  border-radius: 8px; font-size: 12px; font-weight: 700;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.6); color: $text-muted;
+}
+.dot.past { background: rgb(var(--color-blue-rgb, 13 71 161) / 0.5); color: $white; }
+.dot.current { background: $gold; color: $navy; outline: 2px solid $white; }
+.reward { color: $gold; font-weight: 800; font-size: clamp(20px, 7vw, 30px); }
+.comeBack { color: $text-muted; font-size: 14px; margin: 0; }

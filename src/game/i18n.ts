@@ -36,6 +36,10 @@ export interface Locale {
   shopTabBack: string;
   shopTabPalette: string;
   shopItems: Record<string, string>;   // nameKey → localized item name
+  dailyTitle: string;
+  dailyClaim: string;
+  dailyDouble: string;
+  dailyComeBack: string;
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -82,6 +86,7 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'Лагуна', seaReef:'Риф', seaAbyss:'Бездна', seaArctic:'Арктика',
       backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина',
       uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист' },
+    dailyTitle: 'Ежедневная награда', dailyClaim: 'Забрать', dailyDouble: 'Удвоить за рекламу', dailyComeBack: 'Возвращайтесь завтра!',
   },
 
   en: {
@@ -127,6 +132,7 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'Lagoon', seaReef:'Reef', seaAbyss:'Abyss', seaArctic:'Arctic',
       backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep',
       uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst' },
+    dailyTitle: 'Daily reward', dailyClaim: 'Claim', dailyDouble: 'Double via ad', dailyComeBack: 'Come back tomorrow!',
   },
 
   tr: {
@@ -172,6 +178,7 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'Lagün', seaReef:'Resif', seaAbyss:'Uçurum', seaArctic:'Kutup',
       backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik',
       uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist' },
+    dailyTitle: 'Günlük ödül', dailyClaim: 'AL', dailyDouble: 'REKLAMLA İKİYE KATLA', dailyComeBack: 'Yarın tekrar gel!',
   },
 
   es: {
@@ -217,6 +224,7 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'Laguna', seaReef:'Arrecife', seaAbyss:'Abismo', seaArctic:'Ártico',
       backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo',
       uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista' },
+    dailyTitle: 'Recompensa diaria', dailyClaim: 'RECLAMAR', dailyDouble: 'DUPLICAR CON ANUNCIO', dailyComeBack: '¡Vuelve mañana!',
   },
 
   pt: {
@@ -262,6 +270,7 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'Lagoa', seaReef:'Recife', seaAbyss:'Abismo', seaArctic:'Ártico',
       backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo',
       uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista' },
+    dailyTitle: 'Recompensa diária', dailyClaim: 'RESGATAR', dailyDouble: 'DOBRAR COM ANÚNCIO', dailyComeBack: 'Volte amanhã!',
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -310,5 +319,6 @@ export const LOCALES: Record<Lang, Locale> = {
     shopItems: { seaLagoon:'بحيرة', seaReef:'شعاب', seaAbyss:'هاوية', seaArctic:'قطبي',
       backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق',
       uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت' },
+    dailyTitle: 'المكافأة اليومية', dailyClaim: 'استلام', dailyDouble: 'مضاعفة عبر إعلان', dailyComeBack: 'عُد غداً!',
   },
 };

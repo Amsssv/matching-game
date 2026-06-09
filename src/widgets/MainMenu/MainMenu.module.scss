@@ -10,6 +10,16 @@
   gap: clamp(8px, 1.5vh, 16px);
   text-align: center;
 }
+// Top-left cluster: pearl balance + daily-reward button side-by-side, no overlap.
+.topLeft {
+  position: absolute; top: 14px; left: 12px; z-index: 3;
+  display: flex; align-items: center; gap: 8px;
+}
+// Neutralize PearlBalance's own absolute positioning when it lives in this flex
+// container, so the two sit in flow next to each other (keeps PearlBalance
+// self-contained for standalone use elsewhere).
+.topLeft > * { position: static; top: auto; left: auto; }
+
 .actions {
   display: grid; justify-items: center;
   gap: clamp(10px, 2vh, 22px); align-content: end;

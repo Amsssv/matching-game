@@ -5,6 +5,7 @@ import { Header } from '@widgets/Header';
 import { VictoryModal } from '@widgets/VictoryModal';
 import { LeaderboardModal } from '@widgets/LeaderboardModal';
 import { ShopModal } from '@widgets/ShopModal';
+import { DailyRewardModal } from '@widgets/DailyRewardModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
@@ -12,6 +13,7 @@ export function App() {
   const victory = useUi(s => s.modal.victory);
   const leaderboard = useUi(s => s.modal.leaderboard);
   const shop = useUi(s => s.modal.shop);
+  const daily = useUi(s => s.modal.daily);
   const visible = useUi(s => s.transition.visible);
 
   return (
@@ -31,6 +33,7 @@ export function App() {
         {victory && <VictoryModal />}
         {leaderboard && <LeaderboardModal />}
         {shop && <ShopModal />}
+        {daily && <DailyRewardModal />}
       </div>
     </GameMount>
   );
