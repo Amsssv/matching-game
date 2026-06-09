@@ -1,0 +1,18 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/modal' as *;
+
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; }
+.panel { @include modal-panel; }
+.title { @include modal-title; }
+.separator { @include modal-separator; }
+.subtitle { @include modal-subtitle; }
+.actions { @include modal-actions; }
+
+.stats {
+  display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center; gap: 12px; width: 100%;
+  div { display: grid; gap: 6px; }
+}
+.statLabel { color: $text-muted; font-size: 13px; }
+.statValue { color: $gold; font-weight: 700; font-size: clamp(20px, 6vw, 28px); }

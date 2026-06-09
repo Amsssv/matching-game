@@ -8,10 +8,10 @@
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@ui/*":       ["src/ui/ui/*"],
-      "@features/*": ["src/ui/features/*"],
-      "@widgets/*":  ["src/ui/widgets/*"],
-      "@hooks/*":    ["src/ui/hooks/*"],
+      "@ui/*":       ["src/ui/*"],
+      "@features/*": ["src/features/*"],
+      "@widgets/*":  ["src/widgets/*"],
+      "@hooks/*":    ["src/hooks/*"],
       "@state/*":    ["src/state/*"]
     },
     "skipLibCheck": true,

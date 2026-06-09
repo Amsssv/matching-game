@@ -1,0 +1,7 @@
+@use '../../../styles/tokens' as *;
+
+.root {
+  pointer-events: none;
+  font-family: #{$font-display}; color: #01286a;
+  font-size: clamp(14px, 5vh, 28px); margin-top: clamp(2px, 1vh, 8px);
+}

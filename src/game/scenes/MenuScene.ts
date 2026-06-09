@@ -13,7 +13,7 @@ import { openLeaderboard } from '../../state/leaderboardController';
 /**
  * Thin MenuScene: owns menu *state* + imperative actions, draws only the
  * background image on the canvas. All visible menu UI (title, buttons, flags,
- * leaderboard) is rendered by React (`src/ui/widgets`), which reads the UI
+ * leaderboard) is rendered by React (`src/widgets`), which reads the UI
  * store and drives these actions via `cmd:*` events on the command bus.
  */
 export class MenuScene extends Phaser.Scene {

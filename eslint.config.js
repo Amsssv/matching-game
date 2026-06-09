@@ -35,14 +35,14 @@ export default defineConfig([
   },
   // ── Layer boundaries: import only downward ──
   {
-    files: ['src/ui/ui/**/*.{ts,tsx}', 'src/ui/hooks/**/*.{ts,tsx}'],
+    files: ['src/ui/**/*.{ts,tsx}', 'src/hooks/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': ['error', { patterns: [
       { group: ['@features', '@features/**', '@widgets', '@widgets/**'],
-        message: 'shared (ui/hooks) cannot import features/widgets — downward only.' },
+        message: 'ui/hooks (shared tier) cannot import features/widgets — downward only.' },
     ] }] },
   },
   {
-    files: ['src/ui/features/**/*.{ts,tsx}'],
+    files: ['src/features/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': ['error', { patterns: [
       { group: ['@widgets', '@widgets/**'],
         message: 'features cannot import widgets — downward only.' },

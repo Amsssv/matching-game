@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { App } from './ui/App'
+import { App } from './app/App'
 import { initYSDK } from './ysdk'
 import { resolveLang } from './game/settings'
 import { LOCALES } from './game/i18n'

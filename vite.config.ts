@@ -8,10 +8,10 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: {
-      '@ui':       fileURLToPath(new URL('./src/ui/ui', import.meta.url)),
-      '@features': fileURLToPath(new URL('./src/ui/features', import.meta.url)),
-      '@widgets':  fileURLToPath(new URL('./src/ui/widgets', import.meta.url)),
-      '@hooks':    fileURLToPath(new URL('./src/ui/hooks', import.meta.url)),
+      '@ui':       fileURLToPath(new URL('./src/ui', import.meta.url)),
+      '@features': fileURLToPath(new URL('./src/features', import.meta.url)),
+      '@widgets':  fileURLToPath(new URL('./src/widgets', import.meta.url)),
+      '@hooks':    fileURLToPath(new URL('./src/hooks', import.meta.url)),
       '@state':    fileURLToPath(new URL('./src/state', import.meta.url)),
     },
   },

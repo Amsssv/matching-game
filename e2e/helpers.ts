@@ -1,30 +1,4 @@
 import { Page } from '@playwright/test';
-import { SYMBOLS } from '../src/game/assets-config';
-
-// ── Seeded random (matches the injected Math.random in tests) ────────────────
-const SEED = 42;
-
-function createSeededRandom() {
-  let s = SEED;
-  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-}
-
-/** Replicate Phaser.Utils.Array.Shuffle with the seeded Math.random. */
-function seededShuffle<T>(arr: T[]): T[] {
-  const result = [...arr];
-  const rand = createSeededRandom();
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
-/** Return the seeded card deck for a given number of pairs. */
-export function getSeededDeck(totalPairs: number): string[] {
-  const picked = [...SYMBOLS].slice(0, totalPairs) as string[];
-  return seededShuffle([...picked, ...picked]);
-}
 
 /** Return the [i, j] indices of the first matching pair in the seeded deck. */
 export function findFirstMatchingPair(deck: string[]): [number, number] {
@@ -36,19 +10,9 @@ export function findFirstMatchingPair(deck: string[]): [number, number] {
   throw new Error('No matching pair found in deck');
 }
 
-/** Return the [i, j] indices of the first NON-matching pair in the seeded deck. */
-export function findFirstNonMatchingPair(deck: string[]): [number, number] {
-  for (let i = 0; i < deck.length; i++) {
-    for (let j = i + 1; j < deck.length; j++) {
-      if (deck[i] !== deck[j]) return [i, j];
-    }
-  }
-  throw new Error('No non-matching pair found in deck');
-}
-
 /**
  * Read the actual card symbol order from the live GameScene.
- * More reliable than getSeededDeck() because it doesn't depend on
+ * More reliable than a seeded deck because it doesn't depend on
  * how many Math.random calls Phaser makes before the shuffle.
  */
 export async function getActualDeck(page: Page): Promise<string[]> {
@@ -60,14 +24,6 @@ export async function getActualDeck(page: Page): Promise<string[]> {
 }
 
 // ── Page navigation ──────────────────────────────────────────────────────────
-
-/** Inject seeded Math.random — call BEFORE page.goto(). */
-export async function injectSeededRandom(page: Page) {
-  await page.addInitScript(() => {
-    let s = 42;
-    Math.random = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-  });
-}
 
 /** Wait for Phaser canvas to be ready. */
 export async function waitForCanvas(page: Page) {
@@ -170,9 +126,3 @@ export async function resumePhaser(page: Page) {
   await page.evaluate(() => (window as any).__game?.loop.wake());
 }
 
-/** Hover over a card by its index. */
-export async function hoverCard(page: Page, index: number) {
-  const { x, y } = await getCardViewportPos(page, index);
-  await page.mouse.move(x, y);
-  await page.waitForTimeout(150); // allow hover animation to settle
-}

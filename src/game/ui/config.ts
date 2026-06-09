@@ -1,11 +1,5 @@
 import { getLocalDpr } from '../device';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-export function clamp(val: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, val));
-}
-
 // ── Raw palette — internal, not exported directly ─────────────────────────────
 
 const palette = {
@@ -19,23 +13,6 @@ export const UI = {
   // ── Semantic colors ─────────────────────────────────────────────────────────
   colors: {
     bgDark: palette.navy,  // Phaser scene backgroundColor (src/game/config.ts)
-  },
-
-  // ── Buttons ─────────────────────────────────────────────────────────────────
-  button: {
-    radius: 16,
-
-    variants: {
-      /**
-       * Primary — deep ocean gradient. Source for the pre-warmed button
-       * gradient CanvasTextures (see ui/factory preWarmGradients / gradTexture).
-       */
-      primary: {
-        gradActive: ['rgba(10,61,122,0.92)', 'rgba(1,40,106,0.95)'] as [string, string],
-        gradHover:  ['rgba(2,52,122,0.87)',  'rgba(1,35,88,0.90)']  as [string, string],
-        gradInact:  ['rgba(1,40,106,0.82)',  'rgba(1,29,74,0.85)']  as [string, string],
-      },
-    },
   },
 
   // ── Layout ───────────────────────────────────────────────────────────────────
