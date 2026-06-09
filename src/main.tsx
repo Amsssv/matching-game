@@ -6,13 +6,15 @@ import { initYSDK } from './ysdk'
 import { resolveLang } from './game/settings'
 import { LOCALES } from './game/i18n'
 import { YSDKProvider } from './YSDKContext'
-import { resolveProgress } from './state/progress'
+import { resolveProgress, ensureTodayQuests } from './state/progress'
 import { applyUiPalette } from './state/uiPalette'
+import { todayStr } from './state/daily'
 
 await initYSDK()
 const lang = await resolveLang()
 const progress = await resolveProgress()
 applyUiPalette(progress.equipped.uiPalette)
+ensureTodayQuests(todayStr())   // seed today's quest board so the 📋 badge + board are correct on first paint
 document.title = LOCALES[lang].title
 document.documentElement.lang = lang
 document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', LOCALES[lang].description)

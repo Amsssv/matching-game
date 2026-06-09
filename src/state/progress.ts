@@ -2,7 +2,9 @@ import type { Difficulty } from '../game/layout';
 import { createStore } from './createStore';
 import { getYSDK } from '../ysdk';
 import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
-import { computeClaim, rewardForDay } from './daily';
+import { computeClaim, rewardForDay, todayStr } from './daily';
+import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './quests';
+import { ACH_BY_ID, type AchSignals } from './achievements';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -28,28 +30,39 @@ export interface ProgressStats {
   pairsMatched: number;
   bestSeconds: Record<Difficulty, number | null>;
   winsByDifficulty: Record<Difficulty, number>;
+  perfectWins: number;
+  fastWins: number;
+  pearlsEarnedTotal: number;
 }
 export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
+export interface QuestSlot { id: string; progress: number; claimed: boolean; }
+export interface QuestsState { date: string | null; active: QuestSlot[]; rerolls: number; }
+export interface AchievementsState { claimed: string[]; }
 export interface ProgressState {
-  version: 3;
+  version: 4;
   pearls: number;
   stats: ProgressStats;
   unlocked: string[];
   equipped: Record<CustomAxis, string>;
   streak: StreakState;
+  quests: QuestsState;
+  achievements: AchievementsState;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
-  version: 3,
+  version: 4,
   pearls: 0,
   stats: {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
+    perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
   streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
+  quests: { date: null, active: [], rerolls: 0 },
+  achievements: { claimed: [] },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -75,22 +88,36 @@ function validStreak(s: unknown): StreakState {
   return { current, lastClaimDate, best: Math.max(best, current), doubledDate };
 }
 
+function validQuests(q: unknown): QuestsState {
+  const o = (q && typeof q === 'object') ? q as Record<string, unknown> : {};
+  const date = typeof o.date === 'string' ? o.date : null;
+  const rerolls = typeof o.rerolls === 'number' && o.rerolls >= 0 ? Math.floor(o.rerolls) : 0;
+  const active = Array.isArray(o.active)
+    ? o.active.filter((x): x is QuestSlot => !!x && typeof x === 'object'
+        && typeof (x as QuestSlot).id === 'string' && QUEST_BY_ID[(x as QuestSlot).id] !== undefined)
+        .map((x) => ({ id: (x as QuestSlot).id, progress: num((x as QuestSlot).progress), claimed: (x as QuestSlot).claimed === true }))
+    : [];
+  return { date, active, rerolls };
+}
+
 function mergeProgress(raw: unknown): ProgressState {
   const d = INITIAL_PROGRESS;
   if (!raw || typeof raw !== 'object') {
     return {
-      version: 3,
+      version: 4,
       pearls: 0,
       stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty } },
       unlocked: [],
       equipped: { ...DEFAULT_EQUIPPED },
       streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
+      quests: { date: null, active: [], rerolls: 0 },
+      achievements: { claimed: [] },
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown };
   const s = r.stats ?? {};
   return {
-    version: 3,
+    version: 4,
     pearls: num(r.pearls),
     stats: {
       gamesPlayed:  num(s.gamesPlayed),
@@ -98,12 +125,21 @@ function mergeProgress(raw: unknown): ProgressState {
       pairsMatched: num(s.pairsMatched),
       bestSeconds:      { ...d.stats.bestSeconds,      ...(s.bestSeconds ?? {}) },
       winsByDifficulty: { ...d.stats.winsByDifficulty, ...(s.winsByDifficulty ?? {}) },
+      perfectWins:       num(s.perfectWins),
+      fastWins:          num(s.fastWins),
+      pearlsEarnedTotal: num(s.pearlsEarnedTotal),
     },
     unlocked: Array.isArray(r.unlocked)
       ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
       : [],
     equipped: { ...DEFAULT_EQUIPPED, ...validEquipped(r.equipped) },
     streak: validStreak(r.streak),
+    quests: validQuests(r.quests),
+    achievements: {
+      claimed: Array.isArray((r.achievements as { claimed?: unknown })?.claimed)
+        ? (r.achievements as { claimed: unknown[] }).claimed.filter((x): x is string => typeof x === 'string')
+        : [],
+    },
   };
 }
 
@@ -147,23 +183,43 @@ export async function resolveProgress(): Promise<ProgressState> {
   return (_cachedProgress = applyLoaded(mergeProgress(null)));
 }
 
-export function awardPearls(amount: number): void {
-  progressStore.set({ pearls: progressStore.get().pearls + amount });
-  saveLocal(progressStore.get());
-  saveCloud(progressStore.get());
+/** Credit pearls + lifetime `pearlsEarnedTotal`, WITHOUT saving. Callers persist() once. */
+function addPearls(amount: number): void {
+  const c = progressStore.get();
+  progressStore.set({ pearls: c.pearls + amount, stats: { ...c.stats, pearlsEarnedTotal: c.stats.pearlsEarnedTotal + amount } });
 }
+function persist(): void { saveLocal(progressStore.get()); saveCloud(progressStore.get()); }
+
+/** Regenerate today's 3 quests if the stored day rolled over. Local-only save (the
+ * board is deterministic per date, so cloud doesn't need a write here). */
+export function ensureTodayQuests(today: string): void {
+  const q = progressStore.get().quests;
+  if (q.date === today) return;
+  progressStore.set({ quests: { date: today, active: pickDailyQuests(today).map((id) => ({ id, progress: 0, claimed: false })), rerolls: 0 } });
+  saveLocal(progressStore.get());
+}
+
+export function achSignals(): AchSignals {
+  const p = progressStore.get();
+  return {
+    gamesWon: p.stats.gamesWon, pairsMatched: p.stats.pairsMatched, winsByDifficulty: p.stats.winsByDifficulty,
+    perfectWins: p.stats.perfectWins, fastWins: p.stats.fastWins, pearlsEarnedTotal: p.stats.pearlsEarnedTotal,
+    streakBest: p.streak.best, unlockedCount: p.unlocked.length,
+  };
+}
+
+export function awardPearls(amount: number): void { addPearls(amount); persist(); }
 
 /** Claim today's streak reward. Returns {day, reward} or null if already claimed today. */
 export function claimDaily(today: string): { day: number; reward: number } | null {
   const cur = progressStore.get();
   const info = computeClaim(cur.streak, today);
   if (!info.available) return null;
+  addPearls(info.reward);
   progressStore.set({
-    pearls: cur.pearls + info.reward,
     streak: { current: info.day, lastClaimDate: today, best: Math.max(cur.streak.best, info.day), doubledDate: null },
   });
-  saveLocal(progressStore.get());
-  saveCloud(progressStore.get());
+  persist();
   return { day: info.day, reward: info.reward };
 }
 
@@ -172,9 +228,9 @@ export function doubleDaily(today: string): number {
   const cur = progressStore.get();
   if (cur.streak.lastClaimDate !== today || cur.streak.doubledDate === today) return 0;  // no claim today, or already doubled
   const bonus = rewardForDay(cur.streak.current);
-  progressStore.set({ pearls: cur.pearls + bonus, streak: { ...cur.streak, doubledDate: today } });
-  saveLocal(progressStore.get());
-  saveCloud(progressStore.get());
+  addPearls(bonus);
+  progressStore.set({ streak: { ...progressStore.get().streak, doubledDate: today } });
+  persist();
   return bonus;
 }
 
@@ -209,15 +265,33 @@ export function equipItem(axis: CustomAxis, id: string): boolean {
   return true;
 }
 
-export function recordGameStart(): void {
-  const s = progressStore.get().stats;
-  progressStore.set({ stats: { ...s, gamesPlayed: s.gamesPlayed + 1 } });
+/** Accumulate progress on today's active quests for a game event. Regenerates the
+ * daily board first. Local-only save (frequent; cloud is coalesced to wins/claims). */
+export function recordQuestEvent(event: QuestEvent): void {
+  const today = todayStr();
+  ensureTodayQuests(today);
+  const q = progressStore.get().quests;
+  const active = q.active.map((slot) => {
+    if (slot.claimed) return slot;
+    const def = QUEST_BY_ID[slot.id];
+    const inc = def ? def.measure(event) : 0;
+    return inc ? { ...slot, progress: Math.min(def.target, slot.progress + inc) } : slot;
+  });
+  progressStore.set({ quests: { ...q, active } });
   saveLocal(progressStore.get());
 }
 
-export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number }): void {
+export function recordGameStart(): void {
+  const s = progressStore.get().stats;
+  progressStore.set({ stats: { ...s, gamesPlayed: s.gamesPlayed + 1 } });
+  recordQuestEvent({ type: 'start' });   // saves local (game-start stays local-only, cloud coalesced)
+}
+
+export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number }): void {
   const s = progressStore.get().stats;
   const prevBest = s.bestSeconds[r.difficulty];
+  const perfect = r.moves === r.pairs;
+  const fast = r.seconds <= SPEED_PAR[r.difficulty];
   progressStore.set({
     stats: {
       ...s,
@@ -225,10 +299,48 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
       pairsMatched: s.pairsMatched + r.pairs,
       bestSeconds:      { ...s.bestSeconds,      [r.difficulty]: prevBest === null ? r.seconds : Math.min(prevBest, r.seconds) },
       winsByDifficulty: { ...s.winsByDifficulty, [r.difficulty]: s.winsByDifficulty[r.difficulty] + 1 },
+      perfectWins: s.perfectWins + (perfect ? 1 : 0),
+      fastWins:    s.fastWins + (fast ? 1 : 0),
     },
   });
-  saveLocal(progressStore.get());
-  saveCloud(progressStore.get());
+  recordQuestEvent({ type: 'win', difficulty: r.difficulty, pairs: r.pairs, perfect, fast });   // sets quests + saveLocal
+  saveCloud(progressStore.get());   // a win is significant → one cloud write, after quest progress is applied
+}
+
+export function claimQuest(id: string): number | null {
+  const q = progressStore.get().quests;
+  const slot = q.active.find((s) => s.id === id);
+  const def = QUEST_BY_ID[id];
+  if (!slot || !def || slot.claimed || slot.progress < def.target) return null;
+  addPearls(def.reward);
+  progressStore.set({ quests: { ...progressStore.get().quests, active: progressStore.get().quests.active.map((s) => (s.id === id ? { ...s, claimed: true } : s)) } });
+  persist();
+  return def.reward;
+}
+
+/** Replace the quest at index with an unused one (progress 0). Returns the new id, or null if no quest there / pool exhausted. (Controller gates this behind a rewarded ad.) */
+export function rerollQuest(index: number): string | null {
+  const today = todayStr();
+  ensureTodayQuests(today);
+  const q = progressStore.get().quests;
+  const slot = q.active[index];
+  if (!slot) return null;
+  const newId = rerollQuestId(today, q.active.map((s) => s.id), q.rerolls);
+  if (!newId) return null;
+  const active = q.active.map((s, i) => (i === index ? { id: newId, progress: 0, claimed: false } : s));
+  progressStore.set({ quests: { ...q, active, rerolls: q.rerolls + 1 } });
+  persist();
+  return newId;
+}
+
+export function claimAchievement(id: string): number | null {
+  const def = ACH_BY_ID[id];
+  const p = progressStore.get();
+  if (!def || p.achievements.claimed.includes(id) || !def.done(achSignals())) return null;
+  addPearls(def.reward);
+  progressStore.set({ achievements: { claimed: [...progressStore.get().achievements.claimed, id] } });
+  persist();
+  return def.reward;
 }
 
 export function resetProgress(): void {

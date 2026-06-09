@@ -40,11 +40,14 @@ export interface DailyView {
   doubled: boolean;
 }
 
+export type TasksTab = 'quests' | 'achievements';
+
 export interface ModalState {
   victory: VictoryView | null;
   leaderboard: LeaderboardView | null;
   shop: { tab: CustomAxis } | null;
   daily: DailyView | null;
+  tasks: { tab: TasksTab } | null;
 }
 
 export interface TransitionState {

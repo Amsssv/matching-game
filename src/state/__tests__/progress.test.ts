@@ -4,7 +4,9 @@ import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
   buyItem, equipItem, isUnlocked,
   claimDaily, doubleDaily, isDailyAvailable,
+  claimQuest, rerollQuest, claimAchievement, ensureTodayQuests, achSignals,
 } from '../progress';
+import { pickDailyQuests, QUEST_BY_ID } from '../quests';
 
 describe('computePearls', () => {
   it('awards base by difficulty with no bonuses', () => {
@@ -42,8 +44,8 @@ describe('progress mutators', () => {
     expect(progressStore.get().stats.gamesPlayed).toBe(2);
   });
   it('recordGameWin updates win stats and keeps best time', () => {
-    recordGameWin({ difficulty: 'hard', seconds: 90, pairs: 12 });
-    recordGameWin({ difficulty: 'hard', seconds: 70, pairs: 12 });
+    recordGameWin({ difficulty: 'hard', seconds: 90, pairs: 12, moves: 99 });
+    recordGameWin({ difficulty: 'hard', seconds: 70, pairs: 12, moves: 99 });
     const s = progressStore.get().stats;
     expect(s.gamesWon).toBe(2);
     expect(s.winsByDifficulty.hard).toBe(2);
@@ -59,7 +61,7 @@ describe('resolveProgress', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const { resolveProgress } = await import('../progress');
     const p = await resolveProgress();
-    expect(p.pearls).toBe(0); expect(p.version).toBe(3);
+    expect(p.pearls).toBe(0); expect(p.version).toBe(4);
   });
   it('loads from localStorage', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 42, stats: {} }));
@@ -121,7 +123,7 @@ describe('shop economy (progress v2)', () => {
     const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
     expect(saved.unlocked).toContain('back.gold');
     expect(saved.equipped.cardBack).toBe('back.gold');
-    expect(saved.version).toBe(3);
+    expect(saved.version).toBe(4);
   });
   it('mergeProgress upgrades a v1 blob to current defaults', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 50, stats: {} }));
@@ -129,7 +131,7 @@ describe('shop economy (progress v2)', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const m = await import('../progress');
     const p = await m.resolveProgress();
-    expect(p.version).toBe(3);
+    expect(p.version).toBe(4);
     expect(p.pearls).toBe(50);
     expect(p.unlocked).toEqual([]);
     expect(p.equipped.seaTheme).toBe('sea.lagoon');
@@ -190,8 +192,49 @@ describe('daily streak (progress v3)', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const m = await import('../progress');
     const p = await m.resolveProgress();
-    expect(p.version).toBe(3);
+    expect(p.version).toBe(4);
     expect(p.streak).toEqual({ current: 0, lastClaimDate: null, best: 0, doubledDate: null });
     expect(p.pearls).toBe(5);
+  });
+});
+
+describe('quests + achievements (progress v4)', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+  it('ensureTodayQuests sets 3 deterministic quests for the day', () => {
+    ensureTodayQuests('2026-06-09');
+    const q = progressStore.get().quests;
+    expect(q.date).toBe('2026-06-09');
+    expect(q.active.map((s) => s.id)).toEqual(pickDailyQuests('2026-06-09'));
+    expect(q.active.every((s) => s.progress === 0 && !s.claimed)).toBe(true);
+  });
+  it('claimAchievement firstWin after a win, then null on repeat', () => {
+    recordGameWin({ difficulty: 'easy', seconds: 10, pairs: 6, moves: 6 });
+    expect(achSignals().gamesWon).toBe(1);
+    expect(claimAchievement('firstWin')).toBe(20);
+    expect(progressStore.get().pearls).toBe(20);
+    expect(progressStore.get().stats.pearlsEarnedTotal).toBeGreaterThanOrEqual(20);
+    expect(claimAchievement('firstWin')).toBeNull();
+  });
+  it('perfect + fast win increments counters', () => {
+    recordGameWin({ difficulty: 'easy', seconds: 5, pairs: 6, moves: 6 });   // perfect (6===6) + fast (5<=30)
+    expect(progressStore.get().stats.perfectWins).toBe(1);
+    expect(progressStore.get().stats.fastWins).toBe(1);
+  });
+  it('claimQuest only when target met', () => {
+    ensureTodayQuests('2026-06-09');
+    const id = progressStore.get().quests.active[0].id;
+    const def = QUEST_BY_ID[id];
+    expect(claimQuest(id)).toBeNull();   // progress 0
+    progressStore.set({ quests: { ...progressStore.get().quests, active: progressStore.get().quests.active.map((s) => (s.id === id ? { ...s, progress: def.target } : s)) } });
+    expect(claimQuest(id)).toBe(def.reward);
+    expect(claimQuest(id)).toBeNull();   // already claimed
+  });
+  it('rerollQuest swaps in an unused quest', () => {
+    ensureTodayQuests('2026-06-09');
+    const before = progressStore.get().quests.active.map((s) => s.id);
+    const newId = rerollQuest(0);
+    expect(before).not.toContain(newId);
+    expect(progressStore.get().quests.active[0].id).toBe(newId);
+    expect(progressStore.get().quests.rerolls).toBe(1);
   });
 });

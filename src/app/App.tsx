@@ -6,6 +6,7 @@ import { VictoryModal } from '@widgets/VictoryModal';
 import { LeaderboardModal } from '@widgets/LeaderboardModal';
 import { ShopModal } from '@widgets/ShopModal';
 import { DailyRewardModal } from '@widgets/DailyRewardModal';
+import { TasksModal } from '@widgets/TasksModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
@@ -14,6 +15,7 @@ export function App() {
   const leaderboard = useUi(s => s.modal.leaderboard);
   const shop = useUi(s => s.modal.shop);
   const daily = useUi(s => s.modal.daily);
+  const tasks = useUi(s => s.modal.tasks);
   const visible = useUi(s => s.transition.visible);
 
   return (
@@ -34,6 +36,7 @@ export function App() {
         {leaderboard && <LeaderboardModal />}
         {shop && <ShopModal />}
         {daily && <DailyRewardModal />}
+        {tasks && <TasksModal />}
       </div>
     </GameMount>
   );

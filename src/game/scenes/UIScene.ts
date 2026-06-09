@@ -64,7 +64,7 @@ export class UIScene extends Phaser.Scene {
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs);
       awardPearls(pearlsEarned);
-      recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs });
+      recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n });
       const leaderboards = getYSDK()?.leaderboards;
       // Fire-and-forget: don't block victory screen on the network call. Yandex
       // setScore always overwrites — guard with getPlayerEntry so we only submit

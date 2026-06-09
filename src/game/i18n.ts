@@ -40,6 +40,14 @@ export interface Locale {
   dailyClaim: string;
   dailyDouble: string;
   dailyComeBack: string;
+  tasks: string;
+  tasksTabQuests: string;
+  tasksTabAch: string;
+  taskClaim: string;
+  taskClaimed: string;
+  taskReroll: string;
+  quests: Record<string, string>;
+  achievements: Record<string, string>;
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -87,6 +95,9 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина',
       uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист' },
     dailyTitle: 'Ежедневная награда', dailyClaim: 'Забрать', dailyDouble: 'Удвоить за рекламу', dailyComeBack: 'Возвращайтесь завтра!',
+    tasks:'Задания', tasksTabQuests:'Квесты', tasksTabAch:'Достижения', taskClaim:'Забрать', taskClaimed:'Получено', taskReroll:'Обновить',
+    quests: { qWinGames:'Выиграй 3 игры', qMatchPairs:'Собери 20 пар', qPlayGames:'Сыграй 5 игр', qWinHard:'Победа на сложном', qPerfectWin:'Идеальная игра', qFastWin:'Быстрая победа', qWinMedium:'2 победы на среднем', qMatchPairsBig:'Собери 40 пар' },
+    achievements: { aFirstWin:'Первая победа', aWin10:'10 побед', aWin50:'50 побед', aPairs100:'100 пар', aPairs500:'500 пар', aExpertWin:'Победа на эксперте', aAllDifficulties:'Все сложности', aStreak7:'Стрик 7 дней', aCollector:'5 предметов в коллекции', aRich:'1000 жемчуга всего', aPerfectionist:'10 идеальных игр', aSpeedrunner:'10 быстрых побед' },
   },
 
   en: {
@@ -133,6 +144,9 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep',
       uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst' },
     dailyTitle: 'Daily reward', dailyClaim: 'Claim', dailyDouble: 'Double via ad', dailyComeBack: 'Come back tomorrow!',
+    tasks:'Tasks', tasksTabQuests:'Quests', tasksTabAch:'Achievements', taskClaim:'Claim', taskClaimed:'Claimed', taskReroll:'Reroll',
+    quests: { qWinGames:'Win 3 games', qMatchPairs:'Match 20 pairs', qPlayGames:'Play 5 games', qWinHard:'Win on hard', qPerfectWin:'A perfect game', qFastWin:'A fast win', qWinMedium:'Win 2 on medium', qMatchPairsBig:'Match 40 pairs' },
+    achievements: { aFirstWin:'First win', aWin10:'10 wins', aWin50:'50 wins', aPairs100:'100 pairs', aPairs500:'500 pairs', aExpertWin:'Win on expert', aAllDifficulties:'All difficulties', aStreak7:'7-day streak', aCollector:'5 cosmetics owned', aRich:'1000 pearls earned', aPerfectionist:'10 perfect games', aSpeedrunner:'10 fast wins' },
   },
 
   tr: {
@@ -179,6 +193,9 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik',
       uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist' },
     dailyTitle: 'Günlük ödül', dailyClaim: 'AL', dailyDouble: 'REKLAMLA İKİYE KATLA', dailyComeBack: 'Yarın tekrar gel!',
+    tasks:'Görevler', tasksTabQuests:'Görevler', tasksTabAch:'Başarılar', taskClaim:'AL', taskClaimed:'ALINDI', taskReroll:'YENİLE',
+    quests: { qWinGames:'3 oyun kazan', qMatchPairs:'20 çift eşleştir', qPlayGames:'5 oyun oyna', qWinHard:'Zorda kazan', qPerfectWin:'Kusursuz oyun', qFastWin:'Hızlı zafer', qWinMedium:'Ortada 2 kez kazan', qMatchPairsBig:'40 çift eşleştir' },
+    achievements: { aFirstWin:'İlk zafer', aWin10:'10 zafer', aWin50:'50 zafer', aPairs100:'100 çift', aPairs500:'500 çift', aExpertWin:'Uzmanda kazan', aAllDifficulties:'Tüm zorluklar', aStreak7:'7 günlük seri', aCollector:'5 kozmetik sahibi', aRich:'Toplam 1000 inci', aPerfectionist:'10 kusursuz oyun', aSpeedrunner:'10 hızlı zafer' },
   },
 
   es: {
@@ -225,6 +242,9 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo',
       uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista' },
     dailyTitle: 'Recompensa diaria', dailyClaim: 'RECLAMAR', dailyDouble: 'DUPLICAR CON ANUNCIO', dailyComeBack: '¡Vuelve mañana!',
+    tasks:'Tareas', tasksTabQuests:'Misiones', tasksTabAch:'Logros', taskClaim:'RECLAMAR', taskClaimed:'OBTENIDO', taskReroll:'CAMBIAR',
+    quests: { qWinGames:'Gana 3 partidas', qMatchPairs:'Empareja 20 pares', qPlayGames:'Juega 5 partidas', qWinHard:'Gana en difícil', qPerfectWin:'Partida perfecta', qFastWin:'Victoria rápida', qWinMedium:'Gana 2 en medio', qMatchPairsBig:'Empareja 40 pares' },
+    achievements: { aFirstWin:'Primera victoria', aWin10:'10 victorias', aWin50:'50 victorias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Gana en experto', aAllDifficulties:'Todas las dificultades', aStreak7:'Racha de 7 días', aCollector:'5 cosméticos', aRich:'1000 perlas en total', aPerfectionist:'10 partidas perfectas', aSpeedrunner:'10 victorias rápidas' },
   },
 
   pt: {
@@ -271,6 +291,9 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo',
       uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista' },
     dailyTitle: 'Recompensa diária', dailyClaim: 'RESGATAR', dailyDouble: 'DOBRAR COM ANÚNCIO', dailyComeBack: 'Volte amanhã!',
+    tasks:'Tarefas', tasksTabQuests:'Missões', tasksTabAch:'Conquistas', taskClaim:'RESGATAR', taskClaimed:'RESGATADO', taskReroll:'TROCAR',
+    quests: { qWinGames:'Vença 3 jogos', qMatchPairs:'Combine 20 pares', qPlayGames:'Jogue 5 jogos', qWinHard:'Vença no difícil', qPerfectWin:'Jogo perfeito', qFastWin:'Vitória rápida', qWinMedium:'Vença 2 no médio', qMatchPairsBig:'Combine 40 pares' },
+    achievements: { aFirstWin:'Primeira vitória', aWin10:'10 vitórias', aWin50:'50 vitórias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Vença no especialista', aAllDifficulties:'Todas as dificuldades', aStreak7:'Sequência de 7 dias', aCollector:'5 cosméticos', aRich:'1000 pérolas no total', aPerfectionist:'10 jogos perfeitos', aSpeedrunner:'10 vitórias rápidas' },
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -320,5 +343,8 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق',
       uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت' },
     dailyTitle: 'المكافأة اليومية', dailyClaim: 'استلام', dailyDouble: 'مضاعفة عبر إعلان', dailyComeBack: 'عُد غداً!',
+    tasks:'المهام', tasksTabQuests:'المهام', tasksTabAch:'الإنجازات', taskClaim:'استلام', taskClaimed:'تم الاستلام', taskReroll:'تبديل',
+    quests: { qWinGames:'افز بـ ٣ مباريات', qMatchPairs:'طابق ٢٠ زوجاً', qPlayGames:'العب ٥ مباريات', qWinHard:'فز في الصعب', qPerfectWin:'مباراة مثالية', qFastWin:'فوز سريع', qWinMedium:'افز مرتين في المتوسط', qMatchPairsBig:'طابق ٤٠ زوجاً' },
+    achievements: { aFirstWin:'الفوز الأول', aWin10:'١٠ انتصارات', aWin50:'٥٠ انتصاراً', aPairs100:'١٠٠ زوج', aPairs500:'٥٠٠ زوج', aExpertWin:'فز في الخبير', aAllDifficulties:'جميع الصعوبات', aStreak7:'سلسلة ٧ أيام', aCollector:'٥ عناصر تجميلية', aRich:'١٠٠٠ لؤلؤة إجمالاً', aPerfectionist:'١٠ مباريات مثالية', aSpeedrunner:'١٠ انتصارات سريعة' },
   },
 };

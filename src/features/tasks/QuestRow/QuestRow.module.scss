@@ -1,0 +1,18 @@
+@use '../../../styles/tokens' as *;
+
+.root {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: 10px; padding: 8px 10px; border-radius: 10px;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.5);
+}
+.root.claimed { opacity: 0.6; }
+.info { display: grid; gap: 4px; min-width: 0; text-align: left; }
+.name { color: $white; font-family: $font-body; font-size: 14px; }
+.bar {
+  height: 6px; border-radius: 4px; overflow: hidden;
+  background: rgb(var(--color-navy-soft-rgb, 0 34 68) / 0.9);
+}
+.fill { height: 100%; background: $gold; border-radius: 4px; transition: width 200ms ease; }
+.count { color: $text-muted; font-family: $font-body; font-size: 12px; }
+.control { display: flex; align-items: center; }
+.state { color: $gold; font-weight: 700; font-size: 13px; }
