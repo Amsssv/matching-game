@@ -43,3 +43,6 @@ $duration-hover: 100ms;
 $gradient-button-active: linear-gradient(180deg, rgba(10,61,122,0.92), rgba(1,40,106,0.95));
 $gradient-button-hover:  linear-gradient(180deg, rgba(2,52,122,0.87),  rgba(1,35,88,0.90));
 $gradient-button-idle:   linear-gradient(180deg, rgba(1,40,106,0.82),  rgba(1,29,74,0.85));
+
+// Modal title text gradient (gold) — used by _modal.scss modal-title
+$gradient-modal-title:   linear-gradient(180deg, #fdfacd, #f7e089);

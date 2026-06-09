@@ -18,13 +18,16 @@ export function ShopItemCard({ item, L }: { item: ShopItem; L: Locale }) {
     <div className={cx(styles.root, equipped && styles.equipped)} data-testid={`shop-item-${item.id}`}>
       <ShopPreview item={item} />
       <span className={styles.name}>{L.shopItems[item.nameKey]}</span>
-      {equipped
-        ? <span className={styles.state}>{L.shopEquipped}</span>
-        : owned
-          ? <Button type="secondary" size="small" onClick={() => equip(item.axis, item.id)}>{L.shopEquip}</Button>
-          : <Button type="primary" size="small" disabled={!affordable}
-                    className={cx(!affordable && styles.cantAfford)}
-                    onClick={() => { if (buy(item.id)) equip(item.axis, item.id); }}>{`${item.price} 🦪`}</Button>}
+      {equipped ? (
+        <span className={styles.state}>✓ {L.shopEquipped}</span>
+      ) : owned ? (
+        <Button type="secondary" size="small" onClick={() => equip(item.axis, item.id)}>{L.shopEquip}</Button>
+      ) : affordable ? (
+        <Button type="primary" size="small" onClick={() => { if (buy(item.id)) equip(item.axis, item.id); }}>{`${item.price} 🦪`}</Button>
+      ) : (
+        // Locked: can't afford yet — a single disabled button (lock + price).
+        <Button type="primary" size="small" disabled className={styles.locked}>{`🔒 ${item.price} 🦪`}</Button>
+      )}
     </div>
   );
 }

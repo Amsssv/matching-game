@@ -24,7 +24,7 @@
 }
 @mixin modal-title {
   font-family: #{$font-display}; color: $gold; font-size: clamp(28px, 8vw, 40px);
-  background: linear-gradient(180deg, #fdfacd, #f7e089);
+  background: $gradient-modal-title;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 @mixin modal-separator {
