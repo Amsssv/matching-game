@@ -5,12 +5,20 @@
   width: 40px; height: 40px; border-radius: 50%;
   border: 1px solid $gold-border;
   background: rgb(var(--color-navy-soft-rgb, 0 34 68) / 0.8);
-  font-size: 20px; line-height: 1; cursor: pointer;
+  color: $gold; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
+  transition: background $duration-hover ease-out, box-shadow $duration-hover ease-out;
+  &:hover { background: $blue; }
+  &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
 }
-.btn.available { outline: 2px solid $gold; }
+// Something claimable: gold glow ring (same accent as the menu's selected state).
+.btn.available {
+  box-shadow:
+    0 0 0 2px rgb(var(--color-gold-border-rgb, 212 168 83) / 0.55),
+    0 0 12px rgb(var(--color-gold-rgb, 247 208 119) / 0.4);
+}
 .badge {
   position: absolute; top: -2px; right: -2px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: $coral; border: 2px solid $navy;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: $gold; border: 2px solid $navy;
 }

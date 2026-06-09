@@ -25,11 +25,19 @@
   color: #f5e6c8;
   background: $gradient-button-idle;
   border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.2);
-  &:hover { background: $gradient-button-hover; border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.35); }
+  &:hover {
+    transform: translateY(-2px); // cards lift on hover (matches mockup .level)
+    background: $gradient-button-hover;
+    border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.35);
+  }
+  // Selected (e.g. current difficulty): gold title + solid gold border + glow.
   &.active {
+    color: $gold;
     background: $gradient-button-active;
-    border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.5);
-    box-shadow: 0 0 0 3px rgb(var(--color-gold-border-rgb, 212 168 83) / 0.7);
+    border-color: $gold-border;
+    box-shadow:
+      0 0 0 2px rgb(var(--color-gold-border-rgb, 212 168 83) / 0.6),
+      0 0 16px rgb(var(--color-gold-rgb, 247 208 119) / 0.35);
     transform: none;
   }
 }
@@ -38,6 +46,7 @@
   background: $navy-soft;
   border-color: $blue-mid;
   &:hover { background: $blue; color: $white; }
+  &.active { border-color: $gold-border; } // active language: gold border, blue fill kept
 }
 
 // ── Sizes ──
@@ -51,7 +60,7 @@
   color: $white;
   width: 36px; height: 24px; padding: 0; min-width: 0;
   border-radius: 5px; text-transform: uppercase;
-  &.active { background: $blue; border-color: $blue; }
+  &.active { background: $blue; border-color: $gold-border; }
 }
 
 .block { width: 100%; }

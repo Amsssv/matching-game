@@ -1,12 +1,13 @@
 @use '../../styles/tokens' as *;
 
 .root {
+  height: 40px;
   position: absolute; top: 14px; left: 12px; z-index: 3;
   display: flex; align-items: center; gap: 6px;
   padding: 6px 12px;
-  background: rgb(var(--color-navy-soft-rgb, 0 34 68) / 0.8);
-  border: 1px solid $blue-mid;
-  border-radius: 14px;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.6);
+  border: 2px solid $gold-border;
+  border-radius: 999px;
   color: $gold;
   font-family: $font-body; font-weight: 700; font-size: 16px;
 }

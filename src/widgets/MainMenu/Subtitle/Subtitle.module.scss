@@ -2,6 +2,8 @@
 
 .root {
   pointer-events: none;
+  width: 100%; text-align: center;
+  white-space: nowrap; // never wrap — Subtitle.tsx shrinks the font to fit one line
   font-family: #{$font-display}; color: #01286a;
   font-size: clamp(14px, 5vh, 28px); margin-top: clamp(2px, 1vh, 8px);
 }

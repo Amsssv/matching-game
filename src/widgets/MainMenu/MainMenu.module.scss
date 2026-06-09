@@ -1,36 +1,94 @@
 @use '../../styles/tokens' as *;
 
+// 3 vertical zones (flex column): top bar / center group / bottom bar.
+// Root is non-interactive; interactive leaves opt back in via pointer-events:auto.
 .root {
-  pointer-events: none;            // interactive leaves (buttons) re-enable themselves
+  pointer-events: none;
   position: absolute; inset: 0;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  justify-items: center;
-  padding: clamp(12px, 3vh, 32px) 16px calc(16px + var(--banner-height, 0px));
-  gap: clamp(8px, 1.5vh, 16px);
+  display: flex; flex-direction: column; align-items: center;
   text-align: center;
+  padding:
+    clamp(10px, 2.5vh, 24px)
+    clamp(12px, 3vw, 28px)
+    calc(clamp(10px, 2.5vh, 24px) + var(--banner-height, 0px));
 }
-// Top-left cluster: pearl balance + daily-reward button side-by-side, no overlap.
+
+// ── Zone 1: top bar (pearl/daily/tasks left, languages right) ──
+.topBar {
+  width: 100%;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+}
+// Top-left cluster: pearl balance + daily/tasks buttons side-by-side, no overlap.
 .topLeft {
-  position: absolute; top: 14px; left: 12px; z-index: 3;
   display: flex; align-items: center; gap: 8px;
+  pointer-events: auto;
 }
-// Neutralize PearlBalance's own absolute positioning when it lives in this flex
-// container, so the two sit in flow next to each other (keeps PearlBalance
-// self-contained for standalone use elsewhere).
-.topLeft > * { position: static; top: auto; left: auto; }
+// Neutralize the absolute positioning that PearlBalance / LanguageFlags use when
+// standalone, so they sit in flow inside the top bar (keeps them self-contained
+// for standalone use elsewhere).
+.topLeft > *,
+.topBar > :global(*) { position: static; top: auto; left: auto; right: auto; }
 
-.actions {
-  display: grid; justify-items: center;
-  gap: clamp(10px, 2vh, 22px); align-content: end;
+// ── Zone 2: center group (Title → Subtitle → Difficulty → Play) ──
+// flex:1 fills the middle and vertically centers the cohesive block, so there
+// is no empty "hole" — the spare space distributes evenly above and below.
+.center {
+  flex: 1; width: 100%;
+  max-width: clamp(320px, 92vw, 820px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(12px, 3vh, 28px);
 }
-.actions > button,
-.actions > .secondaryRow { width: clamp(180px, 50vw, 280px); }
-// Leaderboard + Collection share one row («рядом с Рекорды») so the menu
-// keeps its 3-row action footprint instead of overflowing on short viewports.
-.secondaryRow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.secondaryRow > button { width: 100%; min-width: 0; padding-left: 6px; padding-right: 6px; }
 
+// ── Zone 3: bottom bar (records + collection left, sound right) ──
+.bottomBar {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  pointer-events: auto;
+}
+.bottomActions { display: flex; gap: 8px; }
+
+// Hero CTA — accent applied HERE (not on Button .primary) so difficulty cards,
+// which are also .primary, never inherit the play button's heavier treatment.
+.play {
+  flex-direction: row; gap: 8px;
+  min-width: clamp(220px, 42vw, 360px);
+  border: 2px solid $gold-border;
+  background: $gradient-button-active;
+  text-transform: uppercase; letter-spacing: 1px;
+  &:hover {
+    transform: none; // stays grounded; depth comes from the shadow, not a lift
+    background: $gradient-button-active;
+    border-color: $gold-border;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.34),
+      0 0 18px rgb(var(--color-gold-rgb, 247 208 119) / 0.3);
+  }
+  &:active { // press response (beats .button:active scale by source order)
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgb(var(--color-navy-rgb, 0 20 40) / 0.6);
+  }
+}
+.playIcon { flex: none; }
+
+// Bottom-bar accents.
+.records {
+  border-color: $gold-border; color: $gold;
+  &:hover { color: $gold; } // keep the gold accent on hover (beats .secondary:hover white)
+}
+.iconLabel { display: inline-flex; align-items: center; gap: 6px; }
+
+// ── Mobile (portrait) ──
+@media (max-width: 600px) {
+  // Pull the center group nearer the top instead of floating mid-screen.
+  .center { justify-content: flex-start; padding-top: clamp(8px, 4vh, 40px); }
+  // Stack the bottom bar; action pills go full-width, the sound row centers itself.
+  .bottomBar { align-items: stretch; flex-direction: column-reverse  }
+  .bottomActions { width: 100%; }
+  .bottomActions > button { flex: 1; min-width: 0; }
+}
+
+// Short landscape: tighten the top padding so the block still fits.
 @media (orientation: landscape) and (max-height: 560px) {
-  .root { padding-top: 8px; gap: 6px; }
+  .root { padding-top: 8px; }
+  .center { gap: clamp(8px, 2vh, 18px); }
 }

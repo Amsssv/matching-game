@@ -1,3 +1,33 @@
 @use '../../styles/mixins' as *;
+@use '../../styles/tokens' as *;
 
-.label { @include section-label; }
+.sound { display: flex; align-items: center; gap: 10px; }
+
+.label {
+  @include section-label;
+  margin-bottom: 0; // inline beside the toggle, not stacked above it
+  font-size: 11px;
+}
+
+// Compact speaker toggle (replaces the old full-width text button).
+.toggle {
+  pointer-events: auto; cursor: pointer;
+  width: 44px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: $radius-button;
+  background: $gradient-button-idle;
+  border: 1px solid rgb(var(--color-gold-border-rgb, 212 168 83) / 0.2);
+  color: $text-muted;
+  transition: background $duration-hover ease-out, color $duration-hover ease-out, border-color $duration-hover ease-out;
+  @include focus-ring;
+  &:hover {
+    background: $gradient-button-hover;
+    color: $white;
+    border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.35);
+  }
+}
+
+// When the bottom bar stacks (≤600px), center the label + toggle row.
+@media (max-width: 600px) {
+  .sound { justify-content: center; }
+}

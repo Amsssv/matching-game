@@ -36,7 +36,13 @@ export function TasksButton() {
       className={cx(styles.btn, claimable && styles.available)}
       onClick={() => openTasks()}
     >
-      📋
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4.5" y="4" width="15" height="16" rx="2" />
+        <path d="M7.5 9l1.2 1.2L11 8" />
+        <path d="M13.5 9h3" />
+        <path d="M7.5 14.5l1.2 1.2L11 13.5" />
+        <path d="M13.5 14.5h3" />
+      </svg>
       {claimable && <span className={styles.badge} aria-hidden />}
     </button>
   );

@@ -18,23 +18,40 @@ export function MainMenu() {
   const L = LOCALES[lang];
   return (
     <div className={styles.root} data-testid="menu">
-      <div className={styles.topLeft}>
-        <PearlBalance />
-        <DailyButton />
-        <TasksButton />
-      </div>
-      <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
-      <Title text={L.title} />
-      <Subtitle text={L.subtitle} />
-      <DifficultyPicker L={L} current={difficulty} onPick={(d) => bus.emit('cmd:set-difficulty', { difficulty: d })} />
-      <div className={styles.actions}>
-        <Button testId="play" type="primary" size="large" active onClick={() => bus.emit('cmd:play')}>{L.play}</Button>
-        <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} />
-        <div className={styles.secondaryRow}>
-          <Button testId="leaderboard-open" type="secondary" size="small" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
-          <Button testId="shop-open" type="secondary" size="small" onClick={() => openShop()}>{L.shop}</Button>
+      <header className={styles.topBar}>
+        <div className={styles.topLeft}>
+          <PearlBalance />
+          <DailyButton />
+          <TasksButton />
         </div>
-      </div>
+        <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
+      </header>
+
+      <main className={styles.center}>
+        <Title text={L.title} />
+        <Subtitle text={L.subtitle} />
+        <DifficultyPicker L={L} current={difficulty} onPick={(d) => bus.emit('cmd:set-difficulty', { difficulty: d })} />
+        <Button testId="play" type="primary" size="large" className={styles.play} onClick={() => bus.emit('cmd:play')}>
+          <svg className={styles.playIcon} viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+          {L.play}
+        </Button>
+      </main>
+
+      <footer className={styles.bottomBar}>
+        <div className={styles.bottomActions}>
+          <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
+          <Button testId="shop-open" type="secondary" size="medium" onClick={() => openShop()}>
+            <span className={styles.iconLabel}>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                <rect x="4" y="7" width="12" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth={1.8} />
+                <path d="M8 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {L.shop}
+            </span>
+          </Button>
+        </div>
+        <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} />
+      </footer>
     </div>
   );
 }
