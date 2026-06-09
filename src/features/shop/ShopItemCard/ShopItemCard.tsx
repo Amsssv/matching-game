@@ -4,13 +4,8 @@ import { buy, equip } from '@state/shopController';
 import type { ShopItem } from '@state/catalog';
 import type { Locale } from '../../../game/i18n';
 import { cx } from '@ui/cx';
+import { ShopPreview } from '../ShopPreview';
 import styles from './ShopItemCard.module.scss';
-
-const swatch = (item: ShopItem): string => {
-  if (item.axis === 'uiPalette') return item.palette?.['blue'] ?? '#0d47a1';
-  const t = item.tint ?? 0xffffff;
-  return '#' + t.toString(16).padStart(6, '0');
-};
 
 export function ShopItemCard({ item, L }: { item: ShopItem; L: Locale }) {
   const equippedId = useProgress((s) => s.equipped[item.axis]);
@@ -21,7 +16,7 @@ export function ShopItemCard({ item, L }: { item: ShopItem; L: Locale }) {
   const affordable = pearls >= item.price;
   return (
     <div className={cx(styles.root, equipped && styles.equipped)} data-testid={`shop-item-${item.id}`}>
-      <span className={styles.swatch} style={{ background: swatch(item) }} aria-hidden />
+      <ShopPreview item={item} />
       <span className={styles.name}>{L.shopItems[item.nameKey]}</span>
       {equipped
         ? <span className={styles.state}>{L.shopEquipped}</span>

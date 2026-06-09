@@ -84,4 +84,30 @@ test.describe('Shop (Collection)', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('shop')).toHaveCount(0);
   });
+
+  test('item cards show a real visual preview, not a flat swatch', async ({ page }) => {
+    await page.addInitScript(seedProgress, { key: PROGRESS_KEY, pearls: 500 });
+    await page.goto('/?canvas=1');
+    await waitForCanvas(page);
+    await page.getByTestId('shop-open').click();
+
+    // Sea tab: preview uses the real bg asset and the image actually loaded.
+    const seaImg = page.getByTestId('shop-item-sea.reef').locator('img').first();
+    await expect(seaImg).toBeVisible();
+    await expect(seaImg).toHaveJSProperty('complete', true);
+    expect(await seaImg.evaluate((n: HTMLImageElement) => n.naturalWidth)).toBeGreaterThan(0);
+    expect(await seaImg.getAttribute('src')).toContain('assets/bg.webp');
+
+    // Card-back tab: preview uses the real card-back asset.
+    await page.getByTestId('shop-tab-cardBack').click();
+    const backImg = page.getByTestId('shop-item-back.gold').locator('img').first();
+    await expect(backImg).toBeVisible();
+    expect(await backImg.evaluate((n: HTMLImageElement) => n.naturalWidth)).toBeGreaterThan(0);
+    expect(await backImg.getAttribute('src')).toContain('assets/cards/back.webp');
+
+    // Palette tab: DOM mock (no <img>), but the card still renders a preview block.
+    await page.getByTestId('shop-tab-uiPalette').click();
+    await expect(page.getByTestId('shop-item-ui.sunset')).toBeVisible();
+    expect(await page.getByTestId('shop-item-ui.sunset').locator('img').count()).toBe(0);
+  });
 });
