@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { computePearls } from '../progress';
 import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
+  buyItem, equipItem, isUnlocked,
 } from '../progress';
 
 describe('computePearls', () => {
@@ -57,7 +58,7 @@ describe('resolveProgress', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const { resolveProgress } = await import('../progress');
     const p = await resolveProgress();
-    expect(p.pearls).toBe(0); expect(p.version).toBe(1);
+    expect(p.pearls).toBe(0); expect(p.version).toBe(2);
   });
   it('loads from localStorage', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 42, stats: {} }));
@@ -88,5 +89,61 @@ describe('resolveProgress', () => {
     }));
     const { resolveProgress } = await import('../progress');
     expect((await resolveProgress()).pearls).toBe(77);
+  });
+});
+
+describe('shop economy (progress v2)', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+
+  it('defaults (price 0) are always unlocked; equipped starts at defaults', () => {
+    expect(isUnlocked('sea.lagoon')).toBe(true);
+    expect(progressStore.get().equipped.seaTheme).toBe('sea.lagoon');
+    expect(isUnlocked('sea.reef')).toBe(false);
+  });
+  it('buyItem deducts pearls and unlocks; fails when too poor or already owned', () => {
+    expect(buyItem('sea.reef')).toBe(false);          // 0 pearls
+    awardPearls(200);
+    expect(buyItem('sea.reef')).toBe(true);            // costs 80
+    expect(progressStore.get().pearls).toBe(120);
+    expect(isUnlocked('sea.reef')).toBe(true);
+    expect(buyItem('sea.reef')).toBe(false);           // already owned
+  });
+  it('equipItem only equips unlocked items of the right axis', () => {
+    awardPearls(200); buyItem('sea.reef');
+    equipItem('seaTheme', 'sea.reef');
+    expect(progressStore.get().equipped.seaTheme).toBe('sea.reef');
+    equipItem('seaTheme', 'sea.abyss');                // not unlocked → ignored
+    expect(progressStore.get().equipped.seaTheme).toBe('sea.reef');
+  });
+  it('persists unlocked + equipped to localStorage', () => {
+    awardPearls(200); buyItem('back.gold'); equipItem('cardBack', 'back.gold');
+    const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
+    expect(saved.unlocked).toContain('back.gold');
+    expect(saved.equipped.cardBack).toBe('back.gold');
+    expect(saved.version).toBe(2);
+  });
+  it('mergeProgress upgrades a v1 blob to v2 defaults', async () => {
+    localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 50, stats: {} }));
+    vi.resetModules();
+    vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
+    const m = await import('../progress');
+    const p = await m.resolveProgress();
+    expect(p.version).toBe(2);
+    expect(p.pearls).toBe(50);
+    expect(p.unlocked).toEqual([]);
+    expect(p.equipped.seaTheme).toBe('sea.lagoon');
+  });
+  it('mergeProgress drops an unknown equipped id and falls back to default', async () => {
+    localStorage.setItem('sea-pairs-progress', JSON.stringify({
+      version: 2, pearls: 0, stats: {}, unlocked: [],
+      equipped: { seaTheme: 'sea.DOES_NOT_EXIST', cardBack: 'back.gold', uiPalette: 'ui.ocean' },
+    }));
+    vi.resetModules();
+    vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
+    const m = await import('../progress');
+    const p = await m.resolveProgress();
+    expect(p.equipped.seaTheme).toBe('sea.lagoon');   // bogus id → default
+    expect(p.equipped.cardBack).toBe('back.gold');    // real cardBack item → retained (existence+axis only, no ownership check)
+    expect(p.equipped.uiPalette).toBe('ui.ocean');    // valid default → unchanged
   });
 });

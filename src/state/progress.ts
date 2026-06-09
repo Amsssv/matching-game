@@ -1,6 +1,7 @@
 import type { Difficulty } from '../game/layout';
 import { createStore } from './createStore';
 import { getYSDK } from '../ysdk';
+import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -28,34 +29,54 @@ export interface ProgressStats {
   winsByDifficulty: Record<Difficulty, number>;
 }
 export interface ProgressState {
-  version: 1;
+  version: 2;
   pearls: number;
   stats: ProgressStats;
+  unlocked: string[];
+  equipped: Record<CustomAxis, string>;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
-  version: 1,
+  version: 2,
   pearls: 0,
   stats: {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
   },
+  unlocked: [],
+  equipped: { ...DEFAULT_EQUIPPED },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
 
 const num = (v: unknown): number => (typeof v === 'number' && v >= 0 ? v : 0);
 
+function validEquipped(e: unknown): Partial<Record<CustomAxis, string>> {
+  if (!e || typeof e !== 'object') return {};
+  const out: Partial<Record<CustomAxis, string>> = {};
+  for (const axis of AXES) {
+    const v = (e as Record<string, unknown>)[axis];
+    if (typeof v === 'string' && ITEM_BY_ID[v]?.axis === axis) out[axis] = v;
+  }
+  return out;
+}
+
 function mergeProgress(raw: unknown): ProgressState {
   const d = INITIAL_PROGRESS;
   if (!raw || typeof raw !== 'object') {
-    return { version: 1, pearls: 0, stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty } } };
+    return {
+      version: 2,
+      pearls: 0,
+      stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty } },
+      unlocked: [],
+      equipped: { ...DEFAULT_EQUIPPED },
+    };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats> };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown };
   const s = r.stats ?? {};
   return {
-    version: 1,
+    version: 2,
     pearls: num(r.pearls),
     stats: {
       gamesPlayed:  num(s.gamesPlayed),
@@ -64,6 +85,10 @@ function mergeProgress(raw: unknown): ProgressState {
       bestSeconds:      { ...d.stats.bestSeconds,      ...(s.bestSeconds ?? {}) },
       winsByDifficulty: { ...d.stats.winsByDifficulty, ...(s.winsByDifficulty ?? {}) },
     },
+    unlocked: Array.isArray(r.unlocked)
+      ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
+      : [],
+    equipped: { ...DEFAULT_EQUIPPED, ...validEquipped(r.equipped) },
   };
 }
 
@@ -111,6 +136,33 @@ export function awardPearls(amount: number): void {
   progressStore.set({ pearls: progressStore.get().pearls + amount });
   saveLocal(progressStore.get());
   saveCloud(progressStore.get());
+}
+
+export function isUnlocked(id: string): boolean {
+  const item = ITEM_BY_ID[id];
+  if (!item) return false;
+  return item.price === 0 || progressStore.get().unlocked.includes(id);
+}
+
+export function buyItem(id: string): boolean {
+  const item = ITEM_BY_ID[id];
+  if (!item || isUnlocked(id)) return false;
+  const cur = progressStore.get();
+  if (cur.pearls < item.price) return false;
+  progressStore.set({ pearls: cur.pearls - item.price, unlocked: [...cur.unlocked, id] });
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  return true;
+}
+
+/** Equip an unlocked item on its axis. Returns false (no-op) if the id is unknown, the wrong axis, or not unlocked. */
+export function equipItem(axis: CustomAxis, id: string): boolean {
+  const item = ITEM_BY_ID[id];
+  if (!item || item.axis !== axis || !isUnlocked(id)) return false;
+  progressStore.set({ equipped: { ...progressStore.get().equipped, [axis]: id } });
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  return true;
 }
 
 export function recordGameStart(): void {

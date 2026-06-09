@@ -19,6 +19,7 @@ export type BusEvents = {
   'cmd:victory-restart': undefined;
   'cmd:victory-to-menu': undefined;
   'cmd:login-and-save': undefined;
+  'cmd:equip-changed': undefined;
 };
 
 type Handler<T> = (payload: T) => void;

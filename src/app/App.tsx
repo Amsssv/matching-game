@@ -4,12 +4,14 @@ import { MainMenu } from '@widgets/MainMenu';
 import { Header } from '@widgets/Header';
 import { VictoryModal } from '@widgets/VictoryModal';
 import { LeaderboardModal } from '@widgets/LeaderboardModal';
+import { ShopModal } from '@widgets/ShopModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
   const hudActive = useUi(s => s.hud.active);
   const victory = useUi(s => s.modal.victory);
   const leaderboard = useUi(s => s.modal.leaderboard);
+  const shop = useUi(s => s.modal.shop);
   const visible = useUi(s => s.transition.visible);
 
   return (
@@ -28,6 +30,7 @@ export function App() {
         {hudActive && <Header />}
         {victory && <VictoryModal />}
         {leaderboard && <LeaderboardModal />}
+        {shop && <ShopModal />}
       </div>
     </GameMount>
   );

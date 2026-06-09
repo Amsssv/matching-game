@@ -5,6 +5,9 @@ import { getYSDK } from '../../ysdk';
 import { DIFF_ROWS, DIFF_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
 import { isMobileDevice } from '../device';
 import { setTransition } from '../../state/store';
+import { bus } from '../../state/eventBus';
+import { progressStore } from '../../state/progress';
+import { tintOf } from '../../state/catalog';
 
 interface Card {
   container: Phaser.GameObjects.Container;
@@ -74,6 +77,11 @@ export class GameScene extends Phaser.Scene {
 
     this.drawBackground(canvasWidth, canvasHeight);
     this.dealCards(canvasWidth, canvasHeight);
+    // Board fully built (bg + island assigned, cards dealt) — tint all targets from
+    // the equipped sea/card-back items (default tints are 0xffffff → no visible change).
+    this.applyEquippedTints();
+    // Live re-tint if the player equips something while the game is running.
+    const offEquip = bus.on('cmd:equip-changed', () => this.applyEquippedTints());
 
     this.scene.launch('UIScene', { gameScene: this });
     getYSDK()?.features.GameplayAPI?.start();
@@ -104,6 +112,7 @@ export class GameScene extends Phaser.Scene {
       this.scale.off('resize', onResizeDebounced, this);
       this.resizeTimer?.remove();
       this.resizeTimer = null;
+      offEquip();
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       this.cards.forEach(card => { card.maskGfx.destroy(); card.shadow.destroy(); });
       this.islandObj?.destroy();
@@ -118,6 +127,15 @@ export class GameScene extends Phaser.Scene {
       const islandSlice = GameScene.ISLAND_SLICE;
       this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, islandSlice.left, islandSlice.right, islandSlice.top, islandSlice.bottom).setDepth(0);
     }
+  }
+
+  private applyEquippedTints() {
+    const eq = progressStore.get().equipped;
+    const seaTint  = tintOf(eq.seaTheme);
+    const backTint = tintOf(eq.cardBack);
+    this.bgObj?.setTint(seaTint);
+    this.islandObj?.setTint(seaTint);
+    this.cards.forEach((card) => card.back.setTint(backTint));
   }
 
   private calcRefCardSize(canvasWidth: number, canvasHeight: number): { cardWidth: number; cardHeight: number } {

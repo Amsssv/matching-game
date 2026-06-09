@@ -24,12 +24,12 @@
 .primary {
   color: #f5e6c8;
   background: $gradient-button-idle;
-  border-color: rgba($gold-border, 0.2);
-  &:hover { background: $gradient-button-hover; border-color: rgba($gold-border, 0.35); }
+  border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.2);
+  &:hover { background: $gradient-button-hover; border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.35); }
   &.active {
     background: $gradient-button-active;
-    border-color: rgba($gold-border, 0.5);
-    box-shadow: 0 0 0 3px rgba($gold-border, 0.7);
+    border-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.5);
+    box-shadow: 0 0 0 3px rgb(var(--color-gold-border-rgb, 212 168 83) / 0.7);
     transform: none;
   }
 }

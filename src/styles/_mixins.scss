@@ -2,7 +2,7 @@
 
 @mixin panel {
   background: $navy-soft;
-  border: $panel-border-width solid rgba($blue, $panel-border-alpha);
+  border: $panel-border-width solid rgb(var(--color-blue-rgb, 13 71 161) / $panel-border-alpha);
   border-radius: $radius-panel;
 }
 

@@ -14,7 +14,12 @@
   display: grid; justify-items: center;
   gap: clamp(10px, 2vh, 22px); align-content: end;
 }
-.actions > button { width: clamp(180px, 50vw, 280px); }
+.actions > button,
+.actions > .secondaryRow { width: clamp(180px, 50vw, 280px); }
+// Leaderboard + Collection share one row («рядом с Рекорды») so the menu
+// keeps its 3-row action footprint instead of overflowing on short viewports.
+.secondaryRow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.secondaryRow > button { width: 100%; min-width: 0; padding-left: 6px; padding-right: 6px; }
 
 @media (orientation: landscape) and (max-height: 560px) {
   .root { padding-top: 8px; gap: 6px; }

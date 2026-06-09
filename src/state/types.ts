@@ -1,6 +1,7 @@
 import type { Difficulty } from '../game/layout';
 import type { Lang } from '../game/i18n';
 import type { LeaderboardData } from '../game/leaderboard';
+import type { CustomAxis } from './catalog';
 
 export interface MenuState {
   active: boolean;
@@ -35,6 +36,7 @@ export interface LeaderboardView {
 export interface ModalState {
   victory: VictoryView | null;
   leaderboard: LeaderboardView | null;
+  shop: { tab: CustomAxis } | null;
 }
 
 export interface TransitionState {

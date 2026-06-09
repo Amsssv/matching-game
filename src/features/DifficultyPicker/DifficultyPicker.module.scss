@@ -7,10 +7,10 @@
   display: grid; grid-template-columns: repeat(4, minmax(64px, 116px));
   gap: clamp(8px, 1.2vw, 16px);
 }
-.hint { color: rgba($white, 0.9); margin-top: 14px; }
+.hint { color: rgb(var(--color-white-rgb, 255 255 255) / 0.9); margin-top: 14px; }
 
 // Second line inside each difficulty Button (pair/card count) — was Button's `description` prop.
-.optionDesc { font-size: 0.75em; font-weight: 400; color: rgba($white, 0.7); }
+.optionDesc { font-size: 0.75em; font-weight: 400; color: rgb(var(--color-white-rgb, 255 255 255) / 0.7); }
 
 @media (max-width: 767px) and (orientation: portrait) {
   .grid { grid-template-columns: 1fr; width: 80vw; }

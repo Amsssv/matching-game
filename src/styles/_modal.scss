@@ -11,7 +11,7 @@
 @mixin modal-backdrop {
   pointer-events: auto;
   position: fixed; inset: 0; display: grid; place-items: center;
-  background: rgba($navy, 0.78);
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.78);
   animation: modal-fade $duration-fade ease-out;
   z-index: 20;
 }
@@ -28,7 +28,7 @@
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 @mixin modal-separator {
-  width: 64%; border: none; border-top: 1px solid rgba($gold, 0.35);
+  width: 64%; border: none; border-top: 1px solid rgb(var(--color-gold-rgb, 247 208 119) / 0.35);
 }
 @mixin modal-subtitle { color: $text-muted; }
 @mixin modal-actions {

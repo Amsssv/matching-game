@@ -28,6 +28,14 @@ export interface Locale {
   lbTitle:     string;
   lbLoading:   string;
   lbClose:     string;
+  shop: string;            // menu button + modal title, e.g. "Коллекция"
+  shopBuy: string;
+  shopEquip: string;
+  shopEquipped: string;
+  shopTabSea: string;
+  shopTabBack: string;
+  shopTabPalette: string;
+  shopItems: Record<string, string>;   // nameKey → localized item name
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -69,6 +77,11 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Таблица рекордов',
     lbLoading:   'Загрузка...',
     lbClose:     'ЗАКРЫТЬ',
+    shop: 'Коллекция', shopBuy: 'Купить', shopEquip: 'Надеть', shopEquipped: 'Надето',
+    shopTabSea: 'Море', shopTabBack: 'Рубашка', shopTabPalette: 'Палитра',
+    shopItems: { seaLagoon:'Лагуна', seaReef:'Риф', seaAbyss:'Бездна', seaArctic:'Арктика',
+      backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина',
+      uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист' },
   },
 
   en: {
@@ -109,6 +122,11 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Leaderboard',
     lbLoading:   'Loading...',
     lbClose:     'CLOSE',
+    shop: 'Collection', shopBuy: 'Buy', shopEquip: 'Equip', shopEquipped: 'Equipped',
+    shopTabSea: 'Sea', shopTabBack: 'Card back', shopTabPalette: 'Palette',
+    shopItems: { seaLagoon:'Lagoon', seaReef:'Reef', seaAbyss:'Abyss', seaArctic:'Arctic',
+      backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep',
+      uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst' },
   },
 
   tr: {
@@ -149,6 +167,11 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Liderlik Tablosu',
     lbLoading:   'Yükleniyor...',
     lbClose:     'KAPAT',
+    shop: 'Koleksiyon', shopBuy: 'SATIN AL', shopEquip: 'TAK', shopEquipped: 'TAKILI',
+    shopTabSea: 'Deniz', shopTabBack: 'Kart Arkası', shopTabPalette: 'Palet',
+    shopItems: { seaLagoon:'Lagün', seaReef:'Resif', seaAbyss:'Uçurum', seaArctic:'Kutup',
+      backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik',
+      uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist' },
   },
 
   es: {
@@ -189,6 +212,11 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Tabla de líderes',
     lbLoading:   'Cargando...',
     lbClose:     'CERRAR',
+    shop: 'Colección', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
+    shopTabSea: 'Mar', shopTabBack: 'Reverso', shopTabPalette: 'Paleta',
+    shopItems: { seaLagoon:'Laguna', seaReef:'Arrecife', seaAbyss:'Abismo', seaArctic:'Ártico',
+      backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo',
+      uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista' },
   },
 
   pt: {
@@ -229,6 +257,11 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'Placar',
     lbLoading:   'Carregando...',
     lbClose:     'FECHAR',
+    shop: 'Coleção', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
+    shopTabSea: 'Mar', shopTabBack: 'Verso', shopTabPalette: 'Paleta',
+    shopItems: { seaLagoon:'Lagoa', seaReef:'Recife', seaAbyss:'Abismo', seaArctic:'Ártico',
+      backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo',
+      uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista' },
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -272,5 +305,10 @@ export const LOCALES: Record<Lang, Locale> = {
     lbTitle:     'لوحة المتصدرين',
     lbLoading:   'جارٍ التحميل...',
     lbClose:     'إغلاق',
+    shop: 'المجموعة', shopBuy: 'شراء', shopEquip: 'تجهيز', shopEquipped: 'مُجهَّز',
+    shopTabSea: 'البحر', shopTabBack: 'ظهر البطاقة', shopTabPalette: 'الألوان',
+    shopItems: { seaLagoon:'بحيرة', seaReef:'شعاب', seaAbyss:'هاوية', seaArctic:'قطبي',
+      backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق',
+      uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت' },
   },
 };

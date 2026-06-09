@@ -1,5 +1,6 @@
 import { useUi } from '@hooks/useUiStore';
 import { bus } from '@state/eventBus';
+import { openShop } from '@state/shopController';
 import { LOCALES } from '../../game/i18n';
 import { Title } from './Title';
 import { Subtitle } from './Subtitle';
@@ -23,7 +24,10 @@ export function MainMenu() {
       <div className={styles.actions}>
         <Button testId="play" type="primary" size="large" active onClick={() => bus.emit('cmd:play')}>{L.play}</Button>
         <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} />
-        <Button testId="leaderboard-open" type="secondary" size="small" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
+        <div className={styles.secondaryRow}>
+          <Button testId="leaderboard-open" type="secondary" size="small" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
+          <Button testId="shop-open" type="secondary" size="small" onClick={() => openShop()}>{L.shop}</Button>
+        </div>
       </div>
     </div>
   );

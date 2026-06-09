@@ -9,6 +9,8 @@ import { UI } from '../ui/config';
 import { setMenu, setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
+import { progressStore } from '../../state/progress';
+import { tintOf } from '../../state/catalog';
 
 /**
  * Thin MenuScene: owns menu *state* + imperative actions, draws only the
@@ -21,6 +23,7 @@ export class MenuScene extends Phaser.Scene {
   private soundEnabled = true;
   private lang: Lang = 'ru';
   private fromResize = false;
+  private bgObj?: Phaser.GameObjects.Image;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -54,6 +57,7 @@ export class MenuScene extends Phaser.Scene {
       bus.on('cmd:set-lang', ({ lang }) => this.setLang(lang)),
       bus.on('cmd:play', () => this.play()),
       bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') this.openLeaderboard(); }),
+      bus.on('cmd:equip-changed', () => this.applySeaTint()),
     ];
     this.events.once('shutdown', () => offBus.forEach((off) => off()));
 
@@ -113,7 +117,12 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private drawBackground(canvasWidth: number, canvasHeight: number) {
-    this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight);
+    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight);
+    this.applySeaTint();
+  }
+
+  private applySeaTint() {
+    this.bgObj?.setTint(tintOf(progressStore.get().equipped.seaTheme));
   }
 
   private publish() {

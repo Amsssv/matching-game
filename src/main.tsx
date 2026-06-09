@@ -7,10 +7,12 @@ import { resolveLang } from './game/settings'
 import { LOCALES } from './game/i18n'
 import { YSDKProvider } from './YSDKContext'
 import { resolveProgress } from './state/progress'
+import { applyUiPalette } from './state/uiPalette'
 
 await initYSDK()
 const lang = await resolveLang()
-await resolveProgress()
+const progress = await resolveProgress()
+applyUiPalette(progress.equipped.uiPalette)
 document.title = LOCALES[lang].title
 document.documentElement.lang = lang
 document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', LOCALES[lang].description)

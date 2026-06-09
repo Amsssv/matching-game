@@ -1,14 +1,15 @@
 // Mirror of src/game/ui/config.ts palette + tokens. DOM side only.
-// Colors
-$navy:      #001428;
-$navy-soft: #002244;
-$blue:      #0d47a1;
-$blue-mid:  #1565c0;
-$white:     #ffffff;
-$text-muted:#b8d4dc;
-$gold:      #f7d077;
-$gold-border:#d4a853;
-$coral:     #ff6b6b;
+// Colors — runtime-swappable via --color-* custom props (see state/uiPalette.ts);
+// the hex after the comma is the default when no palette override is set.
+$navy:       var(--color-navy, #001428);
+$navy-soft:  var(--color-navy-soft, #002244);
+$blue:       var(--color-blue, #0d47a1);
+$blue-mid:   var(--color-blue-mid, #1565c0);
+$white:      var(--color-white, #ffffff);
+$text-muted: var(--color-text-muted, #b8d4dc);
+$gold:       var(--color-gold, #f7d077);
+$gold-border:var(--color-gold-border, #d4a853);
+$coral:      var(--color-coral, #ff6b6b);
 
 // Fonts
 $font-body:    'Rubik', sans-serif;
