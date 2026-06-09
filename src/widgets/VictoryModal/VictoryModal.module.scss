@@ -6,14 +6,42 @@
 .backdrop { @include modal-backdrop; }
 .panel { @include modal-panel; }
 .title { @include modal-title; }
-.separator { @include modal-separator; }
 .subtitle { @include modal-subtitle; }
 .actions { @include modal-actions; }
 
-.stats {
-  display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center; gap: 12px; width: 100%;
-  div { display: grid; gap: 6px; }
+// New-record banner.
+.record {
+  width: 100%; text-align: center;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgb(var(--color-gold-rgb, 247 208 119) / 0.15);
+  border: 1px solid $gold-border;
+  color: $gold; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px;
 }
-.statLabel { color: $text-muted; font-size: 13px; }
-.statValue { color: $gold; font-weight: 700; font-size: clamp(20px, 6vw, 28px); }
-.reward { color: $gold; font-weight: 700; font-size: clamp(16px, 5vw, 22px); }
+
+.reward { color: $gold; font-weight: 800; font-size: clamp(18px, 6vw, 26px); margin: 0; }
+
+// Stat tiles (moves · time + delta-to-record).
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.tile {
+  display: grid; gap: 4px; justify-items: center; align-content: center;
+  padding: 10px; border-radius: 12px;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.45);
+}
+.statLabel { color: $text-muted; font-size: 12px; letter-spacing: 0.06em; }
+.statValue { color: $gold; font-weight: 700; font-size: clamp(20px, 6vw, 28px); font-variant-numeric: tabular-nums; }
+.deltaGood { color: $gold; font-size: 12px; font-weight: 700; }
+.deltaBad  { color: $text-muted; font-size: 12px; }
+
+// Button hierarchy: restart = gold CTA; ×2 = gold-outline bonus; rest secondary.
+.restartCta {
+  border: 2px solid $gold-border;
+  background: $gradient-button-active;
+  box-shadow: 0 0 16px rgb(var(--color-gold-rgb, 247 208 119) / 0.3);
+  &:hover { background: $gradient-button-active; border-color: $gold-border; }
+}
+.doubleCta {
+  width: 100%;
+  border: 2px solid $gold-border; color: $gold;
+  background: $gradient-button-idle;
+  &:hover { background: $gradient-button-hover; border-color: $gold-border; color: $gold; }
+}

@@ -24,6 +24,9 @@ export interface VictoryView {
   compact: LeaderboardData | null;  // filled after fetch
   showAuthCta: boolean;
   pearlsEarned: number;   // pearls awarded for this win (shown in the victory modal)
+  isRecord: boolean;      // new best time for this difficulty
+  prevBest: number | null; // previous best seconds (for delta-to-record), null on first win
+  doubled: boolean;       // reward already doubled via rewarded ad
 }
 
 export interface LeaderboardView {

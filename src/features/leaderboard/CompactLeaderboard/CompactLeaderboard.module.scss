@@ -3,7 +3,13 @@
 
 .root { @include panel; width: 100%; padding: 8px; display: grid; gap: 4px; }
 .row {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 8px;
-  color: $text-muted; font-size: 13px;
-  &.player { color: $gold; }
+  display: grid; grid-template-columns: 2.4em 1fr auto; gap: 8px; align-items: center;
+  color: $text-muted; font-size: 13px; padding: 3px 6px; border-radius: 6px;
 }
+.row.player {
+  color: $gold; font-weight: 700;
+  background: rgb(var(--color-gold-rgb, 247 208 119) / 0.12);
+}
+.rank { font-weight: 700; }
+.name { text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.time { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
