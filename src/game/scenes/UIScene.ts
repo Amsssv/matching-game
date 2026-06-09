@@ -8,6 +8,7 @@ import type { Difficulty } from '../layout';
 import { uiStore, setHud, setModal } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
+import { computePearls, awardPearls, recordGameStart, recordGameWin } from '../../state/progress';
 
 /**
  * Thin UIScene: owns the play-clock, score submission, SDK/auth flow and the
@@ -33,6 +34,7 @@ export class UIScene extends Phaser.Scene {
 
   create() {
     this.elapsedSeconds = 0;
+    recordGameStart();
     const lang: Lang = this.game.registry.get('lang') ?? 'ru';
     this.locale = LOCALES[lang];
 
@@ -60,6 +62,9 @@ export class UIScene extends Phaser.Scene {
       this.game.registry.set('lastScore', this.elapsedSeconds);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
+      const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs);
+      awardPearls(pearlsEarned);
+      recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs });
       const leaderboards = getYSDK()?.leaderboards;
       // Fire-and-forget: don't block victory screen on the network call. Yandex
       // setScore always overwrites — guard with getPlayerEntry so we only submit
@@ -71,7 +76,7 @@ export class UIScene extends Phaser.Scene {
             .catch(() => leaderboards.setScore(LB_ID[difficulty], newYScore))
             .then(() => {}).catch(() => {})
         : Promise.resolve();
-      this.showVictory(n, this.elapsedSeconds, scoreSaved);
+      this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned);
     };
 
     this.gameScene.events.on('moves-updated', onMoves,    this);
@@ -101,9 +106,9 @@ export class UIScene extends Phaser.Scene {
   }
 
   // ── Victory ──────────────────────────────────────────────────────────────────
-  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve()) {
+  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve(), pearlsEarned = 0) {
     this.audioManager()?.duck();
-    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false } });
+    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false, pearlsEarned } });
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     // Chain after the score save so the compact leaderboard includes the new result.

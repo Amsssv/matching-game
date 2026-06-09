@@ -17,6 +17,9 @@ export function VictoryModal() {
         <h2 className={styles.title}>{L.victory}</h2>
         <hr className={styles.separator} />
         <p className={styles.subtitle}>{L.allPairsFound}</p>
+        {victory.pearlsEarned > 0 && (
+          <p className={styles.reward} data-testid="victory-pearls">+{victory.pearlsEarned} 🦪</p>
+        )}
         <div className={styles.stats}>
           <div><span className={styles.statLabel}>{L.movesLabel}</span><span className={styles.statValue}>{victory.moves}</span></div>
           <div><span className={styles.statLabel}>{L.timeLabel}</span><span className={styles.statValue}>{formatTime(victory.seconds)}</span></div>

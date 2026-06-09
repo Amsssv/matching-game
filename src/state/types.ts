@@ -22,6 +22,7 @@ export interface VictoryView {
   seconds: number;
   compact: LeaderboardData | null;  // filled after fetch
   showAuthCta: boolean;
+  pearlsEarned: number;   // pearls awarded for this win (shown in the victory modal)
 }
 
 export interface LeaderboardView {

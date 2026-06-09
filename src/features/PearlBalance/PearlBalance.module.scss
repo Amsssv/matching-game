@@ -1,0 +1,14 @@
+@use '../../styles/tokens' as *;
+
+.root {
+  position: absolute; top: 14px; left: 12px; z-index: 3;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: rgba($navy-soft, 0.8);
+  border: 1px solid $blue-mid;
+  border-radius: 14px;
+  color: $gold;
+  font-family: $font-body; font-weight: 700; font-size: 16px;
+}
+.icon  { font-size: 18px; line-height: 1; }
+.count { line-height: 1; }
