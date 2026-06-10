@@ -39,10 +39,11 @@ $duration-flip: 140ms;       // per half-flip
 $duration-match-flash: 180ms;
 $duration-hover: 100ms;
 
-// Primary button gradient stops
-$gradient-button-active: linear-gradient(180deg, rgba(10,61,122,0.92), rgba(1,40,106,0.95));
-$gradient-button-hover:  linear-gradient(180deg, rgba(2,52,122,0.87),  rgba(1,35,88,0.90));
-$gradient-button-idle:   linear-gradient(180deg, rgba(1,40,106,0.82),  rgba(1,29,74,0.85));
+// Primary button gradient stops — palette-aware: recolor when a UI palette sets
+// --color-blue-rgb / --color-navy-rgb; fallbacks preserve the default ocean look.
+$gradient-button-active: linear-gradient(180deg, rgb(var(--color-blue-rgb, 10 61 122) / 0.92), rgb(var(--color-navy-rgb, 1 40 106) / 0.95));
+$gradient-button-hover:  linear-gradient(180deg, rgb(var(--color-blue-rgb, 2 52 122) / 0.87),  rgb(var(--color-navy-rgb, 1 35 88) / 0.90));
+$gradient-button-idle:   linear-gradient(180deg, rgb(var(--color-blue-rgb, 1 40 106) / 0.82),  rgb(var(--color-navy-rgb, 1 29 74) / 0.85));
 
 // Modal title text gradient (gold) — used by _modal.scss modal-title
 $gradient-modal-title:   linear-gradient(180deg, #fdfacd, #f7e089);
