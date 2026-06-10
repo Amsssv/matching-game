@@ -7,6 +7,8 @@ import {
   claimQuest, rerollQuest, claimAchievement, ensureTodayQuests, achSignals,
 } from '../progress';
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
+import { CATALOG } from '../catalog';
+import { LOCALES, type Lang } from '../../game/i18n';
 
 describe('computePearls', () => {
   // Default context: a non-first, non-record win (winIndex 2 → no first-win ×2, no anti-farm).
@@ -180,6 +182,27 @@ describe('shop economy (progress v2)', () => {
     expect(p.equipped.seaTheme).toBe('sea.lagoon');   // bogus id → default
     expect(p.equipped.cardBack).toBe('back.gold');    // real cardBack item → retained (existence+axis only, no ownership check)
     expect(p.equipped.uiPalette).toBe('ui.ocean');    // valid default → unchanged
+  });
+  it('B6: new cosmetics buy + equip across every axis', () => {
+    awardPearls(1000);
+    expect(buyItem('sea.tropic')).toBe(true); equipItem('seaTheme', 'sea.tropic');
+    expect(progressStore.get().equipped.seaTheme).toBe('sea.tropic');
+    expect(buyItem('back.silver')).toBe(true); equipItem('cardBack', 'back.silver');
+    expect(progressStore.get().equipped.cardBack).toBe('back.silver');
+    expect(buyItem('ui.crimson')).toBe(true); equipItem('uiPalette', 'ui.crimson');
+    expect(progressStore.get().equipped.uiPalette).toBe('ui.crimson');
+  });
+  it('every catalog item has a localized name in all 6 locales', () => {
+    const langs = Object.keys(LOCALES) as Lang[];
+    for (const item of CATALOG)
+      for (const lang of langs)
+        expect(LOCALES[lang].shopItems[item.nameKey], `${item.id} @ ${lang}`).toBeTruthy();
+  });
+  it('every priced uiPalette item defines the full 7-token map', () => {
+    const KEYS = ['navy', 'navy-soft', 'blue', 'blue-mid', 'gold', 'gold-border', 'text-muted'];
+    for (const item of CATALOG.filter((i) => i.axis === 'uiPalette' && i.price > 0))
+      for (const k of KEYS)
+        expect(item.palette?.[k], `${item.id}/${k}`).toBeTruthy();
   });
 });
 
