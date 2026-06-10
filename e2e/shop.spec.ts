@@ -50,9 +50,9 @@ test.describe('Shop (Collection)', () => {
       page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim()),
     ).toBe('#b5532e');
 
-    // Persisted: pearls deducted (500 − 100), unlocked + equipped saved.
+    // Persisted: pearls deducted (500 − 150), unlocked + equipped saved.
     const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), PROGRESS_KEY);
-    expect(saved.pearls).toBe(400);
+    expect(saved.pearls).toBe(350);
     expect(saved.unlocked).toContain('ui.sunset');
     expect(saved.equipped.uiPalette).toBe('ui.sunset');
 
