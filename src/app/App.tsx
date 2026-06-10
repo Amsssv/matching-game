@@ -30,6 +30,9 @@ export function App() {
         className="overlay-root"
         style={{
           position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 10,
+          // Promote the overlay to its own GPU layer so each Phaser canvas frame only
+          // composites it (cheap) instead of repainting the DOM + its shadows (mobile perf).
+          transform: 'translateZ(0)',
           // Cross-fade the whole overlay in lockstep with Phaser's 300ms camera
           // fade between scenes so DOM UI never pops over a fading canvas.
           opacity: visible ? 1 : 0,

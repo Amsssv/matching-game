@@ -37,7 +37,7 @@
     border-color: $gold-border;
     box-shadow:
       0 0 0 2px rgb(var(--color-gold-border-rgb, 212 168 83) / 0.6),
-      0 0 16px rgb(var(--color-gold-rgb, 247 208 119) / 0.35);
+      0 0 8px rgb(var(--color-gold-rgb, 247 208 119) / 0.35);   // tighter glow blur (mobile raster cost)
     transform: none;
   }
 }
