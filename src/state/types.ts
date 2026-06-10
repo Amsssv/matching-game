@@ -12,10 +12,12 @@ export interface MenuState {
 
 export interface HudState {
   active: boolean;
-  timer: string;   // "0:00"
-  moves: string;   // localized "Ходов: 3"
-  pairs: string;   // localized "Пар: 2 / 10"
+  timer: string;        // "0:00"
+  moves: string;        // localized "Ходов: 3" (a11y label)
+  pairs: string;        // localized "Пар: 2 / 10" (a11y label)
+  movesCount: number;   // raw moves count (HUD value)
   pairsFound: number;
+  pairsTotal: number;   // total pairs (for the HUD progress bar)
 }
 
 export interface VictoryView {

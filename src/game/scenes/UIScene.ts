@@ -43,7 +43,9 @@ export class UIScene extends Phaser.Scene {
       timer:      formatTime(0),
       moves:      this.locale.moves(0),
       pairs:      this.locale.pairs(0, this.totalPairs),
+      movesCount: 0,
       pairsFound: 0,
+      pairsTotal: this.totalPairs,
     });
 
     this.timerEvent = this.time.addEvent({
@@ -55,7 +57,7 @@ export class UIScene extends Phaser.Scene {
       },
     });
 
-    const onMoves = (n: number) => setHud({ moves: this.locale.moves(n) });
+    const onMoves = (n: number) => setHud({ moves: this.locale.moves(n), movesCount: n });
     const onMatch = (n: number) => setHud({ pairs: this.locale.pairs(n, this.totalPairs), pairsFound: n });
     const onComplete = (n: number) => {
       this.timerEvent?.remove();
