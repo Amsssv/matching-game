@@ -9,17 +9,30 @@ import { ACH_BY_ID, type AchSignals } from './achievements';
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
 
+export interface WinContext {
+  isRecord: boolean;   // beat the previous best time for this difficulty
+  winIndex: number;    // 1-based index of this win today (1 = first win of the day)
+}
+
+const SPEED_BLAZING = 0.6;   // ≤ par × this = "blazing" (the higher speed tier)
+
 /**
- * Pearls awarded for a win: base by difficulty, +50% for a perfect run
- * (no wasted moves — `moves === totalPairs`, since a "move" is one pair-attempt),
- * +25% for finishing within the difficulty's par time. Rounded.
+ * Pearls for a win: base(difficulty) × skill × first-win × anti-farm, rounded.
+ *  - skill = 1 + perfect(+0.5, moves===totalPairs) + speed(blazing ≤par×0.6 → +0.5, else fast ≤par → +0.25) + record(+0.5)
+ *  - first win of the day → ×2
+ *  - anti-farm diminishing returns by win-of-day: wins 1-3 ×1, 4-6 ×0.5, 7+ ×0.25
  */
-export function computePearls(difficulty: Difficulty, seconds: number, moves: number, totalPairs: number): number {
+export function computePearls(difficulty: Difficulty, seconds: number, moves: number, totalPairs: number, ctx: WinContext): number {
   const base = PEARL_BASE[difficulty];
-  let bonus = 0;
-  if (moves === totalPairs)             bonus += base * 0.5;
-  if (seconds <= SPEED_PAR[difficulty]) bonus += base * 0.25;
-  return Math.round(base + bonus);
+  const par = SPEED_PAR[difficulty];
+  let skill = 1;
+  if (moves === totalPairs) skill += 0.5;
+  if (seconds <= par * SPEED_BLAZING) skill += 0.5;
+  else if (seconds <= par)            skill += 0.25;
+  if (ctx.isRecord) skill += 0.5;
+  const firstWin = ctx.winIndex === 1 ? 2 : 1;
+  const farm = ctx.winIndex <= 3 ? 1 : ctx.winIndex <= 6 ? 0.5 : 0.25;
+  return Math.round(base * skill * firstWin * farm);
 }
 
 const STORAGE_KEY = 'sea-pairs-progress';
@@ -33,6 +46,8 @@ export interface ProgressStats {
   perfectWins: number;
   fastWins: number;
   pearlsEarnedTotal: number;
+  lastWinDate: string | null;   // local date of the last win (first-win-of-day ×2)
+  winsToday: number;            // wins on lastWinDate (anti-farm diminishing returns)
 }
 export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
@@ -57,6 +72,7 @@ export const INITIAL_PROGRESS: ProgressState = {
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
     perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
+    lastWinDate: null, winsToday: 0,
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
@@ -128,6 +144,8 @@ function mergeProgress(raw: unknown): ProgressState {
       perfectWins:       num(s.perfectWins),
       fastWins:          num(s.fastWins),
       pearlsEarnedTotal: num(s.pearlsEarnedTotal),
+      lastWinDate: typeof s.lastWinDate === 'string' ? s.lastWinDate : null,
+      winsToday:   num(s.winsToday),
     },
     unlocked: Array.isArray(r.unlocked)
       ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
@@ -287,11 +305,22 @@ export function recordGameStart(): void {
   recordQuestEvent({ type: 'start' });   // saves local (game-start stays local-only, cloud coalesced)
 }
 
+/** Win context from the CURRENT state — call BEFORE recordGameWin updates it. */
+export function winContext(difficulty: Difficulty, seconds: number): { isRecord: boolean; prevBest: number | null; winIndex: number; firstWinOfDay: boolean } {
+  const s = progressStore.get().stats;
+  const prevBest = s.bestSeconds[difficulty];
+  const winsBefore = s.lastWinDate === todayStr() ? s.winsToday : 0;
+  const winIndex = winsBefore + 1;
+  return { isRecord: prevBest === null || seconds < prevBest, prevBest, winIndex, firstWinOfDay: winIndex === 1 };
+}
+
 export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number }): void {
   const s = progressStore.get().stats;
   const prevBest = s.bestSeconds[r.difficulty];
   const perfect = r.moves === r.pairs;
   const fast = r.seconds <= SPEED_PAR[r.difficulty];
+  const today = todayStr();
+  const sameDay = s.lastWinDate === today;
   progressStore.set({
     stats: {
       ...s,
@@ -301,6 +330,8 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
       winsByDifficulty: { ...s.winsByDifficulty, [r.difficulty]: s.winsByDifficulty[r.difficulty] + 1 },
       perfectWins: s.perfectWins + (perfect ? 1 : 0),
       fastWins:    s.fastWins + (fast ? 1 : 0),
+      lastWinDate: today,
+      winsToday:   sameDay ? s.winsToday + 1 : 1,
     },
   });
   recordQuestEvent({ type: 'win', difficulty: r.difficulty, pairs: r.pairs, perfect, fast });   // sets quests + saveLocal

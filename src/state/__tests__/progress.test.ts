@@ -9,21 +9,34 @@ import {
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
 
 describe('computePearls', () => {
+  // Default context: a non-first, non-record win (winIndex 2 → no first-win ×2, no anti-farm).
+  const ctx = (winIndex = 2, isRecord = false) => ({ winIndex, isRecord });
   it('awards base by difficulty with no bonuses', () => {
-    expect(computePearls('easy',   999, 99, 6)).toBe(10);
-    expect(computePearls('medium', 999, 99, 10)).toBe(20);
-    expect(computePearls('hard',   999, 99, 12)).toBe(35);
-    expect(computePearls('expert', 999, 99, 14)).toBe(50);
+    expect(computePearls('easy',   999, 99, 6,  ctx())).toBe(10);
+    expect(computePearls('medium', 999, 99, 10, ctx())).toBe(20);
+    expect(computePearls('hard',   999, 99, 12, ctx())).toBe(35);
+    expect(computePearls('expert', 999, 99, 14, ctx())).toBe(50);
   });
   it('adds a perfect-run bonus (+50%) when moves === totalPairs', () => {
-    expect(computePearls('medium', 999, 10, 10)).toBe(30);
+    expect(computePearls('medium', 999, 10, 10, ctx())).toBe(30);
   });
-  it('adds a speed bonus (+25%) when seconds <= par', () => {
-    expect(computePearls('medium', 60, 99, 10)).toBe(25);
+  it('adds a fast bonus (+25%) at par and a blazing bonus (+50%) under par×0.6', () => {
+    expect(computePearls('medium', 60, 99, 10, ctx())).toBe(25); // fast (60<=60), not blazing (60>36)
+    expect(computePearls('medium', 36, 99, 10, ctx())).toBe(30); // blazing (36<=36) → +0.5
   });
   it('stacks perfect + speed and rounds', () => {
-    expect(computePearls('easy', 30, 6, 6)).toBe(18);
-    expect(computePearls('expert', 140, 14, 14)).toBe(88);
+    expect(computePearls('easy', 30, 6, 6, ctx())).toBe(18);      // 10 × 1.75
+    expect(computePearls('expert', 140, 14, 14, ctx())).toBe(88); // 50 × 1.75
+  });
+  it('doubles the first win of the day', () => {
+    expect(computePearls('medium', 999, 99, 10, ctx(1))).toBe(40); // 20 × 1 × 2
+  });
+  it('adds a personal-record bonus (+50%)', () => {
+    expect(computePearls('medium', 999, 99, 10, ctx(2, true))).toBe(30); // 20 × 1.5
+  });
+  it('applies anti-farm diminishing returns by win-of-day', () => {
+    expect(computePearls('medium', 999, 99, 10, ctx(4))).toBe(10); // ×0.5
+    expect(computePearls('medium', 999, 99, 10, ctx(7))).toBe(5);  // ×0.25
   });
 });
 

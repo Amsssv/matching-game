@@ -29,6 +29,7 @@ export interface VictoryView {
   isRecord: boolean;      // new best time for this difficulty
   prevBest: number | null; // previous best seconds (for delta-to-record), null on first win
   doubled: boolean;       // reward already doubled via rewarded ad
+  firstWinOfDay: boolean; // this win was the day's first (reward ×2 already baked in)
 }
 
 export interface LeaderboardView {

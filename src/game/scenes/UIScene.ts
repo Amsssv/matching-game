@@ -8,7 +8,7 @@ import type { Difficulty } from '../layout';
 import { uiStore, setHud, setModal } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
-import { computePearls, awardPearls, recordGameStart, recordGameWin, progressStore } from '../../state/progress';
+import { computePearls, awardPearls, recordGameStart, recordGameWin, winContext } from '../../state/progress';
 
 /**
  * Thin UIScene: owns the play-clock, score submission, SDK/auth flow and the
@@ -64,11 +64,10 @@ export class UIScene extends Phaser.Scene {
       this.game.registry.set('lastScore', this.elapsedSeconds);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
-      const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs);
+      // Win context (record + win-of-day) read from state BEFORE recordGameWin updates it.
+      const { isRecord, prevBest, winIndex, firstWinOfDay } = winContext(difficulty, this.elapsedSeconds);
+      const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs, { isRecord, winIndex });
       awardPearls(pearlsEarned);
-      // Read the prior best BEFORE recordGameWin overwrites it (for the record banner + delta).
-      const prevBest = progressStore.get().stats.bestSeconds[difficulty];
-      const isRecord = prevBest === null || this.elapsedSeconds < prevBest;
       recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n });
       const leaderboards = getYSDK()?.leaderboards;
       // Fire-and-forget: don't block victory screen on the network call. Yandex
@@ -81,7 +80,7 @@ export class UIScene extends Phaser.Scene {
             .catch(() => leaderboards.setScore(LB_ID[difficulty], newYScore))
             .then(() => {}).catch(() => {})
         : Promise.resolve();
-      this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, isRecord, prevBest);
+      this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, isRecord, prevBest, firstWinOfDay);
     };
 
     this.gameScene.events.on('moves-updated', onMoves,    this);
@@ -111,9 +110,9 @@ export class UIScene extends Phaser.Scene {
   }
 
   // ── Victory ──────────────────────────────────────────────────────────────────
-  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve(), pearlsEarned = 0, isRecord = false, prevBest: number | null = null) {
+  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve(), pearlsEarned = 0, isRecord = false, prevBest: number | null = null, firstWinOfDay = false) {
     this.audioManager()?.duck();
-    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false, pearlsEarned, isRecord, prevBest, doubled: false } });
+    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false, pearlsEarned, isRecord, prevBest, doubled: false, firstWinOfDay } });
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     // Chain after the score save so the compact leaderboard includes the new result.

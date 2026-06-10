@@ -18,6 +18,7 @@ export interface Locale {
   victory: string;
   allPairsFound: string;
   vRecord: string;        // victory "new record" banner
+  vFirstWin: string;      // victory "first win of the day ×2" chip
   movesResult: (n: number) => string;
   timeResult: (t: string) => string;
   restart: string;
@@ -83,6 +84,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: 'ПОБЕДА!',
     allPairsFound: 'Все пары найдены!',
     vRecord: 'Новый рекорд!',
+    vFirstWin: 'Первая победа ×2',
     movesResult: (n) => `Ходов: ${n}`,
     timeResult:  (t) => `Время: ${t}`,
     restart: 'ЗАНОВО',
@@ -134,6 +136,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: 'VICTORY!',
     allPairsFound: 'All pairs found!',
     vRecord: 'New record!',
+    vFirstWin: 'First win ×2',
     movesResult: (n) => `Moves: ${n}`,
     timeResult:  (t) => `Time: ${t}`,
     restart: 'RESTART',
@@ -185,6 +188,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: 'ZAFER!',
     allPairsFound: 'Tüm çiftler bulundu!',
     vRecord: 'Yeni rekor!',
+    vFirstWin: 'İlk galibiyet ×2',
     movesResult: (n) => `Hamle: ${n}`,
     timeResult:  (t) => `Süre: ${t}`,
     restart: 'YENİDEN',
@@ -236,6 +240,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: '¡VICTORIA!',
     allPairsFound: '¡Todos los pares encontrados!',
     vRecord: '¡Nuevo récord!',
+    vFirstWin: 'Primera victoria ×2',
     movesResult: (n) => `Movimientos: ${n}`,
     timeResult:  (t) => `Tiempo: ${t}`,
     restart: 'REINICIAR',
@@ -287,6 +292,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: 'VITÓRIA!',
     allPairsFound: 'Todos os pares encontrados!',
     vRecord: 'Novo recorde!',
+    vFirstWin: 'Primeira vitória ×2',
     movesResult: (n) => `Jogadas: ${n}`,
     timeResult:  (t) => `Tempo: ${t}`,
     restart: 'REINICIAR',
@@ -341,6 +347,7 @@ export const LOCALES: Record<Lang, Locale> = {
     victory: 'فوز!',
     allPairsFound: 'تم العثور على جميع الأزواج!',
     vRecord: 'رقم قياسي جديد!',
+    vFirstWin: 'الفوز الأول ×2',
     movesResult: (n) => `الحركات: ${n}`,
     timeResult:  (t) => `الوقت: ${t}`,
     restart: 'مجدداً',
