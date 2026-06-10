@@ -1,20 +1,21 @@
 import { Button } from '@ui/Button';
-import type { CustomAxis } from '@state/catalog';
+import type { ShopTab } from '@state/catalog';
 import type { Locale } from '../../../game/i18n';
 import styles from './ShopTabs.module.scss';
 
-const TABS: { axis: CustomAxis; key: 'shopTabSea' | 'shopTabBack' | 'shopTabPalette' }[] = [
-  { axis: 'seaTheme',  key: 'shopTabSea' },
-  { axis: 'cardBack',  key: 'shopTabBack' },
-  { axis: 'uiPalette', key: 'shopTabPalette' },
+const TABS: { tab: ShopTab; key: 'shopTabSea' | 'shopTabBack' | 'shopTabPalette' | 'shopTabExclusive' }[] = [
+  { tab: 'seaTheme',  key: 'shopTabSea' },
+  { tab: 'cardBack',  key: 'shopTabBack' },
+  { tab: 'uiPalette', key: 'shopTabPalette' },
+  { tab: 'exclusive', key: 'shopTabExclusive' },
 ];
 
-export function ShopTabs({ L, current, onPick }: { L: Locale; current: CustomAxis; onPick: (a: CustomAxis) => void }) {
+export function ShopTabs({ L, current, onPick }: { L: Locale; current: ShopTab; onPick: (t: ShopTab) => void }) {
   return (
     <div className={styles.root} data-testid="shop-tabs">
-      {TABS.map(({ axis, key }) => (
-        <Button key={axis} testId={`shop-tab-${axis}`} type="primary" size="small"
-                active={axis === current} onClick={() => onPick(axis)}>{L[key]}</Button>
+      {TABS.map(({ tab, key }) => (
+        <Button key={tab} testId={`shop-tab-${tab}`} type="primary" size="small"
+                active={tab === current} onClick={() => onPick(tab)}>{L[key]}</Button>
       ))}
     </div>
   );

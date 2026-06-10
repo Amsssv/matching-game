@@ -1,7 +1,7 @@
 import type { Difficulty } from '../game/layout';
 import type { Lang } from '../game/i18n';
 import type { LeaderboardData } from '../game/leaderboard';
-import type { CustomAxis } from './catalog';
+import type { ShopTab } from './catalog';
 
 export interface MenuState {
   active: boolean;
@@ -54,7 +54,7 @@ export type TasksTab = 'quests' | 'achievements';
 export interface ModalState {
   victory: VictoryView | null;
   leaderboard: LeaderboardView | null;
-  shop: { tab: CustomAxis } | null;
+  shop: { tab: ShopTab } | null;
   daily: DailyView | null;
   tasks: { tab: TasksTab } | null;
   profile: boolean;   // player profile / level modal (B8)
