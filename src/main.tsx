@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './app/App'
 import { initYSDK } from './ysdk'
+import { initPayments } from './payments'
+import { reconcilePurchases } from './state/purchasesController'
 import { resolveLang } from './game/settings'
 import { LOCALES } from './game/i18n'
 import { YSDKProvider } from './YSDKContext'
@@ -11,6 +13,7 @@ import { applyUiPalette } from './state/uiPalette'
 import { todayStr } from './state/daily'
 
 await initYSDK()
+await initPayments()
 const lang = await resolveLang()
 const progress = await resolveProgress()
 applyUiPalette(progress.equipped.uiPalette)
@@ -26,3 +29,5 @@ createRoot(document.getElementById('root')!).render(
     </YSDKProvider>
   </StrictMode>,
 )
+
+void reconcilePurchases()   // mandatory: process/restore any unprocessed purchases on load
