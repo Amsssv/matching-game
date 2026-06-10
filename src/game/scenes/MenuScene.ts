@@ -139,13 +139,11 @@ export class MenuScene extends Phaser.Scene {
 
   // ── Actions invoked from the command bus ─────────────────────────────────────
   setDifficulty(d: Difficulty) {
-    this.sfx('sfx-click');
     this.difficulty = d;
     this.publish();
   }
 
   toggleSound() {
-    this.sfx('sfx-click');
     this.soundEnabled = !this.soundEnabled;
     saveSoundEnabled(this.soundEnabled);
     const audioManager: import('../AudioManager').AudioManager | undefined =
@@ -155,7 +153,6 @@ export class MenuScene extends Phaser.Scene {
   }
 
   setLang(lng: Lang) {
-    this.sfx('sfx-click');
     this.game.registry.set('lang', lng);
     saveLang(lng);
     document.title = LOCALES[lng].title;
@@ -167,18 +164,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   play() {
-    this.sfx('sfx-click');
     this.startGame();
   }
 
   openLeaderboard() {
-    this.sfx('sfx-click');
     openLeaderboard('menu');
-  }
-
-  private sfx(key: string) {
-    const audioManager: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
-    audioManager?.playSfx(key);
   }
 
   private startGame() {

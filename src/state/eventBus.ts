@@ -21,6 +21,7 @@ export type BusEvents = {
   'cmd:login-and-save': undefined;
   'cmd:equip-changed': undefined;
   'cmd:set-muted': boolean;
+  'cmd:ui-click': undefined;
 };
 
 type Handler<T> = (payload: T) => void;

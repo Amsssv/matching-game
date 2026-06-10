@@ -138,13 +138,11 @@ export class UIScene extends Phaser.Scene {
 
   // ── Actions invoked from the command bus ─────────────────────────────────────
   exitToMenu() {
-    this.sfx('sfx-click');
     this.scene.stop();
     this.gameScene.goToMenu();
   }
 
   victoryRestart() {
-    this.sfx('sfx-click');
     this.audioManager()?.unduck();
     setModal({ victory: null });
     this.scene.stop();
@@ -152,7 +150,6 @@ export class UIScene extends Phaser.Scene {
   }
 
   victoryToMenu() {
-    this.sfx('sfx-click');
     this.audioManager()?.unduck();
     setModal({ victory: null });
     this.scene.stop();
@@ -160,7 +157,6 @@ export class UIScene extends Phaser.Scene {
   }
 
   victoryOpenLeaderboard() {
-    this.sfx('sfx-click');
     openLeaderboard('victory');
   }
 
@@ -180,10 +176,5 @@ export class UIScene extends Phaser.Scene {
 
   private audioManager(): import('../AudioManager').AudioManager | undefined {
     return this.game.registry.get('audioManager');
-  }
-
-  private sfx(key: string) {
-    const audioManager: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
-    audioManager?.playSfx(key);
   }
 }
