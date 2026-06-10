@@ -409,11 +409,18 @@ export class GameScene extends Phaser.Scene {
 
   // ── Public API for UIScene ───────────────────────────────────────────────────
   restartGame() {
+    // Stop render-on-demand first: the loop must run continuously through the ad
+    // + scene.restart (queued scene ops don't process while the loop is asleep).
+    this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => this.scene.restart());
   }
 
   goToMenu() {
+    // Stop render-on-demand first. The camera fade-out is a camera *effect*, not a
+    // tween, so the sleep heuristic doesn't see it — without this the loop sleeps
+    // mid-fade and `camerafadeoutcomplete` (→ scene.start) never fires until a tap.
+    this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => {
       setTransition(false);   // fade the DOM overlay (header) out with the camera
