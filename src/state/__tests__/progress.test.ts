@@ -9,6 +9,7 @@ import {
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
 import { CATALOG } from '../catalog';
 import { ACHIEVEMENTS } from '../achievements';
+import { BUNDLES } from '../iap';
 import { LOCALES, type Lang } from '../../game/i18n';
 
 describe('computePearls', () => {
@@ -224,6 +225,12 @@ describe('shop economy (progress v2)', () => {
     for (const a of ACHIEVEMENTS)
       for (const lang of langs)
         expect(LOCALES[lang].achievements[a.nameKey], `${a.id} @ ${lang}`).toBeTruthy();
+  });
+  it('every bundle has a localized name in all 6 locales', () => {
+    const langs = Object.keys(LOCALES) as Lang[];
+    for (const b of BUNDLES)
+      for (const lang of langs)
+        expect(LOCALES[lang].shopItems[b.nameKey], `${b.id} @ ${lang}`).toBeTruthy();
   });
 });
 
