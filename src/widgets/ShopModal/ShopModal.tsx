@@ -4,8 +4,10 @@ import { useProgress } from '@hooks/useProgress';
 import { LOCALES } from '../../game/i18n';
 import { CATALOG } from '@state/catalog';
 import { closeShop, switchShopTab } from '@state/shopController';
+import { BUNDLES } from '@state/iap';
 import { ShopTabs } from '@features/shop/ShopTabs';
 import { ShopItemCard } from '@features/shop/ShopItemCard';
+import { BundleCard } from '@features/shop/BundleCard';
 import styles from './ShopModal.module.scss';
 
 export function ShopModal() {
@@ -20,8 +22,11 @@ export function ShopModal() {
   }, []);
   if (!shop) return null;
   const L = LOCALES[lang];
-  const items = CATALOG.filter((i) => i.axis === shop.tab);
-  const owned = items.filter((i) => i.price === 0 || unlocked.includes(i.id)).length;
+  const isExclusive = shop.tab === 'exclusive';
+  const items = isExclusive
+    ? CATALOG.filter((i) => i.exclusive)
+    : CATALOG.filter((i) => i.axis === shop.tab && !i.exclusive);
+  const owned = items.filter((i) => (i.price === 0 && !i.exclusive) || unlocked.includes(i.id)).length;
   const pct = items.length ? Math.round((owned / items.length) * 100) : 0;
   return (
     <div className={styles.backdrop} data-testid="shop" onClick={closeShop}>
@@ -34,13 +39,16 @@ export function ShopModal() {
 
         <ShopTabs L={L} current={shop.tab} onPick={switchShopTab} />
 
-        <div className={styles.progress}>
-          <span className={styles.progressLabel}>{L.shopCollected} {owned}/{items.length}</span>
-          <div className={styles.bar}><div className={styles.barFill} style={{ width: `${pct}%` }} /></div>
-        </div>
+        {!isExclusive && (
+          <div className={styles.progress}>
+            <span className={styles.progressLabel}>{L.shopCollected} {owned}/{items.length}</span>
+            <div className={styles.bar}><div className={styles.barFill} style={{ width: `${pct}%` }} /></div>
+          </div>
+        )}
 
         <div className={styles.list}>
           {items.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
+          {isExclusive && BUNDLES.map((b) => <BundleCard key={b.id} bundle={b} L={L} />)}
         </div>
       </div>
     </div>
