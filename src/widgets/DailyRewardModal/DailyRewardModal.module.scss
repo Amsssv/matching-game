@@ -9,7 +9,9 @@
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
 
 // ── 7-day ladder (desktop 7-in-row, mobile 4+3) ──
-.ladder { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; }
+// minmax(0, 1fr) (not plain 1fr) so the aspect-ratio cells don't feed an inflated
+// intrinsic height back into the panel's grid-item sizing → no spurious scrollbar.
+.ladder { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; width: 100%; }
 .cell {
   position: relative; aspect-ratio: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
@@ -41,5 +43,5 @@
 }
 
 @media (max-width: 480px) {
-  .ladder { grid-template-columns: repeat(4, 1fr); } // 4 + 3
+  .ladder { grid-template-columns: repeat(4, minmax(0, 1fr)); } // 4 + 3
 }

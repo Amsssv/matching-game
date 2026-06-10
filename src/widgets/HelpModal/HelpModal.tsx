@@ -4,6 +4,10 @@ import { LOCALES } from '../../game/i18n';
 import { closeHelp } from '@state/helpController';
 import styles from './HelpModal.module.scss';
 
+// One icon per help section (sections are in the same order across all locales):
+// goal · difficulties · features · pearl accrual · XP/level.
+const SECTION_ICONS = ['🎯', '🎚️', '🎮', '🦪', '⭐'];
+
 export function HelpModal() {
   const open = useUi((s) => s.modal.help);
   const lang = useUi((s) => s.menu.lang);
@@ -24,7 +28,7 @@ export function HelpModal() {
         <div className={styles.body}>
           {L.help.sections.map((sec, i) => (
             <section key={i} className={styles.section}>
-              <h3 className={styles.sectionTitle}>{sec.h}</h3>
+              <h3 className={styles.sectionTitle}>{SECTION_ICONS[i] ? `${SECTION_ICONS[i]} ` : ''}{sec.h}</h3>
               <ul className={styles.lines}>
                 {sec.lines.map((line, j) => <li key={j}>{line}</li>)}
               </ul>

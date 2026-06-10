@@ -139,7 +139,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Рекорды — таблица лучших результатов.',
           'Магазин — паки жемчуга, наборы и эксклюзивные предметы за деньги.',
         ] },
-        { h: 'Как заработать жемчуг 🦪', lines: [
+        { h: 'Как заработать жемчуг', lines: [
           'Базовая награда за каждую победу.',
           'Бонусы: идеальная игра без ошибок, быстрое время и новый личный рекорд.',
           'Первая победа за день — награда ×2.',
@@ -227,7 +227,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Records — the leaderboard of best results.',
           'Store — pearl packs, bundles and exclusive items for real money.',
         ] },
-        { h: 'How to earn pearls 🦪', lines: [
+        { h: 'How to earn pearls', lines: [
           'A base reward for every win.',
           'Bonuses: a perfect game with no mistakes, a fast time and a new personal record.',
           'The first win of the day pays ×2.',
@@ -315,7 +315,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Rekorlar — en iyi sonuçların listesi.',
           'Mağaza — inci paketleri, paketler ve özel öğeler (gerçek para).',
         ] },
-        { h: 'İnci nasıl kazanılır 🦪', lines: [
+        { h: 'İnci nasıl kazanılır', lines: [
           'Her galibiyet için temel ödül.',
           'Bonuslar: hatasız kusursuz oyun, hızlı süre ve yeni kişisel rekor.',
           'Günün ilk galibiyeti ×2 öder.',
@@ -403,7 +403,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Récords — la tabla de los mejores resultados.',
           'Tienda — packs de perlas, lotes y objetos exclusivos por dinero real.',
         ] },
-        { h: 'Cómo ganar perlas 🦪', lines: [
+        { h: 'Cómo ganar perlas', lines: [
           'Una recompensa base por cada victoria.',
           'Bonos: partida perfecta sin errores, tiempo rápido y nuevo récord personal.',
           'La primera victoria del día paga ×2.',
@@ -491,7 +491,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Recordes — a tabela dos melhores resultados.',
           'Loja — pacotes de pérolas, lotes e itens exclusivos por dinheiro real.',
         ] },
-        { h: 'Como ganhar pérolas 🦪', lines: [
+        { h: 'Como ganhar pérolas', lines: [
           'Uma recompensa base por cada vitória.',
           'Bônus: jogo perfeito sem erros, tempo rápido e novo recorde pessoal.',
           'A primeira vitória do dia paga ×2.',
@@ -582,7 +582,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'الأرقام القياسية — جدول أفضل النتائج.',
           'المتجر — حزم لؤلؤ وحزم وعناصر حصرية مقابل مال حقيقي.',
         ] },
-        { h: 'كيف تكسب اللؤلؤ 🦪', lines: [
+        { h: 'كيف تكسب اللؤلؤ', lines: [
           'مكافأة أساسية عن كل فوز.',
           'مكافآت إضافية: مباراة مثالية بلا أخطاء، ووقت سريع، ورقم قياسي شخصي جديد.',
           'أول فوز في اليوم يمنح ×2.',
