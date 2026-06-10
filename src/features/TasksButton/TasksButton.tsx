@@ -25,15 +25,16 @@ export function TasksButton() {
     streakBest,
     unlockedCount,
   };
+  // Count of everything ready to collect (quests done-unclaimed + achievements done-unclaimed).
   const claimable =
-    quests.active.some((s) => { const d = QUEST_BY_ID[s.id]; return d && !s.claimed && s.progress >= d.target; })
-    || ACHIEVEMENTS.some((a) => a.done(signals) && !claimed.includes(a.id));
+    quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length
+    + ACHIEVEMENTS.filter((a) => a.done(signals) && !claimed.includes(a.id)).length;
   return (
     <button
       type="button"
       data-testid="tasks-open"
       aria-label={LOCALES[lang].tasks}
-      className={cx(styles.btn, claimable && styles.available)}
+      className={cx(styles.btn, claimable > 0 && styles.available)}
       onClick={() => openTasks()}
     >
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -43,7 +44,7 @@ export function TasksButton() {
         <path d="M7.5 14.5l1.2 1.2L11 13.5" />
         <path d="M13.5 14.5h3" />
       </svg>
-      {claimable && <span className={styles.badge} aria-hidden />}
+      {claimable > 0 && <span className={styles.badge} aria-hidden>{claimable}</span>}
     </button>
   );
 }

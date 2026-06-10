@@ -56,6 +56,7 @@ export interface Locale {
   taskReroll: string;
   quests: Record<string, string>;
   achievements: Record<string, string>;
+  help: { title: string; sections: { h: string; lines: string[] }[] };
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -110,6 +111,38 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'Задания', tasksTabQuests:'Квесты', tasksTabAch:'Достижения', taskClaim:'Забрать', taskClaimed:'Получено', taskReroll:'Обновить',
     quests: { qWinGames:'Выиграй 3 игры', qMatchPairs:'Собери 20 пар', qPlayGames:'Сыграй 5 игр', qWinHard:'Победа на сложном', qPerfectWin:'Идеальная игра', qFastWin:'Быстрая победа', qWinMedium:'2 победы на среднем', qMatchPairsBig:'Собери 40 пар' },
     achievements: { aFirstWin:'Первая победа', aWin10:'10 побед', aWin50:'50 побед', aPairs100:'100 пар', aPairs500:'500 пар', aExpertWin:'Победа на эксперте', aAllDifficulties:'Все сложности', aStreak7:'Стрик 7 дней', aCollector:'5 предметов в коллекции', aRich:'1000 жемчуга всего', aPerfectionist:'10 идеальных игр', aSpeedrunner:'10 быстрых побед' },
+    help: {
+      title: 'Как играть',
+      sections: [
+        { h: 'Цель игры', lines: [
+          'Переворачивай по две карточки за ход.',
+          'Совпали — пара остаётся открытой. Нет — карточки закрываются обратно.',
+          'Открой все пары, чтобы победить. Меньше ходов и быстрее время — лучше результат.',
+        ] },
+        { h: 'Сложности', lines: [
+          'Лёгкий — 6 пар, средний — 10, сложный — 12, эксперт — 14.',
+          'Чем выше сложность, тем больше карточек и награда.',
+        ] },
+        { h: 'Что есть в игре', lines: [
+          'Коллекция — открывай оформление моря, рубашки и палитры за жемчуг.',
+          'Ежедневная награда — заходи каждый день и забирай жемчуг.',
+          'Задания — квесты и достижения с наградами.',
+          'Рекорды — таблица лучших результатов.',
+        ] },
+        { h: 'Как заработать жемчуг 🦪', lines: [
+          'Базовая награда за каждую победу.',
+          'Бонусы: идеальная игра без ошибок, быстрое время и новый личный рекорд.',
+          'Первая победа за день — награда ×2.',
+          'Частые победы подряд приносят меньше (защита от фарма).',
+          'Дополнительно: ежедневный стрик, квесты, достижения и удвоение за рекламу.',
+        ] },
+        { h: 'Опыт и уровень', lines: [
+          'За каждую победу начисляется опыт (XP).',
+          'Заполни полосу опыта, чтобы поднять уровень.',
+          'Каждый новый уровень приносит жемчуг.',
+        ] },
+      ],
+    },
   },
 
   en: {
@@ -163,6 +196,38 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'Tasks', tasksTabQuests:'Quests', tasksTabAch:'Achievements', taskClaim:'Claim', taskClaimed:'Claimed', taskReroll:'Reroll',
     quests: { qWinGames:'Win 3 games', qMatchPairs:'Match 20 pairs', qPlayGames:'Play 5 games', qWinHard:'Win on hard', qPerfectWin:'A perfect game', qFastWin:'A fast win', qWinMedium:'Win 2 on medium', qMatchPairsBig:'Match 40 pairs' },
     achievements: { aFirstWin:'First win', aWin10:'10 wins', aWin50:'50 wins', aPairs100:'100 pairs', aPairs500:'500 pairs', aExpertWin:'Win on expert', aAllDifficulties:'All difficulties', aStreak7:'7-day streak', aCollector:'5 cosmetics owned', aRich:'1000 pearls earned', aPerfectionist:'10 perfect games', aSpeedrunner:'10 fast wins' },
+    help: {
+      title: 'How to play',
+      sections: [
+        { h: 'Goal', lines: [
+          'Flip two cards on each turn.',
+          'A match stays face-up; otherwise both cards flip back.',
+          'Clear every pair to win. Fewer moves and a faster time mean a better result.',
+        ] },
+        { h: 'Difficulties', lines: [
+          'Easy — 6 pairs, medium — 10, hard — 12, expert — 14.',
+          'Higher difficulty means more cards and a bigger reward.',
+        ] },
+        { h: "What's in the game", lines: [
+          'Collection — unlock sea themes, card backs and palettes for pearls.',
+          'Daily reward — come back each day to claim pearls.',
+          'Tasks — quests and achievements with rewards.',
+          'Records — the leaderboard of best results.',
+        ] },
+        { h: 'How to earn pearls 🦪', lines: [
+          'A base reward for every win.',
+          'Bonuses: a perfect game with no mistakes, a fast time and a new personal record.',
+          'The first win of the day pays ×2.',
+          'Repeated wins in a row pay less (anti-farming).',
+          'Plus: daily streak, quests, achievements and doubling via an ad.',
+        ] },
+        { h: 'XP and level', lines: [
+          'Every win grants experience (XP).',
+          'Fill the XP bar to gain a level.',
+          'Each new level rewards pearls.',
+        ] },
+      ],
+    },
   },
 
   tr: {
@@ -216,6 +281,38 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'Görevler', tasksTabQuests:'Görevler', tasksTabAch:'Başarılar', taskClaim:'AL', taskClaimed:'ALINDI', taskReroll:'YENİLE',
     quests: { qWinGames:'3 oyun kazan', qMatchPairs:'20 çift eşleştir', qPlayGames:'5 oyun oyna', qWinHard:'Zorda kazan', qPerfectWin:'Kusursuz oyun', qFastWin:'Hızlı zafer', qWinMedium:'Ortada 2 kez kazan', qMatchPairsBig:'40 çift eşleştir' },
     achievements: { aFirstWin:'İlk zafer', aWin10:'10 zafer', aWin50:'50 zafer', aPairs100:'100 çift', aPairs500:'500 çift', aExpertWin:'Uzmanda kazan', aAllDifficulties:'Tüm zorluklar', aStreak7:'7 günlük seri', aCollector:'5 kozmetik sahibi', aRich:'Toplam 1000 inci', aPerfectionist:'10 kusursuz oyun', aSpeedrunner:'10 hızlı zafer' },
+    help: {
+      title: 'Nasıl oynanır',
+      sections: [
+        { h: 'Amaç', lines: [
+          'Her turda iki kart çevir.',
+          'Eşleşirlerse açık kalır; yoksa iki kart da kapanır.',
+          'Kazanmak için tüm çiftleri aç. Daha az hamle ve daha hızlı süre daha iyi sonuç demektir.',
+        ] },
+        { h: 'Zorluklar', lines: [
+          'Kolay — 6 çift, orta — 10, zor — 12, uzman — 14.',
+          'Zorluk arttıkça kart sayısı ve ödül artar.',
+        ] },
+        { h: 'Oyunda neler var', lines: [
+          'Koleksiyon — inci ile deniz temaları, kart arkaları ve paletler aç.',
+          'Günlük ödül — her gün gel ve inci al.',
+          'Görevler — ödüllü görevler ve başarılar.',
+          'Rekorlar — en iyi sonuçların listesi.',
+        ] },
+        { h: 'İnci nasıl kazanılır 🦪', lines: [
+          'Her galibiyet için temel ödül.',
+          'Bonuslar: hatasız kusursuz oyun, hızlı süre ve yeni kişisel rekor.',
+          'Günün ilk galibiyeti ×2 öder.',
+          'Üst üste sık galibiyetler daha az öder (çiftlik koruması).',
+          'Ayrıca: günlük seri, görevler, başarılar ve reklamla ikiye katlama.',
+        ] },
+        { h: 'Tecrübe ve seviye', lines: [
+          'Her galibiyet tecrübe (XP) kazandırır.',
+          'Seviye atlamak için XP çubuğunu doldur.',
+          'Her yeni seviye inci ödülü verir.',
+        ] },
+      ],
+    },
   },
 
   es: {
@@ -269,6 +366,38 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'Tareas', tasksTabQuests:'Misiones', tasksTabAch:'Logros', taskClaim:'RECLAMAR', taskClaimed:'OBTENIDO', taskReroll:'CAMBIAR',
     quests: { qWinGames:'Gana 3 partidas', qMatchPairs:'Empareja 20 pares', qPlayGames:'Juega 5 partidas', qWinHard:'Gana en difícil', qPerfectWin:'Partida perfecta', qFastWin:'Victoria rápida', qWinMedium:'Gana 2 en medio', qMatchPairsBig:'Empareja 40 pares' },
     achievements: { aFirstWin:'Primera victoria', aWin10:'10 victorias', aWin50:'50 victorias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Gana en experto', aAllDifficulties:'Todas las dificultades', aStreak7:'Racha de 7 días', aCollector:'5 cosméticos', aRich:'1000 perlas en total', aPerfectionist:'10 partidas perfectas', aSpeedrunner:'10 victorias rápidas' },
+    help: {
+      title: 'Cómo jugar',
+      sections: [
+        { h: 'Objetivo', lines: [
+          'Voltea dos cartas por turno.',
+          'Si coinciden, quedan descubiertas; si no, ambas se voltean de nuevo.',
+          'Descubre todas las parejas para ganar. Menos movimientos y menos tiempo dan mejor resultado.',
+        ] },
+        { h: 'Dificultades', lines: [
+          'Fácil — 6 pares, medio — 10, difícil — 12, experto — 14.',
+          'A mayor dificultad, más cartas y mayor recompensa.',
+        ] },
+        { h: 'Qué hay en el juego', lines: [
+          'Colección — desbloquea mares, reversos y paletas con perlas.',
+          'Recompensa diaria — vuelve cada día para reclamar perlas.',
+          'Tareas — misiones y logros con recompensas.',
+          'Récords — la tabla de los mejores resultados.',
+        ] },
+        { h: 'Cómo ganar perlas 🦪', lines: [
+          'Una recompensa base por cada victoria.',
+          'Bonos: partida perfecta sin errores, tiempo rápido y nuevo récord personal.',
+          'La primera victoria del día paga ×2.',
+          'Las victorias seguidas pagan menos (anti-farmeo).',
+          'Además: racha diaria, misiones, logros y duplicar con un anuncio.',
+        ] },
+        { h: 'Experiencia y nivel', lines: [
+          'Cada victoria otorga experiencia (XP).',
+          'Llena la barra de XP para subir de nivel.',
+          'Cada nivel nuevo recompensa con perlas.',
+        ] },
+      ],
+    },
   },
 
   pt: {
@@ -322,6 +451,38 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'Tarefas', tasksTabQuests:'Missões', tasksTabAch:'Conquistas', taskClaim:'RESGATAR', taskClaimed:'RESGATADO', taskReroll:'TROCAR',
     quests: { qWinGames:'Vença 3 jogos', qMatchPairs:'Combine 20 pares', qPlayGames:'Jogue 5 jogos', qWinHard:'Vença no difícil', qPerfectWin:'Jogo perfeito', qFastWin:'Vitória rápida', qWinMedium:'Vença 2 no médio', qMatchPairsBig:'Combine 40 pares' },
     achievements: { aFirstWin:'Primeira vitória', aWin10:'10 vitórias', aWin50:'50 vitórias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Vença no especialista', aAllDifficulties:'Todas as dificuldades', aStreak7:'Sequência de 7 dias', aCollector:'5 cosméticos', aRich:'1000 pérolas no total', aPerfectionist:'10 jogos perfeitos', aSpeedrunner:'10 vitórias rápidas' },
+    help: {
+      title: 'Como jogar',
+      sections: [
+        { h: 'Objetivo', lines: [
+          'Vire duas cartas por vez.',
+          'Se forem iguais, ficam viradas; senão, as duas voltam.',
+          'Encontre todos os pares para vencer. Menos jogadas e menos tempo dão um resultado melhor.',
+        ] },
+        { h: 'Dificuldades', lines: [
+          'Fácil — 6 pares, médio — 10, difícil — 12, especialista — 14.',
+          'Quanto maior a dificuldade, mais cartas e maior recompensa.',
+        ] },
+        { h: 'O que há no jogo', lines: [
+          'Coleção — desbloqueie mares, versos e paletas com pérolas.',
+          'Recompensa diária — volte todos os dias para resgatar pérolas.',
+          'Tarefas — missões e conquistas com recompensas.',
+          'Recordes — a tabela dos melhores resultados.',
+        ] },
+        { h: 'Como ganhar pérolas 🦪', lines: [
+          'Uma recompensa base por cada vitória.',
+          'Bônus: jogo perfeito sem erros, tempo rápido e novo recorde pessoal.',
+          'A primeira vitória do dia paga ×2.',
+          'Vitórias seguidas pagam menos (anti-farm).',
+          'Além disso: sequência diária, missões, conquistas e dobrar com um anúncio.',
+        ] },
+        { h: 'Experiência e nível', lines: [
+          'Cada vitória concede experiência (XP).',
+          'Preencha a barra de XP para subir de nível.',
+          'Cada novo nível recompensa com pérolas.',
+        ] },
+      ],
+    },
   },
 
   // Arabic: no uppercase concept — labels are natural-case.
@@ -378,5 +539,37 @@ export const LOCALES: Record<Lang, Locale> = {
     tasks:'المهام', tasksTabQuests:'المهام', tasksTabAch:'الإنجازات', taskClaim:'استلام', taskClaimed:'تم الاستلام', taskReroll:'تبديل',
     quests: { qWinGames:'افز بـ ٣ مباريات', qMatchPairs:'طابق ٢٠ زوجاً', qPlayGames:'العب ٥ مباريات', qWinHard:'فز في الصعب', qPerfectWin:'مباراة مثالية', qFastWin:'فوز سريع', qWinMedium:'افز مرتين في المتوسط', qMatchPairsBig:'طابق ٤٠ زوجاً' },
     achievements: { aFirstWin:'الفوز الأول', aWin10:'١٠ انتصارات', aWin50:'٥٠ انتصاراً', aPairs100:'١٠٠ زوج', aPairs500:'٥٠٠ زوج', aExpertWin:'فز في الخبير', aAllDifficulties:'جميع الصعوبات', aStreak7:'سلسلة ٧ أيام', aCollector:'٥ عناصر تجميلية', aRich:'١٠٠٠ لؤلؤة إجمالاً', aPerfectionist:'١٠ مباريات مثالية', aSpeedrunner:'١٠ انتصارات سريعة' },
+    help: {
+      title: 'كيفية اللعب',
+      sections: [
+        { h: 'الهدف', lines: [
+          'اقلب بطاقتين في كل دور.',
+          'إذا تطابقتا تبقيان مكشوفتين، وإلا تُقلب البطاقتان من جديد.',
+          'اكشف جميع الأزواج للفوز. عدد حركات أقل ووقت أسرع يعنيان نتيجة أفضل.',
+        ] },
+        { h: 'الصعوبات', lines: [
+          'سهل — ٦ أزواج، متوسط — ١٠، صعب — ١٢، خبير — ١٤.',
+          'كلما زادت الصعوبة زاد عدد البطاقات والمكافأة.',
+        ] },
+        { h: 'ماذا في اللعبة', lines: [
+          'المجموعة — افتح أشكال البحر وظهور البطاقات والألوان مقابل اللؤلؤ.',
+          'المكافأة اليومية — عُد كل يوم لاستلام اللؤلؤ.',
+          'المهام — مهام وإنجازات مع مكافآت.',
+          'الأرقام القياسية — جدول أفضل النتائج.',
+        ] },
+        { h: 'كيف تكسب اللؤلؤ 🦪', lines: [
+          'مكافأة أساسية عن كل فوز.',
+          'مكافآت إضافية: مباراة مثالية بلا أخطاء، ووقت سريع، ورقم قياسي شخصي جديد.',
+          'أول فوز في اليوم يمنح ×2.',
+          'الانتصارات المتتالية المتكررة تمنح أقل (حماية من التكرار).',
+          'كذلك: سلسلة يومية، ومهام، وإنجازات، ومضاعفة عبر إعلان.',
+        ] },
+        { h: 'الخبرة والمستوى', lines: [
+          'كل فوز يمنح خبرة (XP).',
+          'املأ شريط الخبرة لرفع مستواك.',
+          'كل مستوى جديد يكافئك باللؤلؤ.',
+        ] },
+      ],
+    },
   },
 };

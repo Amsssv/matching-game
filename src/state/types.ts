@@ -58,6 +58,7 @@ export interface ModalState {
   daily: DailyView | null;
   tasks: { tab: TasksTab } | null;
   profile: boolean;   // player profile / level modal (B8)
+  help: boolean;      // "how to play" modal
 }
 
 export interface TransitionState {

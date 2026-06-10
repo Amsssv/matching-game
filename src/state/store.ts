@@ -4,7 +4,7 @@ import type { UiState, MenuState, HudState, ModalState } from './types';
 const INITIAL: UiState = {
   menu: { active: false, difficulty: 'medium', soundEnabled: true, lang: 'ru' },
   hud: { active: false, timer: '0:00', moves: '', pairs: '', movesCount: 0, pairsFound: 0, pairsTotal: 0 },
-  modal: { victory: null, leaderboard: null, shop: null, daily: null, tasks: null, profile: false },
+  modal: { victory: null, leaderboard: null, shop: null, daily: null, tasks: null, profile: false, help: false },
   transition: { visible: true },
 };
 

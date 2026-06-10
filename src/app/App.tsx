@@ -8,6 +8,7 @@ import { ShopModal } from '@widgets/ShopModal';
 import { DailyRewardModal } from '@widgets/DailyRewardModal';
 import { TasksModal } from '@widgets/TasksModal';
 import { ProfileModal } from '@widgets/ProfileModal';
+import { HelpModal } from '@widgets/HelpModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
@@ -18,6 +19,7 @@ export function App() {
   const daily = useUi(s => s.modal.daily);
   const tasks = useUi(s => s.modal.tasks);
   const profile = useUi(s => s.modal.profile);
+  const help = useUi(s => s.modal.help);
   const visible = useUi(s => s.transition.visible);
 
   return (
@@ -40,6 +42,7 @@ export function App() {
         {daily && <DailyRewardModal />}
         {tasks && <TasksModal />}
         {profile && <ProfileModal />}
+        {help && <HelpModal />}
       </div>
     </GameMount>
   );

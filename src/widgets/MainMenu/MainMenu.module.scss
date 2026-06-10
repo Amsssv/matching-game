@@ -25,9 +25,11 @@
 }
 // Neutralize the absolute positioning that PearlBalance / LanguageFlags use when
 // standalone, so they sit in flow inside the top bar (keeps them self-contained
-// for standalone use elsewhere).
+// for standalone use elsewhere). `relative` (not `static`) keeps them in flow AND
+// makes each its own containing block, so a button's claimable badge anchors to it
+// instead of escaping to the overlay root.
 .topLeft > *,
-.topBar > :global(*) { position: static; top: auto; left: auto; right: auto; }
+.topBar > :global(*) { position: relative; top: auto; left: auto; right: auto; }
 
 // ── Zone 2: center group (Title → Subtitle → Difficulty → Play) ──
 // flex:1 fills the middle and vertically centers the cohesive block, so there
@@ -81,10 +83,20 @@
 @media (max-width: 600px) {
   // Pull the center group nearer the top instead of floating mid-screen.
   .center { justify-content: flex-start; padding-top: clamp(8px, 4vh, 40px); }
+  // Top-left cluster → 2×2: profile under pearls (col 1), tasks under daily (col 2).
+  // DOM order is [pearls, daily, tasks, profile]; `order` swaps tasks↔profile so the
+  // grid column-aligns them without disturbing the desktop single-row order.
+  .topLeft {
+    display: grid; grid-template-columns: auto auto;
+    align-items: center; justify-items: start; gap: 8px;
+  }
+  .topLeft > :nth-child(3) { order: 4; } // tasks → bottom-right (under daily)
+  .topLeft > :nth-child(4) { order: 3; } // profile → bottom-left (under pearls)
   // Stack the bottom bar; action pills go full-width, the sound row centers itself.
   .bottomBar { align-items: stretch; flex-direction: column-reverse  }
   .bottomActions { width: 100%; }
-  .bottomActions > button { flex: 1; min-width: 0; }
+  // Only the two action pills stretch; the trailing round "?" help button keeps its circle.
+  .bottomActions > button:nth-child(-n+2) { flex: 1; min-width: 0; }
 }
 
 // Short landscape: tighten the top padding so the block still fits.

@@ -37,8 +37,8 @@ export function TasksModal() {
     unlockedCount,
   };
   // Per-tab "has something to claim" badges.
-  const questClaimable = quests.active.some((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; });
-  const achClaimable = ACHIEVEMENTS.some((a) => a.done(signals) && !claimed.includes(a.id));
+  const questClaimable = quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length;
+  const achClaimable = ACHIEVEMENTS.filter((a) => a.done(signals) && !claimed.includes(a.id)).length;
   return (
     <div className={styles.backdrop} data-testid="tasks" onClick={closeTasks}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
@@ -46,11 +46,11 @@ export function TasksModal() {
         <div className={styles.tabs} data-testid="tasks-tabs">
           <Button testId="tasks-tab-quests" type="primary" size="small" className={styles.tab}
                   active={tasks.tab === 'quests'} onClick={() => switchTasksTab('quests')}>
-            {L.tasksTabQuests}{questClaimable && <span className={styles.tabBadge} aria-hidden />}
+            {L.tasksTabQuests}{questClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{questClaimable}</span>}
           </Button>
           <Button testId="tasks-tab-achievements" type="primary" size="small" className={styles.tab}
                   active={tasks.tab === 'achievements'} onClick={() => switchTasksTab('achievements')}>
-            {L.tasksTabAch}{achClaimable && <span className={styles.tabBadge} aria-hidden />}
+            {L.tasksTabAch}{achClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{achClaimable}</span>}
           </Button>
         </div>
         <div className={styles.list}>

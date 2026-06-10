@@ -12,6 +12,7 @@ import { PearlBalance } from '@features/PearlBalance';
 import { DailyButton } from '@features/DailyButton';
 import { TasksButton } from '@features/TasksButton';
 import { ProfileButton } from '@features/ProfileButton';
+import { HelpButton } from '@features/HelpButton';
 import styles from './MainMenu.module.scss';
 
 export function MainMenu() {
@@ -51,6 +52,7 @@ export function MainMenu() {
               {L.shop}
             </span>
           </Button>
+          <HelpButton />
         </div>
         <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} />
       </footer>
