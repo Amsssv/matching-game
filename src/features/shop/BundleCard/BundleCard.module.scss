@@ -1,0 +1,12 @@
+@use '../../../styles/tokens' as *;
+
+.root {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: 10px; padding: 10px; border-radius: 10px;
+  border: 2px solid $gold-border;
+  background: rgb(var(--color-gold-rgb, 247 208 119) / 0.08);
+}
+.info { display: flex; flex-direction: column; gap: 3px; min-width: 0; text-align: left; }
+.name { color: $gold; font-family: $font-body; font-weight: 800; font-size: 14px; }
+.includes { color: $text-muted; font-size: 12px; line-height: 1.35; }
+.state { color: $gold; font-weight: 700; font-size: 13px; white-space: nowrap; }
