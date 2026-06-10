@@ -13,6 +13,7 @@
 .name { color: $white; font-family: $font-body; font-size: 14px; text-align: left; min-width: 0; }
 .state { color: $gold; font-weight: 700; font-size: 13px; white-space: nowrap; }
 .locked { opacity: 0.55; } // disabled buy button when the player can't afford it
+.actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; justify-self: end; }
 
 @media (max-width: 480px) {
   .root { gap: 8px; padding: 8px; }
