@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PEARL_PACKS, planPurchase } from '../iap';
+import { PEARL_PACKS, BUNDLES, planPurchase } from '../iap';
 import { CATALOG } from '../catalog';
 
 describe('iap', () => {
@@ -7,20 +7,25 @@ describe('iap', () => {
     expect(PEARL_PACKS).toHaveLength(4);
     expect(new Set(PEARL_PACKS.map((p) => p.id)).size).toBe(4);
     const pearls = PEARL_PACKS.map((p) => p.pearls);
-    expect([...pearls].sort((a, b) => a - b)).toEqual(pearls);   // already ascending
+    expect([...pearls].sort((a, b) => a - b)).toEqual(pearls);
   });
   it('planPurchase: a pack grants its pearls and is consumable', () => {
     expect(planPurchase('pearls_medium')).toEqual({ grantPearls: 1300, consume: true });
   });
-  it('planPurchase: a premium product unlocks its item and is NOT consumed', () => {
-    expect(planPurchase('ui_sand')).toEqual({ unlockItem: 'ui.sand', consume: false });
+  it('planPurchase: a single product unlocks one item and is NOT consumed', () => {
+    expect(planPurchase('ui_sand')).toEqual({ unlockItems: ['ui.sand'], consume: false });
   });
-  it('planPurchase: unknown product id → null (ignored, not consumed)', () => {
+  it('planPurchase: an exclusive item unlocks itself, not consumed', () => {
+    expect(planPurchase('ui_aurora')).toEqual({ unlockItems: ['ui.aurora'], consume: false });
+  });
+  it('planPurchase: a bundle grants its items + bonus pearls and IS consumed', () => {
+    expect(planPurchase('bundle_founder')).toEqual({ grantPearls: 1500, unlockItems: ['ui.aurora', 'back.prism'], consume: true });
+  });
+  it('planPurchase: unknown product id → null', () => {
     expect(planPurchase('totally_unknown')).toBeNull();
   });
-  it('every premium product id maps back to a catalog item with that productId', () => {
-    for (const item of CATALOG.filter((i) => i.productId)) {
-      expect(planPurchase(item.productId!)).toEqual({ unlockItem: item.id, consume: false });
-    }
+  it('every bundle references real catalog item ids', () => {
+    const ids = new Set(CATALOG.map((i) => i.id));
+    for (const b of BUNDLES) for (const id of b.items) expect(ids.has(id), `${b.id} → ${id}`).toBe(true);
   });
 });
