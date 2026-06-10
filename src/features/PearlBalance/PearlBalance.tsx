@@ -1,7 +1,7 @@
 import { useProgress } from '@hooks/useProgress';
 import { useUi } from '@hooks/useUiStore';
 import { LOCALES } from '../../game/i18n';
-import { openTopup } from '@state/purchasesController';
+import { openStore } from '@state/purchasesController';
 import { paymentsAvailable } from '../../payments';
 import styles from './PearlBalance.module.scss';
 
@@ -18,7 +18,7 @@ export function PearlBalance() {
     );
   }
   return (
-    <button type="button" className={styles.root} data-testid="pearl-balance" aria-label={LOCALES[lang].topupTitle} onClick={openTopup}>
+    <button type="button" className={styles.root} data-testid="pearl-balance" aria-label={LOCALES[lang].storeTitle} onClick={openStore}>
       <span className={styles.icon} aria-hidden>🦪</span>
       <span className={styles.count}>{pearls}</span>
       <span className={styles.plus} aria-hidden>＋</span>

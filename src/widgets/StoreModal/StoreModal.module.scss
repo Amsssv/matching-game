@@ -5,7 +5,7 @@
 @include modal-keyframes;
 
 .backdrop { @include modal-backdrop; }
-.panel { @include modal-panel; width: min(92vw, 420px); }
+.panel { @include modal-panel; width: min(94vw, 460px); }
 
 .head { width: 100%; display: flex; align-items: center; gap: 10px; }
 .title { @include modal-title; font-size: clamp(20px, 6vw, 28px); text-align: left; flex: 1; min-width: 0; }
@@ -19,7 +19,13 @@
   @include focus-ring;
 }
 
-.list { width: 100%; display: grid; gap: 8px; }
+.list { width: 100%; display: grid; gap: 8px; max-height: 66vh; overflow: auto; }
+.section {
+  margin: 10px 0 2px; text-align: left;
+  color: $gold; font-family: $font-body; font-weight: 800; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.section:first-child { margin-top: 0; }
 .pack {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 12px; border-radius: 12px;

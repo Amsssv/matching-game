@@ -24,7 +24,7 @@ const pearlsOf = (t: string) => parseInt(t.replace(/\D/g, ''), 10);
 // The dev server runs with import.meta.env.DEV === true and no Yandex SDK, so the
 // purchase flow takes the simulation branch (grants directly) — letting us e2e the UI.
 test.describe('IAP (dev simulation)', () => {
-  test('balance pill opens top-up; buying a pack grants pearls', async ({ page }) => {
+  test('balance pill opens the store; buying a pack grants pearls', async ({ page }) => {
     await page.addInitScript(seedProgress, { key: PROGRESS_KEY, pearls: 100 });
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
@@ -34,15 +34,15 @@ test.describe('IAP (dev simulation)', () => {
     expect(pearlsOf(await balance.innerText())).toBe(100);
 
     await balance.click();
-    await expect(page.getByTestId('topup')).toBeVisible();
+    await expect(page.getByTestId('store')).toBeVisible();
 
-    await page.getByTestId('topup-pack-pearls_small').getByRole('button').click();
+    await page.getByTestId('store-pack-pearls_small').getByRole('button').click();
 
     // dev simulation grants 500 directly; balance updates reactively
     await expect.poll(async () => pearlsOf(await balance.innerText())).toBe(600);
   });
 
-  test('premium cosmetic is buyable for money even with 0 pearls (dev simulation)', async ({ page }) => {
+  test('premium cosmetic is buyable for money in the Collection (dev simulation)', async ({ page }) => {
     await page.addInitScript(seedProgress, { key: PROGRESS_KEY, pearls: 0 });
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
@@ -61,13 +61,13 @@ test.describe('IAP (dev simulation)', () => {
     }).toContain('ui.sand');
   });
 
-  test('exclusive tab: buying a bundle grants all its items + bonus pearls (dev simulation)', async ({ page }) => {
+  test('store button: buying a bundle grants all its items + bonus pearls (dev simulation)', async ({ page }) => {
     await page.addInitScript(seedProgress, { key: PROGRESS_KEY, pearls: 0 });
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
 
-    await page.getByTestId('shop-open').click();
-    await page.getByTestId('shop-tab-exclusive').click();
+    await page.getByTestId('store-open').click();
+    await expect(page.getByTestId('store')).toBeVisible();
 
     // Founder's Pack = ui.aurora + back.prism + 1500 pearls.
     await page.getByTestId('bundle-buy-bundle_founder').click();

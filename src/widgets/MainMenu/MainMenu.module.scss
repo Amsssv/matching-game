@@ -23,12 +23,15 @@
   display: flex; align-items: center; gap: 8px;
   pointer-events: auto;
 }
+// Cluster splits into two flex rows (primary: pearls+store, secondary: daily/tasks/
+// profile) so mobile stacks them with each row sized independently; on desktop the two
+// rows sit side-by-side = one visual row.
+.clusterRow { display: flex; align-items: center; gap: 8px; }
 // Neutralize the absolute positioning that PearlBalance / LanguageFlags use when
-// standalone, so they sit in flow inside the top bar (keeps them self-contained
-// for standalone use elsewhere). `relative` (not `static`) keeps them in flow AND
-// makes each its own containing block, so a button's claimable badge anchors to it
-// instead of escaping to the overlay root.
-.topLeft > *,
+// standalone, so they sit in flow inside the top bar. `relative` (not `static`) keeps
+// them in flow AND makes each its own containing block, so a button's claimable badge
+// anchors to it instead of escaping to the overlay root.
+.clusterRow > *,
 .topBar > :global(*) { position: relative; top: auto; left: auto; right: auto; }
 
 // ── Zone 2: center group (Title → Subtitle → Difficulty → Play) ──
@@ -82,16 +85,10 @@
 // ── Mobile (portrait) ──
 @media (max-width: 600px) {
   // Pull the center group nearer the top instead of floating mid-screen.
-  .center { justify-content: flex-start; padding-top: clamp(8px, 4vh, 40px); }
-  // Top-left cluster → 2×2: profile under pearls (col 1), tasks under daily (col 2).
-  // DOM order is [pearls, daily, tasks, profile]; `order` swaps tasks↔profile so the
-  // grid column-aligns them without disturbing the desktop single-row order.
-  .topLeft {
-    display: grid; grid-template-columns: auto auto;
-    align-items: center; justify-items: start; gap: 8px;
-  }
-  .topLeft > :nth-child(3) { order: 4; } // tasks → bottom-right (under daily)
-  .topLeft > :nth-child(4) { order: 3; } // profile → bottom-left (under pearls)
+  .center { justify-content: flex-start  }
+  // Stack the two cluster rows on mobile: row 1 = 🦪 + store, row 2 = 🎁 📋 Lv —
+  // each row snug with independent widths. Desktop keeps them side-by-side.
+  .topLeft { flex-direction: column; align-items: flex-start; }
   // Stack the bottom bar; action pills go full-width, the sound row centers itself.
   .bottomBar { align-items: stretch; flex-direction: column-reverse  }
   .bottomActions { width: 100%; }

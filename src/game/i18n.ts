@@ -57,9 +57,11 @@ export interface Locale {
   quests: Record<string, string>;
   achievements: Record<string, string>;
   help: { title: string; sections: { h: string; lines: string[] }[] };
-  topupTitle: string;   // "Get pearls" modal title
+  storeTitle: string;   // premium store modal title
   iapBuy: string;       // generic money-buy button label (fallback when SDK price is unknown)
-  shopTabExclusive: string;   // ✨ shop tab label
+  storePacks: string;   // store section header: pearl packs
+  storeBundles: string; // store section header: bundles
+  shopTabExclusive: string;   // store section header: exclusives
   bundleIncludes: string;     // "Includes:" prefix on a bundle card
   bundleOwned: string;        // bundle fully-owned state label
 }
@@ -113,7 +115,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина', backSilver:'Серебро', backJade:'Нефрит', backOnyx:'Оникс',
       uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист', uiCrimson:'Багрянец', uiSlate:'Графит', uiSand:'Песок', uiAurora:'Аврора', backPrism:'Призма', bundleFounder:'Набор основателя', bundlePremium:'Премиум-набор' },
     dailyTitle: 'Ежедневная награда', dailyClaim: 'Забрать', dailyDouble: 'Удвоить за рекламу', dailyComeBack: 'Возвращайтесь завтра!',
-    topupTitle: 'Пополнить жемчуг', iapBuy: 'Купить',
+    storeTitle: 'Магазин', iapBuy: 'Купить', storePacks: 'Жемчуг', storeBundles: 'Наборы',
     shopTabExclusive: 'Эксклюзив', bundleIncludes: 'В наборе:', bundleOwned: 'Получено',
     tasks:'Задания', tasksTabQuests:'Квесты', tasksTabAch:'Достижения', taskClaim:'Забрать', taskClaimed:'Получено', taskReroll:'Обновить',
     quests: { qWinGames:'Выиграй 3 игры', qMatchPairs:'Собери 20 пар', qPlayGames:'Сыграй 5 игр', qWinHard:'Победа на сложном', qPerfectWin:'Идеальная игра', qFastWin:'Быстрая победа', qWinMedium:'2 победы на среднем', qMatchPairsBig:'Собери 40 пар' },
@@ -135,6 +137,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Ежедневная награда — заходи каждый день и забирай жемчуг.',
           'Задания — квесты и достижения с наградами.',
           'Рекорды — таблица лучших результатов.',
+          'Магазин — паки жемчуга, наборы и эксклюзивные предметы за деньги.',
         ] },
         { h: 'Как заработать жемчуг 🦪', lines: [
           'Базовая награда за каждую победу.',
@@ -200,7 +203,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep', backSilver:'Silver', backJade:'Jade', backOnyx:'Onyx',
       uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst', uiCrimson:'Crimson', uiSlate:'Slate', uiSand:'Sand', uiAurora:'Aurora', backPrism:'Prism', bundleFounder:"Founder's Pack", bundlePremium:'Premium Pack' },
     dailyTitle: 'Daily reward', dailyClaim: 'Claim', dailyDouble: 'Double via ad', dailyComeBack: 'Come back tomorrow!',
-    topupTitle: 'Get pearls', iapBuy: 'Buy',
+    storeTitle: 'Store', iapBuy: 'Buy', storePacks: 'Pearls', storeBundles: 'Bundles',
     shopTabExclusive: 'Exclusive', bundleIncludes: 'Includes:', bundleOwned: 'Owned',
     tasks:'Tasks', tasksTabQuests:'Quests', tasksTabAch:'Achievements', taskClaim:'Claim', taskClaimed:'Claimed', taskReroll:'Reroll',
     quests: { qWinGames:'Win 3 games', qMatchPairs:'Match 20 pairs', qPlayGames:'Play 5 games', qWinHard:'Win on hard', qPerfectWin:'A perfect game', qFastWin:'A fast win', qWinMedium:'Win 2 on medium', qMatchPairsBig:'Match 40 pairs' },
@@ -222,6 +225,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Daily reward — come back each day to claim pearls.',
           'Tasks — quests and achievements with rewards.',
           'Records — the leaderboard of best results.',
+          'Store — pearl packs, bundles and exclusive items for real money.',
         ] },
         { h: 'How to earn pearls 🦪', lines: [
           'A base reward for every win.',
@@ -287,7 +291,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik', backSilver:'Gümüş', backJade:'Yeşim', backOnyx:'Oniks',
       uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist', uiCrimson:'Kızıl', uiSlate:'Arduvaz', uiSand:'Kum', uiAurora:'Aurora', backPrism:'Prizma', bundleFounder:'Kurucu Paketi', bundlePremium:'Premium Paket' },
     dailyTitle: 'Günlük ödül', dailyClaim: 'AL', dailyDouble: 'REKLAMLA İKİYE KATLA', dailyComeBack: 'Yarın tekrar gel!',
-    topupTitle: 'İnci al', iapBuy: 'Satın al',
+    storeTitle: 'Mağaza', iapBuy: 'Satın al', storePacks: 'İnci', storeBundles: 'Paketler',
     shopTabExclusive: 'Özel', bundleIncludes: 'İçindekiler:', bundleOwned: 'Alındı',
     tasks:'Görevler', tasksTabQuests:'Görevler', tasksTabAch:'Başarılar', taskClaim:'AL', taskClaimed:'ALINDI', taskReroll:'YENİLE',
     quests: { qWinGames:'3 oyun kazan', qMatchPairs:'20 çift eşleştir', qPlayGames:'5 oyun oyna', qWinHard:'Zorda kazan', qPerfectWin:'Kusursuz oyun', qFastWin:'Hızlı zafer', qWinMedium:'Ortada 2 kez kazan', qMatchPairsBig:'40 çift eşleştir' },
@@ -309,6 +313,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Günlük ödül — her gün gel ve inci al.',
           'Görevler — ödüllü görevler ve başarılar.',
           'Rekorlar — en iyi sonuçların listesi.',
+          'Mağaza — inci paketleri, paketler ve özel öğeler (gerçek para).',
         ] },
         { h: 'İnci nasıl kazanılır 🦪', lines: [
           'Her galibiyet için temel ödül.',
@@ -374,7 +379,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Plata', backJade:'Jade', backOnyx:'Ónix',
       uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista', uiCrimson:'Carmesí', uiSlate:'Pizarra', uiSand:'Arena', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pack de fundador', bundlePremium:'Pack premium' },
     dailyTitle: 'Recompensa diaria', dailyClaim: 'RECLAMAR', dailyDouble: 'DUPLICAR CON ANUNCIO', dailyComeBack: '¡Vuelve mañana!',
-    topupTitle: 'Conseguir perlas', iapBuy: 'Comprar',
+    storeTitle: 'Tienda', iapBuy: 'Comprar', storePacks: 'Perlas', storeBundles: 'Packs',
     shopTabExclusive: 'Exclusivo', bundleIncludes: 'Incluye:', bundleOwned: 'Obtenido',
     tasks:'Tareas', tasksTabQuests:'Misiones', tasksTabAch:'Logros', taskClaim:'RECLAMAR', taskClaimed:'OBTENIDO', taskReroll:'CAMBIAR',
     quests: { qWinGames:'Gana 3 partidas', qMatchPairs:'Empareja 20 pares', qPlayGames:'Juega 5 partidas', qWinHard:'Gana en difícil', qPerfectWin:'Partida perfecta', qFastWin:'Victoria rápida', qWinMedium:'Gana 2 en medio', qMatchPairsBig:'Empareja 40 pares' },
@@ -396,6 +401,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Recompensa diaria — vuelve cada día para reclamar perlas.',
           'Tareas — misiones y logros con recompensas.',
           'Récords — la tabla de los mejores resultados.',
+          'Tienda — packs de perlas, lotes y objetos exclusivos por dinero real.',
         ] },
         { h: 'Cómo ganar perlas 🦪', lines: [
           'Una recompensa base por cada victoria.',
@@ -461,7 +467,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Prata', backJade:'Jade', backOnyx:'Ônix',
       uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista', uiCrimson:'Carmesim', uiSlate:'Ardósia', uiSand:'Areia', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pacote do fundador', bundlePremium:'Pacote premium' },
     dailyTitle: 'Recompensa diária', dailyClaim: 'RESGATAR', dailyDouble: 'DOBRAR COM ANÚNCIO', dailyComeBack: 'Volte amanhã!',
-    topupTitle: 'Obter pérolas', iapBuy: 'Comprar',
+    storeTitle: 'Loja', iapBuy: 'Comprar', storePacks: 'Pérolas', storeBundles: 'Pacotes',
     shopTabExclusive: 'Exclusivo', bundleIncludes: 'Inclui:', bundleOwned: 'Obtido',
     tasks:'Tarefas', tasksTabQuests:'Missões', tasksTabAch:'Conquistas', taskClaim:'RESGATAR', taskClaimed:'RESGATADO', taskReroll:'TROCAR',
     quests: { qWinGames:'Vença 3 jogos', qMatchPairs:'Combine 20 pares', qPlayGames:'Jogue 5 jogos', qWinHard:'Vença no difícil', qPerfectWin:'Jogo perfeito', qFastWin:'Vitória rápida', qWinMedium:'Vença 2 no médio', qMatchPairsBig:'Combine 40 pares' },
@@ -483,6 +489,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Recompensa diária — volte todos os dias para resgatar pérolas.',
           'Tarefas — missões e conquistas com recompensas.',
           'Recordes — a tabela dos melhores resultados.',
+          'Loja — pacotes de pérolas, lotes e itens exclusivos por dinheiro real.',
         ] },
         { h: 'Como ganhar pérolas 🦪', lines: [
           'Uma recompensa base por cada vitória.',
@@ -551,7 +558,7 @@ export const LOCALES: Record<Lang, Locale> = {
       backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق', backSilver:'فضي', backJade:'يشم', backOnyx:'عقيق',
       uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت', uiCrimson:'قرمزي', uiSlate:'أردوازي', uiSand:'رملي', uiAurora:'الشفق', backPrism:'منشور', bundleFounder:'حزمة المؤسس', bundlePremium:'الحزمة المميزة' },
     dailyTitle: 'المكافأة اليومية', dailyClaim: 'استلام', dailyDouble: 'مضاعفة عبر إعلان', dailyComeBack: 'عُد غداً!',
-    topupTitle: 'احصل على اللؤلؤ', iapBuy: 'شراء',
+    storeTitle: 'المتجر', iapBuy: 'شراء', storePacks: 'اللؤلؤ', storeBundles: 'الحزم',
     shopTabExclusive: 'حصري', bundleIncludes: 'يشمل:', bundleOwned: 'تم الحصول',
     tasks:'المهام', tasksTabQuests:'المهام', tasksTabAch:'الإنجازات', taskClaim:'استلام', taskClaimed:'تم الاستلام', taskReroll:'تبديل',
     quests: { qWinGames:'افز بـ ٣ مباريات', qMatchPairs:'طابق ٢٠ زوجاً', qPlayGames:'العب ٥ مباريات', qWinHard:'فز في الصعب', qPerfectWin:'مباراة مثالية', qFastWin:'فوز سريع', qWinMedium:'افز مرتين في المتوسط', qMatchPairsBig:'طابق ٤٠ زوجاً' },
@@ -573,6 +580,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'المكافأة اليومية — عُد كل يوم لاستلام اللؤلؤ.',
           'المهام — مهام وإنجازات مع مكافآت.',
           'الأرقام القياسية — جدول أفضل النتائج.',
+          'المتجر — حزم لؤلؤ وحزم وعناصر حصرية مقابل مال حقيقي.',
         ] },
         { h: 'كيف تكسب اللؤلؤ 🦪', lines: [
           'مكافأة أساسية عن كل فوز.',

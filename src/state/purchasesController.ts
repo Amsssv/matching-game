@@ -5,8 +5,8 @@ import { setModal } from './store';
 
 const SIMULATE = import.meta.env.DEV;   // dev: simulate purchases when the Payments SDK is absent
 
-export function openTopup(): void { setModal({ topup: true }); }
-export function closeTopup(): void { setModal({ topup: false }); }
+export function openStore(): void { setModal({ store: true }); }
+export function closeStore(): void { setModal({ store: false }); }
 
 /** Grant a plan's pearls + items (idempotent for items). */
 function applyPlan(plan: PurchasePlan): void {

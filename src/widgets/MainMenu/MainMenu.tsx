@@ -9,6 +9,7 @@ import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
 import { LanguageFlags } from '@features/LanguageFlags';
 import { PearlBalance } from '@features/PearlBalance';
+import { StoreButton } from '@features/StoreButton';
 import { DailyButton } from '@features/DailyButton';
 import { TasksButton } from '@features/TasksButton';
 import { ProfileButton } from '@features/ProfileButton';
@@ -22,10 +23,15 @@ export function MainMenu() {
     <div className={styles.root} data-testid="menu">
       <header className={styles.topBar}>
         <div className={styles.topLeft}>
-          <PearlBalance />
-          <DailyButton />
-          <TasksButton />
-          <ProfileButton />
+          <div className={styles.clusterRow}>
+            <PearlBalance />
+            <StoreButton />
+          </div>
+          <div className={styles.clusterRow}>
+            <DailyButton />
+            <TasksButton />
+            <ProfileButton />
+          </div>
         </div>
         <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
       </header>

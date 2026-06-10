@@ -1,5 +1,4 @@
 export type CustomAxis = 'seaTheme' | 'cardBack' | 'uiPalette';
-export type ShopTab = CustomAxis | 'exclusive';
 
 export interface ShopItem {
   id: string;

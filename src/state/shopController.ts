@@ -2,11 +2,11 @@ import { setModal } from './store';
 import { equipItem as equipInStore, buyItem as buyInStore } from './progress';
 import { applyUiPalette } from './uiPalette';
 import { bus } from './eventBus';
-import type { CustomAxis, ShopTab } from './catalog';
+import type { CustomAxis } from './catalog';
 
-export function openShop(tab: ShopTab = 'seaTheme') { setModal({ shop: { tab } }); }
+export function openShop(tab: CustomAxis = 'seaTheme') { setModal({ shop: { tab } }); }
 export function closeShop() { setModal({ shop: null }); }
-export function switchShopTab(tab: ShopTab) { setModal({ shop: { tab } }); }
+export function switchShopTab(tab: CustomAxis) { setModal({ shop: { tab } }); }
 
 // Facade so the shop UI imports its whole action surface from one module (@state/shopController).
 export function buy(id: string): boolean { return buyInStore(id); }

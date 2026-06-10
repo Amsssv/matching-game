@@ -1,7 +1,7 @@
 import type { Difficulty } from '../game/layout';
 import type { Lang } from '../game/i18n';
 import type { LeaderboardData } from '../game/leaderboard';
-import type { ShopTab } from './catalog';
+import type { CustomAxis } from './catalog';
 
 export interface MenuState {
   active: boolean;
@@ -54,12 +54,12 @@ export type TasksTab = 'quests' | 'achievements';
 export interface ModalState {
   victory: VictoryView | null;
   leaderboard: LeaderboardView | null;
-  shop: { tab: ShopTab } | null;
+  shop: { tab: CustomAxis } | null;
   daily: DailyView | null;
   tasks: { tab: TasksTab } | null;
   profile: boolean;   // player profile / level modal (B8)
   help: boolean;      // "how to play" modal
-  topup: boolean;     // "get pearls" / pearl-pack purchase modal (B7)
+  store: boolean;     // premium store modal — packs + bundles + exclusives (B7 + exclusives)
 }
 
 export interface TransitionState {
