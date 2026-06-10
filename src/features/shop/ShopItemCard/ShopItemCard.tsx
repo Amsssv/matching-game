@@ -27,7 +27,7 @@ export function ShopItemCard({ item, L }: { item: ShopItem; L: Locale }) {
           <span className={styles.state}>✓ {L.shopEquipped}</span>
         ) : owned ? (
           <Button type="secondary" size="small" onClick={() => equip(item.axis, item.id)}>{L.shopEquip}</Button>
-        ) : affordable ? (
+        ) : item.exclusive ? null : affordable ? (
           <Button type="primary" size="small" onClick={() => { if (buy(item.id)) equip(item.axis, item.id); }}>{`${item.price} 🦪`}</Button>
         ) : (
           // Locked: can't afford with pearls yet — a single disabled button (lock + price).
