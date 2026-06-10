@@ -31,3 +31,4 @@ docs
 *.njsproj
 *.sln
 *.sw?
+test-results/
