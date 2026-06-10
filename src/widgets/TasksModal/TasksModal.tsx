@@ -4,6 +4,7 @@ import { useProgress } from '@hooks/useProgress';
 import { LOCALES } from '../../game/i18n';
 import { Button } from '@ui/Button';
 import { ACHIEVEMENTS } from '@state/achievements';
+import { QUEST_BY_ID } from '@state/quests';
 import { closeTasks, switchTasksTab } from '@state/tasksController';
 import { QuestRow } from '@features/tasks/QuestRow';
 import { AchievementRow } from '@features/tasks/AchievementRow';
@@ -35,21 +36,28 @@ export function TasksModal() {
     streakBest,
     unlockedCount,
   };
+  // Per-tab "has something to claim" badges.
+  const questClaimable = quests.active.some((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; });
+  const achClaimable = ACHIEVEMENTS.some((a) => a.done(signals) && !claimed.includes(a.id));
   return (
     <div className={styles.backdrop} data-testid="tasks" onClick={closeTasks}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{L.tasks}</h2>
         <div className={styles.tabs} data-testid="tasks-tabs">
-          <Button testId="tasks-tab-quests" type="primary" size="small"
-                  active={tasks.tab === 'quests'} onClick={() => switchTasksTab('quests')}>{L.tasksTabQuests}</Button>
-          <Button testId="tasks-tab-achievements" type="primary" size="small"
-                  active={tasks.tab === 'achievements'} onClick={() => switchTasksTab('achievements')}>{L.tasksTabAch}</Button>
+          <Button testId="tasks-tab-quests" type="primary" size="small" className={styles.tab}
+                  active={tasks.tab === 'quests'} onClick={() => switchTasksTab('quests')}>
+            {L.tasksTabQuests}{questClaimable && <span className={styles.tabBadge} aria-hidden />}
+          </Button>
+          <Button testId="tasks-tab-achievements" type="primary" size="small" className={styles.tab}
+                  active={tasks.tab === 'achievements'} onClick={() => switchTasksTab('achievements')}>
+            {L.tasksTabAch}{achClaimable && <span className={styles.tabBadge} aria-hidden />}
+          </Button>
         </div>
         <div className={styles.list}>
           {tasks.tab === 'quests'
             ? quests.active.map((slot, i) => <QuestRow key={slot.id} slot={slot} index={i} L={L} />)
             : ACHIEVEMENTS.map((def) => (
-                <AchievementRow key={def.id} def={def} done={def.done(signals)} claimed={claimed.includes(def.id)} L={L} />
+                <AchievementRow key={def.id} def={def} done={def.done(signals)} progress={def.progress(signals)} claimed={claimed.includes(def.id)} L={L} />
               ))}
         </div>
         <Button testId="tasks-close" type="secondary" size="large" onClick={closeTasks}>{L.lbClose}</Button>

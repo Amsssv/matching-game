@@ -1,4 +1,5 @@
 @use '../../styles/modal' as *;
+@use '../../styles/tokens' as *;
 
 @include modal-keyframes;
 
@@ -7,4 +8,10 @@
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
 .tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
 .tabs button { min-width: 0; padding: 6px 4px; }
+.tab { position: relative; }   // anchor for the claimable badge
+.tabBadge {
+  position: absolute; top: 2px; right: 4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: $gold; border: 2px solid $navy;   // navy ring stays visible on the gold active tab
+}
 .list { display: grid; gap: 8px; max-height: 55vh; overflow: auto; width: 100%; }

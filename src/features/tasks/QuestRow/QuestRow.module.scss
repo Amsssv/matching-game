@@ -12,7 +12,7 @@
   height: 6px; border-radius: 4px; overflow: hidden;
   background: rgb(var(--color-navy-soft-rgb, 0 34 68) / 0.9);
 }
-.fill { height: 100%; background: $gold; border-radius: 4px; transition: width 200ms ease; }
+.fill { height: 100%; background: linear-gradient(90deg, $gold-border, $gold); border-radius: 4px; transition: width 200ms ease; }
 .count { color: $text-muted; font-family: $font-body; font-size: 12px; }
 .control { display: flex; align-items: center; }
 .state { color: $gold; font-weight: 700; font-size: 13px; }

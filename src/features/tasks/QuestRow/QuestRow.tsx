@@ -25,7 +25,7 @@ export function QuestRow({ slot, index, L }: { slot: QuestSlot; index: number; L
           ? <span className={styles.state}>{L.taskClaimed}</span>
           : done
             ? <Button type="primary" size="small" onClick={() => claimQuest(slot.id)}>{`${L.taskClaim} ${def.reward} 🦪`}</Button>
-            : <Button type="secondary" size="small" onClick={() => rerollWithAd(index)}>↻</Button>}
+            : <Button type="secondary" size="small" onClick={() => rerollWithAd(index)}>{`▶ ${L.taskReroll}`}</Button>}
       </div>
     </div>
   );
