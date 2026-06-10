@@ -42,6 +42,9 @@ export async function goToGameScene(
     game.registry.set('difficulty', diff);
     game.registry.set('soundEnabled', false);
     game.scene.start('GameScene');
+    // Stop MenuScene so its `shutdown` handler runs setMenu({ active: false });
+    // otherwise the React menu overlay stays mounted on top of the game canvas.
+    game.scene.stop('MenuScene');
   }, difficulty);
   // Wait for scene transition + fade-in
   await page.waitForTimeout(700);
