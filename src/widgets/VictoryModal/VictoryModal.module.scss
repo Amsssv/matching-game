@@ -20,6 +20,8 @@
 
 .reward { color: $gold; font-weight: 800; font-size: clamp(18px, 6vw, 26px); margin: 0; }
 .firstWin { color: $gold; font-weight: 700; font-size: 13px; margin: 0; } // "first win ×2" — bonus already in the reward
+.xpInline { color: $text-muted; font-size: 0.62em; font-weight: 700; } // earned XP, appended to the pearl reward
+.levelUp { color: $gold; font-weight: 800; font-size: 14px; margin: 0; } // level-up celebration chip
 
 // Stat tiles (moves · time + delta-to-record).
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }

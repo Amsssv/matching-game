@@ -30,6 +30,9 @@ export interface VictoryView {
   prevBest: number | null; // previous best seconds (for delta-to-record), null on first win
   doubled: boolean;       // reward already doubled via rewarded ad
   firstWinOfDay: boolean; // this win was the day's first (reward ×2 already baked in)
+  xpGained: number;       // XP earned for this win
+  leveledUp: boolean;     // this win raised the player level
+  newLevel: number;       // resulting player level
 }
 
 export interface LeaderboardView {
@@ -54,6 +57,7 @@ export interface ModalState {
   shop: { tab: CustomAxis } | null;
   daily: DailyView | null;
   tasks: { tab: TasksTab } | null;
+  profile: boolean;   // player profile / level modal (B8)
 }
 
 export interface TransitionState {

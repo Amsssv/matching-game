@@ -68,7 +68,7 @@ export class UIScene extends Phaser.Scene {
       const { isRecord, prevBest, winIndex, firstWinOfDay } = winContext(difficulty, this.elapsedSeconds);
       const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs, { isRecord, winIndex });
       awardPearls(pearlsEarned);
-      recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n });
+      const win = recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n });
       const leaderboards = getYSDK()?.leaderboards;
       // Fire-and-forget: don't block victory screen on the network call. Yandex
       // setScore always overwrites — guard with getPlayerEntry so we only submit
@@ -80,7 +80,7 @@ export class UIScene extends Phaser.Scene {
             .catch(() => leaderboards.setScore(LB_ID[difficulty], newYScore))
             .then(() => {}).catch(() => {})
         : Promise.resolve();
-      this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, isRecord, prevBest, firstWinOfDay);
+      this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, { isRecord, prevBest, firstWinOfDay, xpGained: win.xpGained, leveledUp: win.leveledUp, newLevel: win.newLevel });
     };
 
     this.gameScene.events.on('moves-updated', onMoves,    this);
@@ -110,9 +110,9 @@ export class UIScene extends Phaser.Scene {
   }
 
   // ── Victory ──────────────────────────────────────────────────────────────────
-  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void> = Promise.resolve(), pearlsEarned = 0, isRecord = false, prevBest: number | null = null, firstWinOfDay = false) {
+  private showVictory(moves: number, seconds: number, scoreSaved: Promise<void>, pearlsEarned: number, ctx: { isRecord: boolean; prevBest: number | null; firstWinOfDay: boolean; xpGained: number; leveledUp: boolean; newLevel: number }) {
     this.audioManager()?.duck();
-    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false, pearlsEarned, isRecord, prevBest, doubled: false, firstWinOfDay } });
+    setModal({ victory: { moves, seconds, compact: null, showAuthCta: false, pearlsEarned, doubled: false, ...ctx } });
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     // Chain after the score save so the compact leaderboard includes the new result.

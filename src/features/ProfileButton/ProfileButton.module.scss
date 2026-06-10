@@ -1,0 +1,15 @@
+@use '../../styles/tokens' as *;
+
+.btn {
+  pointer-events: auto; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 40px;
+  padding: 5px 12px; border-radius: 999px;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.6);
+  border: 2px solid $gold-border;
+  color: $gold; font-family: $font-body; font-weight: 700; font-size: 14px;
+  transition: background $duration-hover ease-out;
+  &:hover { background: $blue; }
+  &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+}
+.lv { font-size: 11px; opacity: 0.8; }

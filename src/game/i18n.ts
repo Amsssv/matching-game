@@ -19,6 +19,9 @@ export interface Locale {
   allPairsFound: string;
   vRecord: string;        // victory "new record" banner
   vFirstWin: string;      // victory "first win of the day ×2" chip
+  profile: string;        // profile modal title + button
+  level: string;          // "Level" label
+  statGames: string; statWins: string; statPairs: string;   // profile lifetime-stat labels
   movesResult: (n: number) => string;
   timeResult: (t: string) => string;
   restart: string;
@@ -85,6 +88,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: 'Все пары найдены!',
     vRecord: 'Новый рекорд!',
     vFirstWin: 'Первая победа ×2',
+    profile: 'Профиль', level: 'Уровень', statGames: 'Игры', statWins: 'Победы', statPairs: 'Пары',
     movesResult: (n) => `Ходов: ${n}`,
     timeResult:  (t) => `Время: ${t}`,
     restart: 'ЗАНОВО',
@@ -137,6 +141,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: 'All pairs found!',
     vRecord: 'New record!',
     vFirstWin: 'First win ×2',
+    profile: 'Profile', level: 'Level', statGames: 'Games', statWins: 'Wins', statPairs: 'Pairs',
     movesResult: (n) => `Moves: ${n}`,
     timeResult:  (t) => `Time: ${t}`,
     restart: 'RESTART',
@@ -189,6 +194,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: 'Tüm çiftler bulundu!',
     vRecord: 'Yeni rekor!',
     vFirstWin: 'İlk galibiyet ×2',
+    profile: 'Profil', level: 'Seviye', statGames: 'Oyunlar', statWins: 'Galibiyet', statPairs: 'Çiftler',
     movesResult: (n) => `Hamle: ${n}`,
     timeResult:  (t) => `Süre: ${t}`,
     restart: 'YENİDEN',
@@ -241,6 +247,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: '¡Todos los pares encontrados!',
     vRecord: '¡Nuevo récord!',
     vFirstWin: 'Primera victoria ×2',
+    profile: 'Perfil', level: 'Nivel', statGames: 'Partidas', statWins: 'Victorias', statPairs: 'Pares',
     movesResult: (n) => `Movimientos: ${n}`,
     timeResult:  (t) => `Tiempo: ${t}`,
     restart: 'REINICIAR',
@@ -293,6 +300,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: 'Todos os pares encontrados!',
     vRecord: 'Novo recorde!',
     vFirstWin: 'Primeira vitória ×2',
+    profile: 'Perfil', level: 'Nível', statGames: 'Jogos', statWins: 'Vitórias', statPairs: 'Pares',
     movesResult: (n) => `Jogadas: ${n}`,
     timeResult:  (t) => `Tempo: ${t}`,
     restart: 'REINICIAR',
@@ -348,6 +356,7 @@ export const LOCALES: Record<Lang, Locale> = {
     allPairsFound: 'تم العثور على جميع الأزواج!',
     vRecord: 'رقم قياسي جديد!',
     vFirstWin: 'الفوز الأول ×2',
+    profile: 'الملف', level: 'المستوى', statGames: 'الألعاب', statWins: 'الانتصارات', statPairs: 'الأزواج',
     movesResult: (n) => `الحركات: ${n}`,
     timeResult:  (t) => `الوقت: ${t}`,
     restart: 'مجدداً',

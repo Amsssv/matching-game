@@ -13,7 +13,7 @@ export function VictoryModal() {
   const lang = useUi(s => s.menu.lang);
   if (!victory) return null;
   const L = LOCALES[lang];
-  const { moves, seconds, pearlsEarned, isRecord, prevBest, doubled, compact, showAuthCta, firstWinOfDay } = victory;
+  const { moves, seconds, pearlsEarned, isRecord, prevBest, doubled, compact, showAuthCta, firstWinOfDay, xpGained, leveledUp, newLevel } = victory;
   const shownPearls = doubled ? pearlsEarned * 2 : pearlsEarned;
   const canDouble = pearlsEarned > 0 && !doubled && !!getYSDK()?.adv?.showRewardedVideo;
   const delta = prevBest != null ? seconds - prevBest : null; // <0 = faster than the old best
@@ -26,8 +26,9 @@ export function VictoryModal() {
         <p className={styles.subtitle}>{L.allPairsFound}</p>
 
         {pearlsEarned > 0 && (
-          <p className={styles.reward} data-testid="victory-pearls">+{shownPearls} 🦪</p>
+          <p className={styles.reward} data-testid="victory-pearls">+{shownPearls} 🦪<span className={styles.xpInline} data-testid="victory-xp"> · +{xpGained} XP</span></p>
         )}
+        {leveledUp && <p className={styles.levelUp} data-testid="victory-levelup">🎉 {L.level} {newLevel}</p>}
         {firstWinOfDay && <p className={styles.firstWin} data-testid="victory-firstwin">🎁 {L.vFirstWin}</p>}
         {canDouble && (
           <Button testId="victory-double" type="primary" size="large" className={styles.doubleCta} onClick={doubleVictoryReward}>{`▶ ${L.dailyDouble}`}</Button>

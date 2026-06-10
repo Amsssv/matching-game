@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { computePearls } from '../progress';
+import { computePearls, levelFromXp } from '../progress';
 import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
   buyItem, equipItem, isUnlocked,
@@ -40,6 +40,13 @@ describe('computePearls', () => {
   });
 });
 
+describe('levelFromXp', () => {
+  it('is level 1 at 0 xp', () => { expect(levelFromXp(0)).toEqual({ level: 1, into: 0, span: 100 }); });
+  it('tracks progress within a level', () => { expect(levelFromXp(40)).toEqual({ level: 1, into: 40, span: 100 }); });
+  it('reaches level 2 at 100 xp (span grows to 150)', () => { expect(levelFromXp(100)).toEqual({ level: 2, into: 0, span: 150 }); });
+  it('reaches level 3 at 250 xp (100 + 150)', () => { expect(levelFromXp(250)).toEqual({ level: 3, into: 0, span: 200 }); });
+});
+
 describe('progress mutators', () => {
   beforeEach(() => { localStorage.clear(); resetProgress(); });
 
@@ -51,6 +58,18 @@ describe('progress mutators', () => {
     awardPearls(30);
     expect(progressStore.get().pearls).toBe(30);
     expect(JSON.parse(localStorage.getItem('sea-pairs-progress')!).pearls).toBe(30);
+  });
+  it('recordGameWin accrues XP and grants a level-up reward', () => {
+    // expert win = 25 XP; level 1→2 needs 100 XP → the 4th expert win levels up (+50 🦪).
+    for (let i = 0; i < 3; i++) recordGameWin({ difficulty: 'expert', seconds: 200, pairs: 14, moves: 99 });
+    expect(progressStore.get().stats.xp).toBe(75);
+    expect(levelFromXp(progressStore.get().stats.xp).level).toBe(1);
+    const before = progressStore.get().pearls;
+    const res = recordGameWin({ difficulty: 'expert', seconds: 200, pairs: 14, moves: 99 }); // 100 XP → level 2
+    expect(res).toEqual({ xpGained: 25, leveledUp: true, newLevel: 2 });
+    expect(progressStore.get().stats.xp).toBe(100);
+    expect(levelFromXp(progressStore.get().stats.xp).level).toBe(2);
+    expect(progressStore.get().pearls).toBe(before + 50);
   });
   it('recordGameStart increments gamesPlayed', () => {
     recordGameStart(); recordGameStart();

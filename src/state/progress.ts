@@ -35,6 +35,19 @@ export function computePearls(difficulty: Difficulty, seconds: number, moves: nu
   return Math.round(base * skill * firstWin * farm);
 }
 
+// ── Player level / XP (B8) ──
+const XP_PER_WIN: Record<Difficulty, number> = { easy: 5, medium: 10, hard: 18, expert: 25 };
+const LEVEL_UP_REWARD = 50;   // pearls granted per level gained
+
+/** Level (1-based) + progress within it from cumulative XP. Level L→L+1 costs 100 + 50·(L-1). */
+export function levelFromXp(xp: number): { level: number; into: number; span: number } {
+  let level = 1;
+  let remaining = Math.max(0, Math.floor(xp));
+  let span = 100;
+  while (remaining >= span) { remaining -= span; level += 1; span = 100 + 50 * (level - 1); }
+  return { level, into: remaining, span };
+}
+
 const STORAGE_KEY = 'sea-pairs-progress';
 
 export interface ProgressStats {
@@ -48,6 +61,7 @@ export interface ProgressStats {
   pearlsEarnedTotal: number;
   lastWinDate: string | null;   // local date of the last win (first-win-of-day ×2)
   winsToday: number;            // wins on lastWinDate (anti-farm diminishing returns)
+  xp: number;                   // cumulative XP (player level, B8)
 }
 export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
@@ -72,7 +86,7 @@ export const INITIAL_PROGRESS: ProgressState = {
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
     perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
-    lastWinDate: null, winsToday: 0,
+    lastWinDate: null, winsToday: 0, xp: 0,
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
@@ -146,6 +160,7 @@ function mergeProgress(raw: unknown): ProgressState {
       pearlsEarnedTotal: num(s.pearlsEarnedTotal),
       lastWinDate: typeof s.lastWinDate === 'string' ? s.lastWinDate : null,
       winsToday:   num(s.winsToday),
+      xp:          num(s.xp),
     },
     unlocked: Array.isArray(r.unlocked)
       ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
@@ -314,13 +329,17 @@ export function winContext(difficulty: Difficulty, seconds: number): { isRecord:
   return { isRecord: prevBest === null || seconds < prevBest, prevBest, winIndex, firstWinOfDay: winIndex === 1 };
 }
 
-export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number }): void {
+export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number }): { xpGained: number; leveledUp: boolean; newLevel: number } {
   const s = progressStore.get().stats;
   const prevBest = s.bestSeconds[r.difficulty];
   const perfect = r.moves === r.pairs;
   const fast = r.seconds <= SPEED_PAR[r.difficulty];
   const today = todayStr();
   const sameDay = s.lastWinDate === today;
+  const xpGained = XP_PER_WIN[r.difficulty];
+  const newXp = s.xp + xpGained;
+  const newLevel = levelFromXp(newXp).level;
+  const levelsGained = newLevel - levelFromXp(s.xp).level;
   progressStore.set({
     stats: {
       ...s,
@@ -332,10 +351,14 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
       fastWins:    s.fastWins + (fast ? 1 : 0),
       lastWinDate: today,
       winsToday:   sameDay ? s.winsToday + 1 : 1,
+      xp: newXp,
     },
   });
+  // Level-up bonus — XP is independent of pearls, so crediting pearls can't feed back into level.
+  if (levelsGained > 0) addPearls(LEVEL_UP_REWARD * levelsGained);
   recordQuestEvent({ type: 'win', difficulty: r.difficulty, pairs: r.pairs, perfect, fast });   // sets quests + saveLocal
   saveCloud(progressStore.get());   // a win is significant → one cloud write, after quest progress is applied
+  return { xpGained, leveledUp: levelsGained > 0, newLevel };
 }
 
 export function claimQuest(id: string): number | null {

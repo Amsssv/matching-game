@@ -11,6 +11,7 @@ import { LanguageFlags } from '@features/LanguageFlags';
 import { PearlBalance } from '@features/PearlBalance';
 import { DailyButton } from '@features/DailyButton';
 import { TasksButton } from '@features/TasksButton';
+import { ProfileButton } from '@features/ProfileButton';
 import styles from './MainMenu.module.scss';
 
 export function MainMenu() {
@@ -23,6 +24,7 @@ export function MainMenu() {
           <PearlBalance />
           <DailyButton />
           <TasksButton />
+          <ProfileButton />
         </div>
         <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
       </header>
