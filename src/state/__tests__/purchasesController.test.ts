@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the SDK wrapper BEFORE importing the controller.
-const getPayments = vi.fn();
+// Mock the SDK wrapper BEFORE importing the controller. vi.hoisted defines the
+// spy alongside the hoisted vi.mock so it isn't in the temporal dead zone.
+const { getPayments } = vi.hoisted(() => ({ getPayments: vi.fn() }));
 vi.mock('../../payments', () => ({ getPayments }));
 
 import { reconcilePurchases, buyPack, buyItemForMoney } from '../purchasesController';
