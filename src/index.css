@@ -219,6 +219,27 @@ body {
   font-family: 'Rubik', sans-serif;
 }
 
+/* Themed scrollbar (ocean/gold). The page never scrolls (overflow:hidden above),
+   so this only affects the in-overlay scroll areas — shop list, leaderboard body,
+   tasks list, tall modal panels. Palette-aware via the runtime --color-*-rgb
+   tokens (fallback = default ocean), matching the rgb(var(--…)/α) pattern. */
+html {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.75) rgb(var(--color-navy-rgb, 0 20 40) / 0.35);
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgb(var(--color-navy-rgb, 0 20 40) / 0.35); border-radius: 999px; }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-gold-border-rgb, 212 168 83) / 0.75);
+  border-radius: 999px;
+  border: 2px solid transparent; /* inset the thumb so it reads as a slim pill */
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-gold-rgb, 247 208 119) / 0.95);
+  background-clip: padding-box;
+}
+
 #root,
 #game-container {
   width: 100%;
