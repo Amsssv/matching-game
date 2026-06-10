@@ -38,7 +38,7 @@ export function Title({ text }: { text: string }) {
 
   return (
     <div className={styles.root} style={width ? { width: `${width}px` } : undefined}>
-      <img className={styles.background} src="/assets/title-bg.webp" alt="" aria-hidden />
+      <img className={styles.background} src={`${import.meta.env.BASE_URL}assets/title-bg.webp`} alt="" aria-hidden />
       <h1 className={styles.text} ref={textRef}>{text}</h1>
     </div>
   );
