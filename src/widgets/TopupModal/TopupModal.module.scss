@@ -1,0 +1,28 @@
+@use '../../styles/modal' as *;
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; }
+.panel { @include modal-panel; width: min(92vw, 420px); }
+
+.head { width: 100%; display: flex; align-items: center; gap: 10px; }
+.title { @include modal-title; font-size: clamp(20px, 6vw, 28px); text-align: left; flex: 1; min-width: 0; }
+.close {
+  flex: none; pointer-events: auto; cursor: pointer;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; line-height: 1;
+  color: $text-muted; background: transparent; border: none; border-radius: 8px;
+  transition: color $duration-hover ease-out, background $duration-hover ease-out;
+  &:hover { color: $white; background: rgb(var(--color-white-rgb, 255 255 255) / 0.08); }
+  @include focus-ring;
+}
+
+.list { width: 100%; display: grid; gap: 8px; }
+.pack {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.5);
+}
+.amount { color: $gold; font-family: $font-body; font-weight: 800; font-size: 18px; }
