@@ -289,6 +289,16 @@ export function buyItem(id: string): boolean {
   return true;
 }
 
+/** Unlock an item WITHOUT charging pearls (money purchase / restore). Idempotent; returns false if unknown or already owned. */
+export function grantItem(id: string): boolean {
+  const item = ITEM_BY_ID[id];
+  if (!item || isUnlocked(id)) return false;
+  progressStore.set({ unlocked: [...progressStore.get().unlocked, id] });
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  return true;
+}
+
 /** Equip an unlocked item on its axis. Returns false (no-op) if the id is unknown, the wrong axis, or not unlocked. */
 export function equipItem(axis: CustomAxis, id: string): boolean {
   const item = ITEM_BY_ID[id];

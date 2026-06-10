@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { computePearls, levelFromXp } from '../progress';
 import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
-  buyItem, equipItem, isUnlocked,
+  buyItem, equipItem, grantItem, isUnlocked,
   claimDaily, doubleDaily, isDailyAvailable,
   claimQuest, rerollQuest, claimAchievement, ensureTodayQuests, achSignals,
 } from '../progress';
@@ -192,6 +192,15 @@ describe('shop economy (progress v2)', () => {
     expect(progressStore.get().equipped.cardBack).toBe('back.silver');
     expect(buyItem('ui.crimson')).toBe(true); equipItem('uiPalette', 'ui.crimson');
     expect(progressStore.get().equipped.uiPalette).toBe('ui.crimson');
+  });
+  it('grantItem unlocks without charging pearls, idempotent, and persists', () => {
+    awardPearls(50);                              // far less than ui.sand's 900 price
+    expect(grantItem('ui.sand')).toBe(true);
+    expect(progressStore.get().pearls).toBe(50);  // not charged
+    expect(isUnlocked('ui.sand')).toBe(true);
+    expect(grantItem('ui.sand')).toBe(false);     // already owned → no-op
+    const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
+    expect(saved.unlocked).toContain('ui.sand');
   });
   it('every catalog item has a localized name in all 6 locales', () => {
     const langs = Object.keys(LOCALES) as Lang[];
