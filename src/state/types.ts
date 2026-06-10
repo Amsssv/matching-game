@@ -59,6 +59,7 @@ export interface ModalState {
   tasks: { tab: TasksTab } | null;
   profile: boolean;   // player profile / level modal (B8)
   help: boolean;      // "how to play" modal
+  topup: boolean;     // "get pearls" / pearl-pack purchase modal (B7)
 }
 
 export interface TransitionState {
