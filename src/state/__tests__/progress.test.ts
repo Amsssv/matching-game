@@ -202,6 +202,11 @@ describe('shop economy (progress v2)', () => {
     const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
     expect(saved.unlocked).toContain('ui.sand');
   });
+  it('exclusive items are NOT auto-unlocked despite price 0; only via grantItem', () => {
+    expect(isUnlocked('ui.aurora')).toBe(false);   // exclusive, price 0, not owned
+    grantItem('ui.aurora');
+    expect(isUnlocked('ui.aurora')).toBe(true);
+  });
   it('every catalog item has a localized name in all 6 locales', () => {
     const langs = Object.keys(LOCALES) as Lang[];
     for (const item of CATALOG)

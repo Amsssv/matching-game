@@ -275,7 +275,7 @@ export function isDailyAvailable(today: string): boolean {
 export function isUnlocked(id: string): boolean {
   const item = ITEM_BY_ID[id];
   if (!item) return false;
-  return item.price === 0 || progressStore.get().unlocked.includes(id);
+  return (!item.exclusive && item.price === 0) || progressStore.get().unlocked.includes(id);
 }
 
 export function buyItem(id: string): boolean {
