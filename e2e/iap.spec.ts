@@ -60,4 +60,24 @@ test.describe('IAP (dev simulation)', () => {
       return s.unlocked as string[];
     }).toContain('ui.sand');
   });
+
+  test('exclusive tab: buying a bundle grants all its items + bonus pearls (dev simulation)', async ({ page }) => {
+    await page.addInitScript(seedProgress, { key: PROGRESS_KEY, pearls: 0 });
+    await page.goto('/?canvas=1');
+    await waitForCanvas(page);
+
+    await page.getByTestId('shop-open').click();
+    await page.getByTestId('shop-tab-exclusive').click();
+
+    // Founder's Pack = ui.aurora + back.prism + 1500 pearls.
+    await page.getByTestId('bundle-buy-bundle_founder').click();
+
+    await expect.poll(async () => {
+      const s = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), PROGRESS_KEY);
+      return s.pearls as number;
+    }).toBe(1500);
+
+    const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), PROGRESS_KEY);
+    expect(saved.unlocked).toEqual(expect.arrayContaining(['ui.aurora', 'back.prism']));
+  });
 });
