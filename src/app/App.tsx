@@ -67,6 +67,22 @@ export function App() {
         {help && <HelpModal />}
         {store && <StoreModal />}
       </div>
+
+      {/* Scene-transition cover. Replaces the per-frame Phaser camera fade (which
+          re-filled the whole DPR canvas every frame — fill-rate jank on mobile) with
+          one GPU-composited opaque layer. Opaque while transitioning (visible:false):
+          it hides the instant scene swap AND lets the next scene's layout settle
+          behind it, so the menu no longer visibly "jumps" into place. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed', inset: 0, zIndex: 20, pointerEvents: 'none',
+          background: '#071528',   // matches the old camera fade colour rgb(7,21,40)
+          transform: 'translateZ(0)',
+          opacity: visible ? 0 : 1,
+          transition: 'opacity 300ms linear',
+        }}
+      />
     </GameMount>
   );
 }

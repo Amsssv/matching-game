@@ -87,16 +87,15 @@ export class GameScene extends Phaser.Scene {
 
     this.scene.launch('UIScene', { gameScene: this });
     getYSDK()?.features.GameplayAPI?.start();
-    // Fade the DOM overlay (menu → game) back in together with the camera. MenuScene
-    // set visible:false before its fade-out; restore it as the board fades in.
+    // The opaque DOM cover (App.tsx) fades out, revealing the dealt board. MenuScene
+    // set visible:false before the swap; restore it so the cover lifts.
     setTransition(true);
-    this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
     // Render-on-demand: sleep the loop while the board is static. Stay awake through the
-    // fade-in, then allow sleeping once the board settles.
+    // cover fade-out window, then allow sleeping once the board settles.
     this.renderActivity = createRenderActivity(this.game);
     this.renderActivity.enable();
-    this.cameras.main.once('camerafadeincomplete', () => this.renderActivity?.scheduleSleep());
+    window.setTimeout(() => this.renderActivity?.scheduleSleep(), UI.animation.fadeScene);
 
     // Yandex rule 1.14: iOS orientation change emits 5–10 resize events back-to-back.
     // Running the heavy onResize on each one (re-laying out every card + redrawing
@@ -413,19 +412,20 @@ export class GameScene extends Phaser.Scene {
     // + scene.restart (queued scene ops don't process while the loop is asleep).
     this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
-    this.showAdThenProceed(() => this.scene.restart());
+    this.showAdThenProceed(() => {
+      setTransition(false);   // opaque cover fades in, then re-deal behind it
+      window.setTimeout(() => this.scene.restart(), UI.animation.fadeScene);
+    });
   }
 
   goToMenu() {
-    // Stop render-on-demand first. The camera fade-out is a camera *effect*, not a
-    // tween, so the sleep heuristic doesn't see it — without this the loop sleeps
-    // mid-fade and `camerafadeoutcomplete` (→ scene.start) never fires until a tap.
+    // Stop render-on-demand first so the loop runs continuously through the ad +
+    // cover fade + scene swap (queued scene ops don't process while it's asleep).
     this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => {
-      setTransition(false);   // fade the DOM overlay (header) out with the camera
-      this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
+      setTransition(false);   // opaque DOM cover fades in over the canvas
+      window.setTimeout(() => this.scene.start('MenuScene'), UI.animation.fadeScene);
     });
   }
 }

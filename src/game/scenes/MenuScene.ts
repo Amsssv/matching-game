@@ -11,6 +11,7 @@ import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { progressStore } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
+import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 /**
  * Thin MenuScene: owns menu *state* + imperative actions, draws only the
@@ -22,15 +23,11 @@ export class MenuScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
   private soundEnabled = true;
   private lang: Lang = 'ru';
-  private fromResize = false;
   private bgObj?: Phaser.GameObjects.Image;
+  private renderActivity?: RenderActivity;
 
   constructor() {
     super({ key: 'MenuScene' });
-  }
-
-  init(data?: { fromResize?: boolean }) {
-    this.fromResize = data?.fromResize ?? false;
   }
 
   create() {
@@ -77,9 +74,11 @@ export class MenuScene extends Phaser.Scene {
       this.events.once('shutdown', () => window.removeEventListener('pointerdown', startMusic));
     }
 
-    if (!this.fromResize) {
-      this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
-    }
+    // Render-on-demand: sleep the menu loop while static (it only draws the bg).
+    // Stay awake through the cover fade-out, then allow sleeping once it settles.
+    this.renderActivity = createRenderActivity(this.game, 'MenuScene');
+    this.renderActivity.enable();
+    window.setTimeout(() => this.renderActivity?.scheduleSleep(), UI.animation.fadeScene);
 
     // Show sticky banner while in menu, but hide it in mobile landscape where it
     // would crop game elements (Yandex rules 1.10.1 + 1.6.2.3). Hidden when scene
@@ -96,27 +95,24 @@ export class MenuScene extends Phaser.Scene {
       getYSDK()?.adv.hideBannerAdv();
     });
 
-    // GameMount tracks window.resize and updates the container div when DPR changes,
-    // which triggers Phaser's ScaleManager (via ResizeObserver) to resize the canvas
-    // and emit 'resize'. Yandex rule 1.14: iOS Safari emits a storm of resize events
-    // during orientation changes — wait 400ms and ignore micro-changes (< 6px) to
-    // avoid spurious restarts from the iOS address bar / soft keyboard.
-    let resizeTimer: Phaser.Time.TimerEvent | null = null;
+    // The menu is React; the only canvas object is the background. Re-fit it in place
+    // on resize — NO scene.restart. This removes the visible "jump" when the Yandex
+    // banner appears (it changes --banner-height → a canvas resize) and the iOS
+    // resize-storm freeze (rule 1.14), since there's no heavy rebuild to run.
     let lastSeenW = canvasWidth;
     let lastSeenH = canvasHeight;
     const onResize = (gameSize: Phaser.Structs.Size) => {
-      const newWidth = gameSize.width;
-      const newHeight = gameSize.height;
-      if (Math.abs(newWidth - lastSeenW) < 6 && Math.abs(newHeight - lastSeenH) < 6) return;
-      lastSeenW = newWidth;
-      lastSeenH = newHeight;
-      if (resizeTimer) resizeTimer.remove();
-      resizeTimer = this.time.delayedCall(400, () => this.scene.restart({ fromResize: true }));
+      const w = gameSize.width, h = gameSize.height;
+      if (Math.abs(w - lastSeenW) < 6 && Math.abs(h - lastSeenH) < 6) return;
+      lastSeenW = w; lastSeenH = h;
+      this.bgObj?.setPosition(w / 2, h / 2).setDisplaySize(w, h);
+      this.renderActivity?.wake();
+      this.renderActivity?.scheduleSleep();
     };
     this.scale.on('resize', onResize);
     this.events.once('shutdown', () => {
       this.scale.off('resize', onResize);
-      resizeTimer?.remove();
+      this.renderActivity?.disable();
     });
   }
 
@@ -127,6 +123,8 @@ export class MenuScene extends Phaser.Scene {
 
   private applySeaTint() {
     this.bgObj?.setTint(tintOf(progressStore.get().equipped.seaTheme));
+    this.renderActivity?.wake();          // render the new tint, then settle back to sleep
+    this.renderActivity?.scheduleSleep();
   }
 
   private publish() {
@@ -160,6 +158,7 @@ export class MenuScene extends Phaser.Scene {
     document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
     document.querySelector<HTMLMetaElement>('meta[name="description"]')
       ?.setAttribute('content', LOCALES[lng].description);
+    this.renderActivity?.disable();   // loop must run through the restart
     this.scene.restart();
   }
 
@@ -172,11 +171,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private startGame() {
+    this.renderActivity?.disable();   // loop must run through the cover fade + scene swap
     this.game.registry.set('difficulty',   this.difficulty);
     this.game.registry.set('soundEnabled', this.soundEnabled);
     this.game.registry.set('lang',         this.lang);
-    setTransition(false);   // fade the menu out with the canvas
-    this.cameras.main.fadeOut(UI.animation.fadeScene, 7, 21, 40);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('GameScene'));
+    setTransition(false);   // opaque cover fades in over the canvas
+    window.setTimeout(() => this.scene.start('GameScene'), UI.animation.fadeScene);
   }
 }

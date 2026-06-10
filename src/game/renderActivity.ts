@@ -8,13 +8,13 @@ const SLEEP_GRACE_MS = 400;
  * tween, or pending check. The DOM play-clock keeps time while asleep; the canvas
  * keeps showing its last frame (the browser holds the last composited buffer).
  */
-export function createRenderActivity(game: Phaser.Game) {
+export function createRenderActivity(game: Phaser.Game, sceneKey = 'GameScene') {
   let enabled = false;
   let pendingChecks = 0;
   let sleepTimer: number | undefined;
 
   const tweensActive = () => {
-    const scene = game.scene.getScene('GameScene') as Phaser.Scene | null;
+    const scene = game.scene.getScene(sceneKey) as Phaser.Scene | null;
     return !!scene && scene.tweens.getTweens().length > 0;
   };
   const wake = () => {

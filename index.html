@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Preload the display font so the title measures at its real metrics on the
+         first paint — avoids a one-time width "jump" on a cold load. Must match the
+         @font-face URL + CORS mode to dedupe. -->
+    <link rel="preload" as="font" type="font/woff2" href="./fonts/IndiraK.woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
