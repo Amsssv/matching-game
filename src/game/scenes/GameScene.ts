@@ -9,6 +9,7 @@ import { bus } from '../../state/eventBus';
 import { progressStore } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
 import { bakeCardTextures } from '../cardTextures';
+import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 interface Card {
   container: Phaser.GameObjects.Container;
@@ -36,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private gameActive = true;
   private lastAdvTime = 0;
   private resizeTimer: Phaser.Time.TimerEvent | null = null;
+  private renderActivity?: RenderActivity;
   private lastResizeW = 0;
   private lastResizeH = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000;
@@ -90,6 +92,12 @@ export class GameScene extends Phaser.Scene {
     setTransition(true);
     this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
+    // Render-on-demand: sleep the loop while the board is static. Stay awake through the
+    // fade-in, then allow sleeping once the board settles.
+    this.renderActivity = createRenderActivity(this.game);
+    this.renderActivity.enable();
+    this.cameras.main.once('camerafadeincomplete', () => this.renderActivity?.scheduleSleep());
+
     // Yandex rule 1.14: iOS orientation change emits 5–10 resize events back-to-back.
     // Running the heavy onResize on each one (re-laying out every card + redrawing
     // shadows/masks) freezes the main thread for >1s on real devices. We debounce
@@ -102,6 +110,7 @@ export class GameScene extends Phaser.Scene {
       if (Math.abs(newWidth - this.lastResizeW) < 6 && Math.abs(newHeight - this.lastResizeH) < 6) return;
       this.lastResizeW = newWidth;
       this.lastResizeH = newHeight;
+      this.renderActivity?.wake();   // the relayout runs on a Phaser timer → keep the loop awake
       if (this.resizeTimer) this.resizeTimer.remove();
       this.resizeTimer = this.time.delayedCall(200, () => this.onResize(gameSize));
     };
@@ -114,6 +123,7 @@ export class GameScene extends Phaser.Scene {
       this.resizeTimer = null;
       offEquip();
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
+      this.renderActivity?.disable();
       this.cards.forEach(card => card.shadow.destroy());
       this.islandObj?.destroy();
     });
@@ -270,6 +280,7 @@ export class GameScene extends Phaser.Scene {
         .setPosition(x + UI.card.shadowOffset, y + UI.card.shadowOffset);
     });
     this.applyEquippedTints();   // re-tint the rebuilt back textures
+    this.renderActivity?.scheduleSleep();
   }
 
   // ── Game logic ───────────────────────────────────────────────────────────────
@@ -289,8 +300,14 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('moves-updated', this.moves);
       const [cardA, cardB] = this.flippedCards;
       this.flippedCards = [];
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
     }
+  }
+
+  /** Wrap a flip/match delayedCall so render-on-demand keeps the loop awake until it fires. */
+  private scheduleCheck(delay: number, fn: () => void) {
+    this.renderActivity?.beginCheck();
+    this.time.delayedCall(delay, () => { this.renderActivity?.endCheck(); fn(); });
   }
 
   private flipCard(card: Card, faceUp: boolean) {
@@ -336,12 +353,12 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('match-found', this.matchedPairs);
 
       if (this.matchedPairs === this.totalPairs)
-        this.time.delayedCall(UI.animation.cardMatchDelay, () => {
+        this.scheduleCheck(UI.animation.cardMatchDelay, () => {
           this.sfx('sfx-win');
           this.events.emit('game-complete', this.moves);
         });
     } else {
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => {
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => {
         this.flipCard(cardA, false);
         this.flipCard(cardB, false);
       });
