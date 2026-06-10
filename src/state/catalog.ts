@@ -1,4 +1,5 @@
 export type CustomAxis = 'seaTheme' | 'cardBack' | 'uiPalette';
+export type ShopTab = CustomAxis | 'exclusive';
 
 export interface ShopItem {
   id: string;
@@ -8,6 +9,7 @@ export interface ShopItem {
   tint?: number;            // seaTheme/cardBack: Phaser tint (0xRRGGBB)
   palette?: Record<string, string>;  // uiPalette: { 'navy': '#..', 'blue': '#..', ... } (token name → hex)
   productId?: string;       // Yandex Payments product id — set only on items buyable for real money
+  exclusive?: boolean;      // money-only: never auto-unlocked, never shows a pearl price
 }
 
 export const CATALOG: ShopItem[] = [
@@ -41,6 +43,10 @@ export const CATALOG: ShopItem[] = [
     palette: { 'navy': '#141a22', 'navy-soft': '#1f2832', 'blue': '#3d566e', 'blue-mid': '#5878a0', 'gold': '#cdd8e8', 'gold-border': '#8aa0bc', 'text-muted': '#b0bccc' } },
   { id: 'ui.sand',    axis: 'uiPalette', nameKey: 'uiSand',    price: 900,
     palette: { 'navy': '#2a2114', 'navy-soft': '#3d3020', 'blue': '#b07a32', 'blue-mid': '#d8a24e', 'gold': '#ffe6a8', 'gold-border': '#e8c878', 'text-muted': '#e0d2b0' }, productId: 'ui_sand' },
+  // exclusive (money-only — shown in the ✨ tab, bought via Yandex Payments)
+  { id: 'ui.aurora', axis: 'uiPalette', nameKey: 'uiAurora', price: 0, exclusive: true, productId: 'ui_aurora',
+    palette: { 'navy': '#0a1f2e', 'navy-soft': '#103040', 'blue': '#1aa3a3', 'blue-mid': '#3ad6c0', 'gold': '#c8a0ff', 'gold-border': '#9d6ee0', 'text-muted': '#bfe8e0' } },
+  { id: 'back.prism', axis: 'cardBack', nameKey: 'backPrism', price: 0, exclusive: true, productId: 'back_prism', tint: 0xc0b0ff },
 ];
 
 export const DEFAULT_EQUIPPED: Record<CustomAxis, string> = {
