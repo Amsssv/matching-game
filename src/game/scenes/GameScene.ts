@@ -8,14 +8,15 @@ import { setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { progressStore } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
+import { bakeCardTextures } from '../cardTextures';
+import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 interface Card {
   container: Phaser.GameObjects.Container;
   back: Phaser.GameObjects.Image;
   front: Phaser.GameObjects.Image;
-  maskGfx: Phaser.GameObjects.Graphics;
-  shadow: Phaser.GameObjects.Graphics;
-  border: Phaser.GameObjects.Graphics;
+  borderImg: Phaser.GameObjects.Image;
+  shadow: Phaser.GameObjects.Image;
   symbol: string;
   index: number;
   isFlipped: boolean;
@@ -36,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private gameActive = true;
   private lastAdvTime = 0;
   private resizeTimer: Phaser.Time.TimerEvent | null = null;
+  private renderActivity?: RenderActivity;
   private lastResizeW = 0;
   private lastResizeH = 0;
   private static readonly ADV_MIN_INTERVAL = 180_000;
@@ -90,6 +92,12 @@ export class GameScene extends Phaser.Scene {
     setTransition(true);
     this.cameras.main.fadeIn(UI.animation.fadeScene, 7, 21, 40);
 
+    // Render-on-demand: sleep the loop while the board is static. Stay awake through the
+    // fade-in, then allow sleeping once the board settles.
+    this.renderActivity = createRenderActivity(this.game);
+    this.renderActivity.enable();
+    this.cameras.main.once('camerafadeincomplete', () => this.renderActivity?.scheduleSleep());
+
     // Yandex rule 1.14: iOS orientation change emits 5–10 resize events back-to-back.
     // Running the heavy onResize on each one (re-laying out every card + redrawing
     // shadows/masks) freezes the main thread for >1s on real devices. We debounce
@@ -102,6 +110,7 @@ export class GameScene extends Phaser.Scene {
       if (Math.abs(newWidth - this.lastResizeW) < 6 && Math.abs(newHeight - this.lastResizeH) < 6) return;
       this.lastResizeW = newWidth;
       this.lastResizeH = newHeight;
+      this.renderActivity?.wake();   // the relayout runs on a Phaser timer → keep the loop awake
       if (this.resizeTimer) this.resizeTimer.remove();
       this.resizeTimer = this.time.delayedCall(200, () => this.onResize(gameSize));
     };
@@ -114,7 +123,8 @@ export class GameScene extends Phaser.Scene {
       this.resizeTimer = null;
       offEquip();
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
-      this.cards.forEach(card => { card.maskGfx.destroy(); card.shadow.destroy(); });
+      this.renderActivity?.disable();
+      this.cards.forEach(card => card.shadow.destroy());
       this.islandObj?.destroy();
     });
   }
@@ -201,6 +211,7 @@ export class GameScene extends Phaser.Scene {
     const symbolPool = Phaser.Utils.Array.Shuffle([...picked, ...picked]) as string[];
 
     const layout = this.calcLayout(canvasWidth, canvasHeight);
+    bakeCardTextures(this, layout.cardWidth, layout.cardHeight);   // baked at this size; re-baked on resize
 
     symbolPool.forEach((symbol, i) => {
       const { x, y } = layout.positions[i];
@@ -209,22 +220,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createCard(x: number, y: number, symbol: string, index: number, cardWidth: number, cardHeight: number): Card {
-    const shadow = this.add.graphics().setDepth(1);
-    this.drawCardShadow(shadow, x, y, cardWidth, cardHeight);
+    const shadow = this.add.image(x + UI.card.shadowOffset, y + UI.card.shadowOffset, 'card-shadow-r')
+      .setDisplaySize(cardWidth, cardHeight).setDepth(1);
 
-    const back   = this.add.image(0, 0, 'card-back').setDisplaySize(cardWidth, cardHeight);
-    const front  = this.add.image(0, 0, `card-${symbol}`).setDisplaySize(cardWidth, cardHeight).setVisible(false);
-    const border = this.add.graphics();
-    this.drawCardBorderInner(border, cardWidth, cardHeight);
+    const back      = this.add.image(0, 0, 'card-back-r').setDisplaySize(cardWidth, cardHeight);
+    const front     = this.add.image(0, 0, `card-${symbol}-r`).setDisplaySize(cardWidth, cardHeight).setVisible(false);
+    const borderImg = this.add.image(0, 0, 'card-border-r').setDisplaySize(cardWidth, cardHeight);
 
-    const maskGfx = this.add.graphics().setVisible(false);
-    this.drawCardMask(maskGfx, x, y, cardWidth, cardHeight);
-
-    const container = this.add.container(x, y, [back, front, border]);
+    const container = this.add.container(x, y, [back, front, borderImg]);
     container.setSize(cardWidth, cardHeight).setInteractive().setDepth(2);
-    container.setMask(maskGfx.createGeometryMask());
 
-    const card: Card = { container, back, front, maskGfx, shadow, border, symbol, index, isFlipped: false, isMatched: false };
+    const card: Card = { container, back, front, borderImg, shadow, symbol, index, isFlipped: false, isMatched: false };
 
     container.on('pointerover', () => {
       if (!card.isFlipped && !card.isMatched) {
@@ -239,27 +245,6 @@ export class GameScene extends Phaser.Scene {
     container.on('pointerdown', () => this.onCardClick(card));
 
     return card;
-  }
-
-  private drawCardMask(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
-    gfx.clear();
-    gfx.fillStyle(0xffffff);
-    gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, UI.card.radius);
-  }
-
-  private drawCardShadow(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number) {
-    gfx.setPosition(x, y);
-    gfx.clear();
-    const shadowOffset = UI.card.shadowOffset;
-    gfx.fillStyle(0x000000, UI.card.shadowAlpha);
-    gfx.fillRoundedRect(-w / 2 + shadowOffset, -h / 2 + shadowOffset, w, h, UI.card.radius);
-  }
-
-  private drawCardBorderInner(gfx: Phaser.GameObjects.Graphics, w: number, h: number) {
-    gfx.clear();
-    const borderWidth = UI.card.borderWidth;
-    gfx.lineStyle(borderWidth, UI.card.borderColor, 1);
-    gfx.strokeRoundedRect(-w / 2 + borderWidth / 2, -h / 2 + borderWidth / 2, w - borderWidth, h - borderWidth, UI.card.radius - borderWidth / 2);
   }
 
   // ── Resize ───────────────────────────────────────────────────────────────────
@@ -279,20 +264,23 @@ export class GameScene extends Phaser.Scene {
       this.islandObj.setSize(island.w, island.h);
     }
 
-    // Relayout cards
+    // Relayout cards — re-bake textures at the new size, then re-point + resize each card.
     const layout = this.calcLayoutFromIsland(island, canvasWidth, canvasHeight);
+    bakeCardTextures(this, layout.cardWidth, layout.cardHeight);
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];
       card.container.setPosition(x, y);
       card.container.setSize(layout.cardWidth, layout.cardHeight);
       const io = card.container.input;
       if (io) (io.hitArea as Phaser.Geom.Rectangle).setTo(0, 0, layout.cardWidth, layout.cardHeight);
-      card.back.setDisplaySize(layout.cardWidth, layout.cardHeight);
-      card.front.setDisplaySize(layout.cardWidth, layout.cardHeight);
-      this.drawCardMask(card.maskGfx, x, y, layout.cardWidth, layout.cardHeight);
-      this.drawCardShadow(card.shadow, x, y, layout.cardWidth, layout.cardHeight);
-      this.drawCardBorderInner(card.border, layout.cardWidth, layout.cardHeight);
+      card.back.setTexture('card-back-r').setDisplaySize(layout.cardWidth, layout.cardHeight);
+      card.front.setTexture(`card-${card.symbol}-r`).setDisplaySize(layout.cardWidth, layout.cardHeight);
+      card.borderImg.setTexture('card-border-r').setDisplaySize(layout.cardWidth, layout.cardHeight);
+      card.shadow.setTexture('card-shadow-r').setDisplaySize(layout.cardWidth, layout.cardHeight)
+        .setPosition(x + UI.card.shadowOffset, y + UI.card.shadowOffset);
     });
+    this.applyEquippedTints();   // re-tint the rebuilt back textures
+    this.renderActivity?.scheduleSleep();
   }
 
   // ── Game logic ───────────────────────────────────────────────────────────────
@@ -312,8 +300,14 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('moves-updated', this.moves);
       const [cardA, cardB] = this.flippedCards;
       this.flippedCards = [];
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
     }
+  }
+
+  /** Wrap a flip/match delayedCall so render-on-demand keeps the loop awake until it fires. */
+  private scheduleCheck(delay: number, fn: () => void) {
+    this.renderActivity?.beginCheck();
+    this.time.delayedCall(delay, () => { this.renderActivity?.endCheck(); fn(); });
   }
 
   private flipCard(card: Card, faceUp: boolean) {
@@ -359,12 +353,12 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('match-found', this.matchedPairs);
 
       if (this.matchedPairs === this.totalPairs)
-        this.time.delayedCall(UI.animation.cardMatchDelay, () => {
+        this.scheduleCheck(UI.animation.cardMatchDelay, () => {
           this.sfx('sfx-win');
           this.events.emit('game-complete', this.moves);
         });
     } else {
-      this.time.delayedCall(UI.animation.cardFlipDelay, () => {
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => {
         this.flipCard(cardA, false);
         this.flipCard(cardB, false);
       });
@@ -415,11 +409,18 @@ export class GameScene extends Phaser.Scene {
 
   // ── Public API for UIScene ───────────────────────────────────────────────────
   restartGame() {
+    // Stop render-on-demand first: the loop must run continuously through the ad
+    // + scene.restart (queued scene ops don't process while the loop is asleep).
+    this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => this.scene.restart());
   }
 
   goToMenu() {
+    // Stop render-on-demand first. The camera fade-out is a camera *effect*, not a
+    // tween, so the sleep heuristic doesn't see it — without this the loop sleeps
+    // mid-fade and `camerafadeoutcomplete` (→ scene.start) never fires until a tap.
+    this.renderActivity?.disable();
     getYSDK()?.features.GameplayAPI?.stop();
     this.showAdThenProceed(() => {
       setTransition(false);   // fade the DOM overlay (header) out with the camera

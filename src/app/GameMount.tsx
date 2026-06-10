@@ -4,6 +4,8 @@ import { createGame } from '../game/main';
 import { getLocalDpr } from '../game/device';
 import { getYSDK } from '../ysdk';
 import { resetUi } from '../state/store';
+import { bus } from '../state/eventBus';
+import type { AudioManager } from '../game/AudioManager';
 
 declare global {
   interface Window {
@@ -97,7 +99,15 @@ export function GameMount({ children }: { children?: ReactNode }) {
     if (import.meta.env.DEV) {
       window.__game = game;
     }
+    // UI click feedback: React overlay buttons emit `cmd:ui-click`; play it through
+    // the game's (mute-aware) AudioManager. Lives here because GameMount owns the
+    // game instance for the whole app lifetime (so the subscription never churns).
+    const offUiClick = bus.on('cmd:ui-click', () => {
+      const audio: AudioManager | undefined = game.registry.get('audioManager');
+      audio?.playSfx('sfx-click');
+    });
     return () => {
+      offUiClick();
       gameRef.current?.destroy(true);
       gameRef.current = null;
       resetUi();

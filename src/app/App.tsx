@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { GameMount } from './GameMount';
 import { useUi } from '@hooks/useUiStore';
+import { bus } from '@state/eventBus';
 import { MainMenu } from '@widgets/MainMenu';
 import { Header } from '@widgets/Header';
 import { VictoryModal } from '@widgets/VictoryModal';
@@ -23,6 +25,21 @@ export function App() {
   const help = useUi(s => s.modal.help);
   const store = useUi(s => s.modal.store);
   const visible = useUi(s => s.transition.visible);
+
+  // Click feedback for every overlay button (menu, HUD, all modals) via one
+  // delegated listener — new buttons get the sound for free. Plays through the
+  // Phaser AudioManager (mute-aware) on the command bus. Capture phase so it fires
+  // even when a handler stops propagation; skips disabled buttons.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('button:not([disabled]), [role="button"]:not([aria-disabled="true"])')) {
+        bus.emit('cmd:ui-click');
+      }
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, []);
 
   return (
     <GameMount>
