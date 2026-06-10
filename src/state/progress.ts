@@ -76,6 +76,7 @@ export interface ProgressState {
   streak: StreakState;
   quests: QuestsState;
   achievements: AchievementsState;
+  processedPurchases: string[];   // consumable purchase tokens already credited (IAP idempotency)
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
@@ -93,6 +94,7 @@ export const INITIAL_PROGRESS: ProgressState = {
   streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
   quests: { date: null, active: [], rerolls: 0 },
   achievements: { claimed: [] },
+  processedPurchases: [],
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -142,9 +144,10 @@ function mergeProgress(raw: unknown): ProgressState {
       streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
       quests: { date: null, active: [], rerolls: 0 },
       achievements: { claimed: [] },
+      processedPurchases: [],
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown };
   const s = r.stats ?? {};
   return {
     version: 4,
@@ -173,6 +176,9 @@ function mergeProgress(raw: unknown): ProgressState {
         ? (r.achievements as { claimed: unknown[] }).claimed.filter((x): x is string => typeof x === 'string')
         : [],
     },
+    processedPurchases: Array.isArray(r.processedPurchases)
+      ? r.processedPurchases.filter((x): x is string => typeof x === 'string')
+      : [],
   };
 }
 
@@ -223,6 +229,29 @@ function addPearls(amount: number): void {
 }
 function persist(): void { saveLocal(progressStore.get()); saveCloud(progressStore.get()); }
 
+// ── IAP idempotency ledger (B7) ──
+// A consumable purchase (pearl pack / bundle) must be credited exactly once even if
+// consumePurchase fails and reconcilePurchases later re-sees the unconsumed purchase. We persist
+// credited tokens (cloud-synced), skip re-crediting them, and drop a token once consumed.
+/** Whether this consumable purchase token has already been credited. */
+export function isPurchaseProcessed(token: string): boolean {
+  return progressStore.get().processedPurchases.includes(token);
+}
+/** Record a credited token (persisted local + cloud). */
+export function markPurchaseProcessed(token: string): void {
+  const c = progressStore.get();
+  if (c.processedPurchases.includes(token)) return;
+  progressStore.set({ processedPurchases: [...c.processedPurchases, token] });
+  persist();
+}
+/** Drop a token after its purchase is consumed (it won't reappear) to keep the ledger small. */
+export function clearPurchaseProcessed(token: string): void {
+  const c = progressStore.get();
+  if (!c.processedPurchases.includes(token)) return;
+  progressStore.set({ processedPurchases: c.processedPurchases.filter((t) => t !== token) });
+  persist();
+}
+
 /** Regenerate today's 3 quests if the stored day rolled over. Local-only save (the
  * board is deterministic per date, so cloud doesn't need a write here). */
 export function ensureTodayQuests(today: string): void {
@@ -232,14 +261,20 @@ export function ensureTodayQuests(today: string): void {
   saveLocal(progressStore.get());
 }
 
+/** Build the achievement signal bag from progress slices. Single source of truth shared by
+ * achSignals() (imperative) and the reactive TasksButton/TasksModal components. */
+export function buildAchSignals(stats: ProgressStats, streakBest: number, unlockedCount: number): AchSignals {
+  return {
+    gamesWon: stats.gamesWon, pairsMatched: stats.pairsMatched, winsByDifficulty: stats.winsByDifficulty,
+    perfectWins: stats.perfectWins, fastWins: stats.fastWins, pearlsEarnedTotal: stats.pearlsEarnedTotal,
+    streakBest, unlockedCount,
+    gamesPlayed: stats.gamesPlayed, level: levelFromXp(stats.xp).level,
+  };
+}
+
 export function achSignals(): AchSignals {
   const p = progressStore.get();
-  return {
-    gamesWon: p.stats.gamesWon, pairsMatched: p.stats.pairsMatched, winsByDifficulty: p.stats.winsByDifficulty,
-    perfectWins: p.stats.perfectWins, fastWins: p.stats.fastWins, pearlsEarnedTotal: p.stats.pearlsEarnedTotal,
-    streakBest: p.streak.best, unlockedCount: p.unlocked.length,
-    gamesPlayed: p.stats.gamesPlayed, level: levelFromXp(p.stats.xp).level,
-  };
+  return buildAchSignals(p.stats, p.streak.best, p.unlocked.length);
 }
 
 export function awardPearls(amount: number): void { addPearls(amount); persist(); }

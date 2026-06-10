@@ -4,7 +4,7 @@ import { useProgress } from '@hooks/useProgress';
 import { LOCALES } from '../../game/i18n';
 import { Button } from '@ui/Button';
 import { ACHIEVEMENTS } from '@state/achievements';
-import { levelFromXp } from '@state/progress';
+import { buildAchSignals } from '@state/progress';
 import { QUEST_BY_ID } from '@state/quests';
 import { closeTasks, switchTasksTab } from '@state/tasksController';
 import { QuestRow } from '@features/tasks/QuestRow';
@@ -27,18 +27,7 @@ export function TasksModal() {
   }, []);
   if (!tasks) return null;
   const L = LOCALES[lang];
-  const signals = {
-    gamesWon: stats.gamesWon,
-    pairsMatched: stats.pairsMatched,
-    winsByDifficulty: stats.winsByDifficulty,
-    perfectWins: stats.perfectWins,
-    fastWins: stats.fastWins,
-    pearlsEarnedTotal: stats.pearlsEarnedTotal,
-    streakBest,
-    unlockedCount,
-    gamesPlayed: stats.gamesPlayed,
-    level: levelFromXp(stats.xp).level,
-  };
+  const signals = buildAchSignals(stats, streakBest, unlockedCount);
   // Per-tab "has something to claim" badges.
   const questClaimable = quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length;
   const achClaimable = ACHIEVEMENTS.filter((a) => a.done(signals) && !claimed.includes(a.id)).length;

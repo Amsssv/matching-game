@@ -11,7 +11,11 @@ export function useProductPrices(): Record<string, string> {
     if (cache) return;
     inflight ??= loadCatalogPrices();
     let alive = true;
-    inflight.then((p) => { cache = p; if (alive) setPrices(p); });
+    inflight.then((p) => {
+      if (Object.keys(p).length > 0) cache = p;   // only cache a real catalog; an empty result is a
+      else inflight = null;                        // transient failure / unavailable → allow a later retry
+      if (alive) setPrices(p);
+    });
     return () => { alive = false; };
   }, []);
   return prices;

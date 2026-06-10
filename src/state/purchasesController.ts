@@ -1,5 +1,5 @@
 import { getPayments } from '../payments';
-import { awardPearls, grantItem } from './progress';
+import { awardPearls, grantItem, isPurchaseProcessed, markPurchaseProcessed, clearPurchaseProcessed } from './progress';
 import { planPurchase, type PurchasePlan } from './iap';
 import { setModal } from './store';
 
@@ -14,12 +14,20 @@ function applyPlan(plan: PurchasePlan): void {
   plan.unlockItems?.forEach((id) => grantItem(id));
 }
 
-/** Apply a purchase, then consume it if it's a consumable. */
+/** Apply a purchase, then consume it if it's a consumable. Consumables are credited exactly once
+ * per purchase token (ledger), so a failed consume + reconcile retry can't double-credit pearls. */
 async function processPurchase(p: YandexPurchase, pay: YandexPayments): Promise<void> {
   const plan = planPurchase(p.productID);
   if (!plan) return;                                   // unknown product → leave untouched
-  applyPlan(plan);
-  if (plan.consume) { try { await pay.consumePurchase(p.purchaseToken); } catch { /* reconcile retries */ } }
+  if (!plan.consume) { applyPlan(plan); return; }      // durable → grantItem is idempotent, no ledger needed
+  if (!isPurchaseProcessed(p.purchaseToken)) {         // consumable → credit once per token
+    applyPlan(plan);
+    markPurchaseProcessed(p.purchaseToken);
+  }
+  try {
+    await pay.consumePurchase(p.purchaseToken);
+    clearPurchaseProcessed(p.purchaseToken);           // consumed → won't reappear, prune the ledger
+  } catch { /* stays in ledger; reconcile retries consume without re-crediting */ }
 }
 
 /** Buy any product (pack / single cosmetic / bundle) by its Yandex product id. Returns true on success. */

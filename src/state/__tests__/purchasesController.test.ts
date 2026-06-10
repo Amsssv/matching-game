@@ -76,4 +76,27 @@ describe('purchasesController', () => {
     expect(progressStore.get().pearls).toBe(1500);
     expect(consumePurchase).toHaveBeenCalledWith('tok');
   });
+
+  it('does NOT double-credit a pack when consume fails and reconcile re-sees it (idempotency ledger)', async () => {
+    getPayments.mockReturnValue({
+      purchase: vi.fn().mockResolvedValue({ productID: 'pearls_large', purchaseToken: 'tok', developerPayload: '' }),
+      getPurchases: vi.fn().mockResolvedValue([{ productID: 'pearls_large', purchaseToken: 'tok', developerPayload: '' }]),
+      consumePurchase: vi.fn().mockRejectedValue(new Error('consume failed')),
+    });
+    expect(await buyProduct('pearls_large')).toBe(true);
+    expect(progressStore.get().pearls).toBe(3500);            // credited once
+    await reconcilePurchases();                                // re-sees the still-unconsumed purchase
+    expect(progressStore.get().pearls).toBe(3500);            // NOT 7000 — ledger blocks the re-credit
+    expect(progressStore.get().processedPurchases).toContain('tok');
+  });
+
+  it('prunes the ledger token once a pack is successfully consumed', async () => {
+    getPayments.mockReturnValue({
+      purchase: vi.fn().mockResolvedValue({ productID: 'pearls_small', purchaseToken: 't', developerPayload: '' }),
+      consumePurchase: vi.fn().mockResolvedValue(undefined),
+    });
+    expect(await buyProduct('pearls_small')).toBe(true);
+    expect(progressStore.get().pearls).toBe(500);
+    expect(progressStore.get().processedPurchases).toEqual([]);  // pruned after consume succeeds
+  });
 });
