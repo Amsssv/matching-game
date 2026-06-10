@@ -46,6 +46,7 @@ declare global {
       getBannerAdvStatus(): Promise<{ stickyAdvIsShowing: boolean; reason?: string }>;
     };
     getPlayer(opts?: { scopes?: boolean }): Promise<YandexPlayer>;
+    getPayments(options?: { signed?: boolean }): Promise<YandexPayments>;
     leaderboards?: {
       setScore(name: string, score: number, extraData?: string): Promise<void>;
       getPlayerEntry(name: string): Promise<YandexLeaderboardEntry>;
@@ -55,6 +56,31 @@ declare global {
         quantityAround?: number;
       }): Promise<{ entries: YandexLeaderboardEntry[] }>;
     };
+  }
+
+  interface YandexPurchase {
+    productID: string;
+    purchaseToken: string;
+    developerPayload: string;
+  }
+
+  interface YandexProduct {
+    id: string;
+    title: string;
+    description: string;
+    imageURI: string;
+    price: string;            // display string, e.g. "100 YAN"
+    priceValue: string;       // numeric part as string
+    priceCurrencyCode: string;
+    getPriceCurrencyImage(size: 'small' | 'medium' | 'svg'): string;
+  }
+
+  interface YandexPayments {
+    // signed:false → plain objects (we never use signed:true)
+    purchase(data: { id: string; developerPayload?: string }): Promise<YandexPurchase>;
+    getPurchases(): Promise<YandexPurchase[]>;
+    consumePurchase(purchaseToken: string): Promise<void>;
+    getCatalog(): Promise<YandexProduct[]>;
   }
 
   interface YandexPlayer {
