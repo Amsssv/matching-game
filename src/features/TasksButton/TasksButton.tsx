@@ -3,6 +3,7 @@ import { useUi } from '@hooks/useUiStore';
 import { LOCALES } from '../../game/i18n';
 import { QUEST_BY_ID } from '@state/quests';
 import { ACHIEVEMENTS } from '@state/achievements';
+import { levelFromXp } from '@state/progress';
 import { openTasks } from '@state/tasksController';
 import { cx } from '@ui/cx';
 import styles from './TasksButton.module.scss';
@@ -24,6 +25,8 @@ export function TasksButton() {
     pearlsEarnedTotal: stats.pearlsEarnedTotal,
     streakBest,
     unlockedCount,
+    gamesPlayed: stats.gamesPlayed,
+    level: levelFromXp(stats.xp).level,
   };
   // Count of everything ready to collect (quests done-unclaimed + achievements done-unclaimed).
   const claimable =

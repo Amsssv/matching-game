@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../achievements';
 const sig = (o: Partial<import('../achievements').AchSignals> = {}) => ({
   gamesWon: 0, pairsMatched: 0, winsByDifficulty: { easy: 0, medium: 0, hard: 0, expert: 0 },
-  perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0, streakBest: 0, unlockedCount: 0, ...o,
+  perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0, streakBest: 0, unlockedCount: 0,
+  gamesPlayed: 0, level: 1, ...o,
 });
 describe('achievement conditions', () => {
   it('firstWin needs 1 win; win10 needs 10', () => {
@@ -19,6 +20,14 @@ describe('achievement conditions', () => {
     expect(ACH_BY_ID.streak7.done(sig({ streakBest: 7 }))).toBe(true);
     expect(ACH_BY_ID.rich.done(sig({ pearlsEarnedTotal: 1000 }))).toBe(true);
     expect(ACH_BY_ID.collector.done(sig({ unlockedCount: 5 }))).toBe(true);
+  });
+  it('B6.1 tiers: games-played / level / difficulty-mastery thresholds', () => {
+    expect(ACH_BY_ID.play100.done(sig({ gamesPlayed: 99 }))).toBe(false);
+    expect(ACH_BY_ID.play100.done(sig({ gamesPlayed: 100 }))).toBe(true);
+    expect(ACH_BY_ID.level5.done(sig({ level: 4 }))).toBe(false);
+    expect(ACH_BY_ID.level10.done(sig({ level: 10 }))).toBe(true);
+    expect(ACH_BY_ID.hardMaster.done(sig({ winsByDifficulty: { easy: 0, medium: 0, hard: 10, expert: 0 } }))).toBe(true);
+    expect(ACH_BY_ID.collector15.done(sig({ unlockedCount: 15 }))).toBe(true);
   });
   it('every achievement has a unique id + i18n key + positive reward', () => {
     expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(ACHIEVEMENTS.length);

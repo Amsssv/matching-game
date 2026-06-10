@@ -238,6 +238,7 @@ export function achSignals(): AchSignals {
     gamesWon: p.stats.gamesWon, pairsMatched: p.stats.pairsMatched, winsByDifficulty: p.stats.winsByDifficulty,
     perfectWins: p.stats.perfectWins, fastWins: p.stats.fastWins, pearlsEarnedTotal: p.stats.pearlsEarnedTotal,
     streakBest: p.streak.best, unlockedCount: p.unlocked.length,
+    gamesPlayed: p.stats.gamesPlayed, level: levelFromXp(p.stats.xp).level,
   };
 }
 

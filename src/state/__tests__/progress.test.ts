@@ -8,6 +8,7 @@ import {
 } from '../progress';
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
 import { CATALOG } from '../catalog';
+import { ACHIEVEMENTS } from '../achievements';
 import { LOCALES, type Lang } from '../../game/i18n';
 
 describe('computePearls', () => {
@@ -203,6 +204,12 @@ describe('shop economy (progress v2)', () => {
     for (const item of CATALOG.filter((i) => i.axis === 'uiPalette' && i.price > 0))
       for (const k of KEYS)
         expect(item.palette?.[k], `${item.id}/${k}`).toBeTruthy();
+  });
+  it('every achievement has a localized name in all 6 locales', () => {
+    const langs = Object.keys(LOCALES) as Lang[];
+    for (const a of ACHIEVEMENTS)
+      for (const lang of langs)
+        expect(LOCALES[lang].achievements[a.nameKey], `${a.id} @ ${lang}`).toBeTruthy();
   });
 });
 
