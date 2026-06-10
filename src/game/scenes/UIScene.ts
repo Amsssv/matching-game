@@ -9,6 +9,7 @@ import { uiStore, setHud, setModal } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { computePearls, awardPearls, recordGameStart, recordGameWin, winContext } from '../../state/progress';
+import { createPlayClock } from '../playClock';
 
 /**
  * Thin UIScene: owns the play-clock, score submission, SDK/auth flow and the
@@ -20,7 +21,7 @@ export class UIScene extends Phaser.Scene {
   private gameScene!: GameScene;
   private totalPairs = 8;
   private elapsedSeconds = 0;
-  private timerEvent?: Phaser.Time.TimerEvent;
+  private clock?: ReturnType<typeof createPlayClock>;
   private locale!: Locale;
 
   constructor() {
@@ -48,19 +49,16 @@ export class UIScene extends Phaser.Scene {
       pairsTotal: this.totalPairs,
     });
 
-    this.timerEvent = this.time.addEvent({
-      delay: 1000,
-      repeat: -1,
-      callback: () => {
-        this.elapsedSeconds++;
-        setHud({ timer: formatTime(this.elapsedSeconds) });
-      },
+    this.clock = createPlayClock((seconds) => {
+      this.elapsedSeconds = seconds;
+      setHud({ timer: formatTime(seconds) });
     });
+    this.clock.start();
 
     const onMoves = (n: number) => setHud({ moves: this.locale.moves(n), movesCount: n });
     const onMatch = (n: number) => setHud({ pairs: this.locale.pairs(n, this.totalPairs), pairsFound: n });
     const onComplete = (n: number) => {
-      this.timerEvent?.remove();
+      this.elapsedSeconds = this.clock?.stop() ?? this.elapsedSeconds;
       this.game.registry.set('lastScore', this.elapsedSeconds);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
@@ -101,7 +99,7 @@ export class UIScene extends Phaser.Scene {
       setHud({ active: false });
       setModal({ victory: null });
       offBus.forEach((off) => off());
-      this.timerEvent?.remove();
+      this.clock?.stop();
       this.gameScene.events.off('moves-updated', onMoves,    this);
       this.gameScene.events.off('match-found',   onMatch,    this);
       this.gameScene.events.off('game-complete', onComplete, this);
