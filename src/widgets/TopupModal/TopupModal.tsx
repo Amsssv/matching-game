@@ -3,7 +3,7 @@ import { useUi } from '@hooks/useUiStore';
 import { useProductPrices } from '@hooks/useProductPrices';
 import { LOCALES } from '../../game/i18n';
 import { PEARL_PACKS } from '@state/iap';
-import { buyPack, closeTopup } from '@state/purchasesController';
+import { buyProduct, closeTopup } from '@state/purchasesController';
 import { Button } from '@ui/Button';
 import styles from './TopupModal.module.scss';
 
@@ -29,7 +29,7 @@ export function TopupModal() {
           {PEARL_PACKS.map((pack) => (
             <div key={pack.id} className={styles.pack} data-testid={`topup-pack-${pack.id}`}>
               <span className={styles.amount}>🦪 {pack.pearls}</span>
-              <Button type="primary" size="small" onClick={() => { void buyPack(pack.id); }}>
+              <Button type="primary" size="small" onClick={() => { void buyProduct(pack.id); }}>
                 {prices[pack.id] ?? L.iapBuy}
               </Button>
             </div>

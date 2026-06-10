@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { getPayments } = vi.hoisted(() => ({ getPayments: vi.fn() }));
 vi.mock('../../payments', () => ({ getPayments }));
 
-import { reconcilePurchases, buyPack, buyItemForMoney } from '../purchasesController';
+import { reconcilePurchases, buyProduct } from '../purchasesController';
 import { progressStore, resetProgress, isUnlocked } from '../progress';
 
 beforeEach(() => { localStorage.clear(); resetProgress(); getPayments.mockReset(); });
@@ -33,37 +33,47 @@ describe('purchasesController', () => {
     expect(progressStore.get().pearls).toBe(0);
   });
 
-  it('buyPack grants pearls + consumes on success', async () => {
+  it('buyProduct(pack) grants pearls + consumes on success', async () => {
     const consumePurchase = vi.fn().mockResolvedValue(undefined);
     getPayments.mockReturnValue({
       purchase: vi.fn().mockResolvedValue({ productID: 'pearls_large', purchaseToken: 'tok', developerPayload: '' }),
       consumePurchase,
     });
-    const granted = await buyPack('pearls_large');
-    expect(granted).toBe(3500);
+    expect(await buyProduct('pearls_large')).toBe(true);
     expect(progressStore.get().pearls).toBe(3500);
     expect(consumePurchase).toHaveBeenCalledWith('tok');
   });
 
-  it('buyPack returns null when the purchase is cancelled/rejected', async () => {
+  it('buyProduct returns false when the purchase is cancelled/rejected', async () => {
     getPayments.mockReturnValue({
       purchase: vi.fn().mockRejectedValue(new Error('cancelled')),
       consumePurchase: vi.fn(),
     });
-    const granted = await buyPack('pearls_large');
-    expect(granted).toBeNull();
+    expect(await buyProduct('pearls_large')).toBe(false);
     expect(progressStore.get().pearls).toBe(0);
   });
 
-  it('buyItemForMoney unlocks the premium item on success (no consume)', async () => {
+  it('buyProduct(single cosmetic) unlocks the item, no consume', async () => {
     const consumePurchase = vi.fn();
     getPayments.mockReturnValue({
       purchase: vi.fn().mockResolvedValue({ productID: 'back_onyx', purchaseToken: 'tok', developerPayload: '' }),
       consumePurchase,
     });
-    const ok = await buyItemForMoney('back.onyx');
-    expect(ok).toBe(true);
+    expect(await buyProduct('back_onyx')).toBe(true);
     expect(isUnlocked('back.onyx')).toBe(true);
     expect(consumePurchase).not.toHaveBeenCalled();
+  });
+
+  it('buyProduct(bundle) grants all items + bonus pearls and consumes', async () => {
+    const consumePurchase = vi.fn().mockResolvedValue(undefined);
+    getPayments.mockReturnValue({
+      purchase: vi.fn().mockResolvedValue({ productID: 'bundle_founder', purchaseToken: 'tok', developerPayload: '' }),
+      consumePurchase,
+    });
+    expect(await buyProduct('bundle_founder')).toBe(true);
+    expect(isUnlocked('ui.aurora')).toBe(true);
+    expect(isUnlocked('back.prism')).toBe(true);
+    expect(progressStore.get().pearls).toBe(1500);
+    expect(consumePurchase).toHaveBeenCalledWith('tok');
   });
 });

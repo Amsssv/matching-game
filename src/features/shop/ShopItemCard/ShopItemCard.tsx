@@ -1,7 +1,7 @@
 import { Button } from '@ui/Button';
 import { useProgress } from '@hooks/useProgress';
 import { buy, equip } from '@state/shopController';
-import { buyItemForMoney } from '@state/purchasesController';
+import { buyProduct } from '@state/purchasesController';
 import { useProductPrices } from '@hooks/useProductPrices';
 import { paymentsAvailable } from '../../../payments';
 import type { ShopItem } from '@state/catalog';
@@ -34,7 +34,7 @@ export function ShopItemCard({ item, L }: { item: ShopItem; L: Locale }) {
           <Button type="primary" size="small" disabled className={styles.locked}>{`🔒 ${item.price} 🦪`}</Button>
         )}
         {item.productId && !owned && !equipped && paymentsAvailable() && (
-          <Button type="secondary" size="small" testId={`shop-money-${item.id}`} onClick={() => { void buyItemForMoney(item.id); }}>
+          <Button type="secondary" size="small" testId={`shop-money-${item.id}`} onClick={() => { void buyProduct(item.productId!); }}>
             {`💳 ${prices[item.productId] ?? L.iapBuy}`}
           </Button>
         )}
