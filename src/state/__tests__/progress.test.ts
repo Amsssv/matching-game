@@ -7,6 +7,7 @@ import {
   claimQuest, rerollQuest, claimAchievement, ensureTodayQuests, achSignals,
 } from '../progress';
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
+import { todayStr } from '../daily';
 import { CATALOG } from '../catalog';
 import { ACHIEVEMENTS } from '../achievements';
 import { BUNDLES } from '../iap';
@@ -313,7 +314,9 @@ describe('quests + achievements (progress v4)', () => {
     expect(claimQuest(id)).toBeNull();   // already claimed
   });
   it('rerollQuest swaps in an unused quest', () => {
-    ensureTodayQuests('2026-06-09');
+    // Seed with the REAL today: rerollQuest() internally calls ensureTodayQuests(todayStr()),
+    // so a hardcoded date would be re-picked there and diverge from `before` (date-fragile).
+    ensureTodayQuests(todayStr());
     const before = progressStore.get().quests.active.map((s) => s.id);
     const newId = rerollQuest(0);
     expect(before).not.toContain(newId);
