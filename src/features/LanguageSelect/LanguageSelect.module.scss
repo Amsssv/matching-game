@@ -1,0 +1,59 @@
+@use '../../styles/tokens' as *;
+
+.root { position: relative; pointer-events: auto; flex: none; }
+
+// Trigger — pill matching the bar buttons (gold on navy gradient, gold border).
+.trigger {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 40px; padding: 0 12px;
+  border-radius: 999px;
+  background: $gradient-button-idle;
+  border: 1.5px solid $gold-border;
+  color: $gold;
+  font-family: $font-body; font-weight: 700; font-size: 14px; letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease-out;
+  &:hover { background: $gradient-button-active; }
+  &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+}
+.triggerOpen { background: $gradient-button-active; }
+.globe { flex: none; display: block; }
+.code { line-height: 1; }
+.chevron { flex: none; transition: transform 0.15s ease-out; }
+.chevronOpen { transform: rotate(180deg); }
+
+// Popover panel — themed, gold border, narrow (flag + code rows only).
+.pop {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  margin: 0; padding: 6px; list-style: none;
+  display: flex; flex-direction: column; gap: 2px;
+  width: auto; min-width: 96px;
+  max-width: calc(100vw - 24px);   // never spill past the viewport on mobile
+  max-height: 60vh; overflow: auto;
+  background: linear-gradient(180deg, $navy-soft, $navy);
+  border: 2px solid $gold-border; border-radius: $radius-panel;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+.option {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 10px; border: none; border-radius: 9px; background: transparent;
+  color: $text-muted; font-family: $font-body; font-weight: 700; font-size: 14px;
+  letter-spacing: 0.5px; cursor: pointer; text-align: left;
+  transition: background 0.12s ease-out, color 0.12s ease-out;
+  &:hover { background: rgb(var(--color-blue-rgb, 10 61 122) / 0.35); color: $white; }
+}
+.flag { font-size: 16px; line-height: 1; flex: none; }
+.optCode { line-height: 1; }
+// Active language: gold text + faint gold wash + gold left bar (no checkmark needed).
+.optionActive {
+  color: $gold;
+  background: rgb(var(--color-gold-rgb, 247 208 119) / 0.12);
+  box-shadow: inset 3px 0 0 $gold;
+  &:hover { color: $gold; background: rgb(var(--color-gold-rgb, 247 208 119) / 0.18); }
+}
+
+// Very narrow phones: collapse the trigger to just the globe icon.
+@media (max-width: 380px) {
+  .trigger { height: 32px; padding: 0 8px; gap: 0; }
+  .code, .chevron { display: none; }
+}

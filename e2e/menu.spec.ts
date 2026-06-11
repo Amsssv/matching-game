@@ -42,14 +42,15 @@ test.describe('MenuScene', () => {
   });
 
   test('leaderboard panel', async ({ page }) => {
-    await page.evaluate(() => {
-      const game = (window as any).__game;
-      game.registry.set('difficulty', 'medium');
-      const scene = game.scene.getScene('MenuScene') as any;
-      scene.openLeaderboardModal(scene.scale.width, scene.scale.height);
-    });
-    // Wait for modal fade-in (300ms) + mock-data render
-    await page.waitForTimeout(700);
+    // Open via the real React path — the old Phaser `openLeaderboardModal` was
+    // removed in the React migration. Difficulty defaults to 'medium'; select it
+    // explicitly so the (SDK-less) mock leaderboard rows are deterministic.
+    await page.getByTestId('diff-medium').click();
+    await page.getByTestId('leaderboard-open').click();
+    await expect(page.getByTestId('leaderboard')).toBeVisible();
+    // Wait for the async mock data to land (null → loading, then lb-table renders).
+    await expect(page.getByTestId('lb-table')).toBeVisible();
+    await page.waitForTimeout(400); // modal fade-in settle
     await pausePhaser(page);
     await expect(page).toHaveScreenshot('menu-leaderboard.png');
     await resumePhaser(page);

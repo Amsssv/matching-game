@@ -7,7 +7,7 @@ import { Subtitle } from './Subtitle';
 import { DifficultyPicker } from '@features/DifficultyPicker';
 import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
-import { LanguageFlags } from '@features/LanguageFlags';
+import { LanguageSelect } from '@features/LanguageSelect';
 import { PearlBalance } from '@features/PearlBalance';
 import { StoreButton } from '@features/StoreButton';
 import { DailyButton } from '@features/DailyButton';
@@ -23,30 +23,28 @@ export function MainMenu() {
     <div className={styles.root} data-testid="menu">
       <header className={styles.topBar}>
         <div className={styles.topLeft}>
-          <div className={styles.clusterRow}>
-            <PearlBalance />
-            <StoreButton />
-          </div>
-          <div className={styles.clusterRow}>
-            <DailyButton />
-            <TasksButton />
-            <ProfileButton />
-          </div>
+          <PearlBalance />
+          <StoreButton />
+          <DailyButton />
+          <TasksButton />
+          <ProfileButton />
         </div>
-        <LanguageFlags current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
+        <LanguageSelect current={lang} onPick={(l) => bus.emit('cmd:set-lang', { lang: l })} />
       </header>
 
       <main className={styles.center}>
-        <Title text={L.title} />
-        <Subtitle text={L.subtitle} />
-        <DifficultyPicker L={L} current={difficulty} onPick={(d) => bus.emit('cmd:set-difficulty', { difficulty: d })} />
-        <Button testId="play" type="primary" size="large" className={styles.play} onClick={() => bus.emit('cmd:play')}>
-          <svg className={styles.playIcon} viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
-          {L.play}
-        </Button>
+        <div className={styles.centerInner}>
+          <Title text={L.title} />
+          <Subtitle text={L.subtitle} />
+          <DifficultyPicker L={L} current={difficulty} onPick={(d) => bus.emit('cmd:set-difficulty', { difficulty: d })} />
+          <Button testId="play" type="primary" size="large" className={styles.play} onClick={() => bus.emit('cmd:play')}>
+            <svg className={styles.playIcon} viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+            {L.play}
+          </Button>
+        </div>
       </main>
 
-      <footer className={styles.bottomBar}>
+      <footer className={styles.bottomBar} data-testid="menu-footer">
         <div className={styles.bottomActions}>
           <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
           <Button testId="shop-open" type="secondary" size="medium" onClick={() => openShop()}>

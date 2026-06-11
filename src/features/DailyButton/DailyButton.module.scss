@@ -22,3 +22,12 @@
   width: 11px; height: 11px; border-radius: 50%;
   background: $gold; border: 2px solid $navy;
 }
+
+// Very narrow phones: shrink so the single top row fits (≤380px).
+@media (max-width: 380px) {
+  .btn { width: 32px; height: 32px; }
+}
+
+@media (max-width: 340px) {
+  .btn { width: 30px; height: 30px; }
+}

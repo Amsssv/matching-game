@@ -7,3 +7,10 @@
   font-family: #{$font-display}; color: #01286a;
   font-size: clamp(14px, 5vh, 28px); margin-top: clamp(2px, 1vh, 8px);
 }
+
+// On short screens (small phones in portrait, any phone in landscape) drop the
+// decorative subtitle to free vertical space so the menu fits without scrolling.
+// Subtitle is only used here.
+@media (max-height: 600px) {
+  .root { display: none; }
+}

@@ -23,3 +23,9 @@
   font-size: 14px; line-height: 1;
   background: rgb(var(--color-gold-rgb, 247 208 119) / 0.18);
 }
+
+@media (max-width: 380px) {
+  .root { height: 32px; padding: 4px 8px; gap: 4px; font-size: 13px; }
+  .icon { font-size: 14px; }
+  .plus { width: 15px; height: 15px; font-size: 12px; }
+}

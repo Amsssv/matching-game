@@ -24,3 +24,12 @@
   color: $navy; font-family: $font-body; font-weight: 800; font-size: 10px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
 }
+
+// Very narrow phones: shrink so the single top row fits (≤380px).
+@media (max-width: 380px) {
+  .btn { width: 32px; height: 32px; }
+}
+
+@media (max-width: 340px) {
+  .btn { width: 30px; height: 30px; }
+}

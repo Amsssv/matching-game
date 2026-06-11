@@ -13,3 +13,7 @@
   &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
 }
 .lv { font-size: 11px; opacity: 0.8; }
+
+@media (max-width: 380px) {
+  .btn { height: 32px; padding: 3px 8px; font-size: 12px; gap: 3px; }
+}

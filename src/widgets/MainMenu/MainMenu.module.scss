@@ -1,56 +1,76 @@
 @use '../../styles/tokens' as *;
 
-// 3 vertical zones (flex column): top bar / center group / bottom bar.
-// Root is non-interactive; interactive leaves opt back in via pointer-events:auto.
+// Mobile-first. Base styles target small touch screens; desktop adds only the
+// bottom-bar row layout via @media (min-width: 601px). The menu is a 3-zone CSS
+// grid — topBar (auto) / center (1fr) / bottomBar (auto). No scrolling: the center
+// content is compact and vertically centred (margin:auto) so spare height splits
+// evenly above/below instead of pooling into one gap. overflow:hidden guards
+// against a scrollbar on extreme short screens.
+
+$pad-y: clamp(10px, 2.5vh, 24px);
+$pad-x: clamp(12px, 3vw, 28px);
+$max-content: 1366px; // desktop: bars never span wider than this (centred)
+
 .root {
   pointer-events: none;
   position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center;
+  display: grid;
+  // Constrain the single column to the container width. Without an explicit columns
+  // track the implicit `auto` column grows to the widest row's max-content (e.g. the
+  // bottom action pills), making every row wider than the viewport and pushing the
+  // language selector off-screen on narrow phones.
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   text-align: center;
-  padding:
-    clamp(10px, 2.5vh, 24px)
-    clamp(12px, 3vw, 28px)
-    calc(clamp(10px, 2.5vh, 24px) + var(--banner-height, 0px));
+  // safe-area on every edge. Side padding also centres all three zones within a
+  // max 1366px band on wide screens, so the cluster/language/bottom buttons stop
+  // flying to the viewport edges. Bottom = 24px base + the LARGER of the Yandex
+  // sticky banner and the home-indicator inset (footer clears whichever is taller).
+  padding-top:    calc(#{$pad-y} + env(safe-area-inset-top, 0px));
+  padding-left:   calc(env(safe-area-inset-left, 0px)  + max(#{$pad-x}, (100vw - #{$max-content}) / 2));
+  padding-right:  calc(env(safe-area-inset-right, 0px) + max(#{$pad-x}, (100vw - #{$max-content}) / 2));
+  padding-bottom: calc(24px + max(var(--banner-height, 0px), env(safe-area-inset-bottom, 0px)));
 }
 
-// ── Zone 1: top bar (pearl/daily/tasks left, languages right) ──
+// ── Zone 1: top bar — single row: cluster (🦪 store daily tasks profile) + language ──
 .topBar {
   width: 100%;
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
-// Top-left cluster: pearl balance + daily/tasks buttons side-by-side, no overlap.
 .topLeft {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   pointer-events: auto;
 }
-// Cluster splits into two flex rows (primary: pearls+store, secondary: daily/tasks/
-// profile) so mobile stacks them with each row sized independently; on desktop the two
-// rows sit side-by-side = one visual row.
-.clusterRow { display: flex; align-items: center; gap: 8px; }
-// Neutralize the absolute positioning that PearlBalance / LanguageFlags use when
-// standalone, so they sit in flow inside the top bar. `relative` (not `static`) keeps
-// them in flow AND makes each its own containing block, so a button's claimable badge
-// anchors to it instead of escaping to the overlay root.
-.clusterRow > *,
-.topBar > :global(*) { position: relative; top: auto; left: auto; right: auto; }
+// `relative` (not `static`) keeps the cluster items in flow AND makes each its own
+// containing block, so a button's claimable badge anchors to it instead of escaping
+// to the overlay root.
+.topLeft > * { position: relative; top: auto; left: auto; right: auto; }
 
-// ── Zone 2: center group (Title → Subtitle → Difficulty → Play) ──
-// flex:1 fills the middle and vertically centers the cohesive block, so there
-// is no empty "hole" — the spare space distributes evenly above and below.
+// ── Zone 2: center (Title → Subtitle → Difficulty → Play), vertically centred ──
 .center {
-  flex: 1; width: 100%;
+  min-height: 0;          // cancels default min-height:auto so the cell can shrink
+  overflow: hidden;       // no scrollbar — content is sized to fit
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+}
+.centerInner {
+  margin: auto;           // centre vertically — spare height splits evenly, no pooled gap
+  width: 100%;
   max-width: clamp(320px, 92vw, 820px);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(12px, 3vh, 28px);
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(8px, 2vh, 22px);
 }
 
-// ── Zone 3: bottom bar (records + collection left, sound right) ──
+// ── Zone 3: bottom bar (records + shop + help, plus sound) ──
+// MOBILE base: stack — sound row on top, action pills full-width below.
 .bottomBar {
   width: 100%;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; flex-direction: column-reverse; align-items: stretch; gap: 8px;
   pointer-events: auto;
 }
-.bottomActions { display: flex; gap: 8px; }
+.bottomActions { display: flex; gap: 8px; width: 100%; }
+// Only the two pills stretch; the trailing round "?" help button keeps its circle.
+.bottomActions > button:nth-child(-n+2) { flex: 1; min-width: 0; }
 
 // Hero CTA — accent applied HERE (not on Button .primary) so difficulty cards,
 // which are also .primary, never inherit the play button's heavier treatment.
@@ -82,22 +102,29 @@
 }
 .iconLabel { display: inline-flex; align-items: center; gap: 6px; }
 
-// ── Mobile (portrait) ──
-@media (max-width: 600px) {
-  // Pull the center group nearer the top instead of floating mid-screen.
-  .center { justify-content: flex-start  }
-  // Stack the two cluster rows on mobile: row 1 = 🦪 + store, row 2 = 🎁 📋 Lv —
-  // each row snug with independent widths. Desktop keeps them side-by-side.
-  .topLeft { flex-direction: column; align-items: flex-start; }
-  // Stack the bottom bar; action pills go full-width, the sound row centers itself.
-  .bottomBar { align-items: stretch; flex-direction: column-reverse  }
-  .bottomActions { width: 100%; }
-  // Only the two action pills stretch; the trailing round "?" help button keeps its circle.
-  .bottomActions > button:nth-child(-n+2) { flex: 1; min-width: 0; }
+// ── Desktop (min-width: 601px): horizontal bottom bar ──
+@media (min-width: 601px) {
+  .bottomBar {
+    flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .bottomActions { width: auto; }
+  .bottomActions > button:nth-child(-n+2) { flex: 0 0 auto; }
 }
 
-// Short landscape: tighten the top padding so the block still fits.
+// Short landscape: tighten gaps so the block still fits without scrolling.
 @media (orientation: landscape) and (max-height: 560px) {
-  .root { padding-top: 8px; }
-  .center { gap: clamp(8px, 2vh, 18px); }
+  .root { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+  .centerInner { gap: clamp(6px, 1.5vh, 14px); }
+}
+
+// Very narrow phones: tighten the top-row gaps so the single row fits.
+@media (max-width: 380px) {
+  .topBar { gap: 4px; }
+  .topLeft { gap: 4px; }
+}
+
+// Smallest phones (≤340px): squeeze the top-row gaps a touch more.
+@media (max-width: 340px) {
+  .topBar { gap: 3px; }
+  .topLeft { gap: 3px; }
 }

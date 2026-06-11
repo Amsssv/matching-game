@@ -11,3 +11,12 @@
   &:hover { background: $blue; }
   &:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
 }
+
+// Very narrow phones: shrink so the single top row fits (≤380px).
+@media (max-width: 380px) {
+  .btn { width: 32px; height: 32px; }
+}
+
+@media (max-width: 340px) {
+  .btn { width: 30px; height: 30px; }
+}
