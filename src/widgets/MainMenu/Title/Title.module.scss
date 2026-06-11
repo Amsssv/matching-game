@@ -9,6 +9,14 @@
   display: grid; place-items: center;
 }
 .background { display: block; width: 100%; height: auto; }
+
+// Landscape phones: the logo would otherwise eat most of the short height. Cap it
+// by height and let width follow the aspect ratio. `!important` overrides the inline
+// width Title.tsx sets from its JS text measurement.
+@media (orientation: landscape) and (max-height: 480px) {
+  .root { width: auto !important; height: 24vh; margin-top: 2px; }
+  .background { width: auto; height: 100%; }
+}
 .text {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   margin: 0; white-space: nowrap;
