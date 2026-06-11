@@ -24,12 +24,14 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   text-align: center;
   // safe-area on every edge. Side padding also centres all three zones within a
   // max 1366px band on wide screens, so the cluster/language/bottom buttons stop
-  // flying to the viewport edges. Bottom = 24px base + the LARGER of the Yandex
-  // sticky banner and the home-indicator inset (footer clears whichever is taller).
+  // flying to the viewport edges. Bottom = 24px base + the home-indicator inset.
+  // No banner reserve here: the Yandex sticky banner shrinks the viewport, and this
+  // overlay is inset:0, so the footer already sits above the banner — reserving
+  // --banner-height too would double-pad.
   padding-top:    calc(#{$pad-y} + env(safe-area-inset-top, 0px));
   padding-left:   calc(env(safe-area-inset-left, 0px)  + max(#{$pad-x}, (100vw - #{$max-content}) / 2));
   padding-right:  calc(env(safe-area-inset-right, 0px) + max(#{$pad-x}, (100vw - #{$max-content}) / 2));
-  padding-bottom: calc(24px + max(var(--banner-height, 0px), env(safe-area-inset-bottom, 0px)));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 // ── Zone 1: top bar — single row: cluster (🦪 store daily tasks profile) + language ──
