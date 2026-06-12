@@ -16,5 +16,7 @@
   .grid { grid-template-columns: repeat(2, 1fr); width: min(92vw, 360px); }
 }
 @media (orientation: landscape) and (max-height: 560px) {
-  .grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  // Single row of 4 in landscape — trades width (plenty) for height (scarce),
+  // so the whole menu fits the short viewport without scrolling.
+  .grid { grid-template-columns: repeat(4, minmax(64px, 1fr)); width: min(96vw, 720px); }
 }

@@ -9,6 +9,17 @@
   display: grid; place-items: center;
 }
 .background { display: block; width: 100%; height: auto; }
+
+// Landscape phones: the logo would otherwise eat most of the short height. Cap the
+// plaque by a DEFINITE height (vh, not 100% — a percentage height on a grid child
+// doesn't resolve, so the img fell back to its natural 2858px and covered the screen).
+// width:auto keeps the aspect ratio; max-width guards narrow widths. `!important`
+// overrides the inline width Title.tsx sets from its JS text measurement.
+@media (orientation: landscape) and (max-height: 480px) {
+  .root { width: auto !important; max-width: 90vw; margin-top: 2px; }
+  .background { width: auto; height: 20vh; max-width: 90vw; }
+  .text { font-size: clamp(13px, 7vh, 26px); }
+}
 .text {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   margin: 0; white-space: nowrap;

@@ -32,6 +32,10 @@ export class GameScene extends Phaser.Scene {
 
   private rowWidths: readonly number[] = [];
   private isMobile = false;
+  // Layout mode: portrait phones use the tall MOBILE grid; landscape phones (and
+  // desktop) use the wide DESKTOP grid so cards aren't squeezed into a short height.
+  private portraitMobile = false;
+  private difficulty: Difficulty = 'medium';
   private bgObj?: Phaser.GameObjects.Image;
   private islandObj?: Phaser.GameObjects.NineSlice;
   private gameActive = true;
@@ -70,12 +74,13 @@ export class GameScene extends Phaser.Scene {
     this.islandObj = undefined;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
+    this.difficulty = difficulty;
     this.isMobile = isMobileDevice();
-    this.rowWidths = (this.isMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[difficulty];
-    this.totalPairs = this.rowWidths.reduce((s, n) => s + n, 0) / 2;
 
     const canvasWidth = this.scale.width;
     const canvasHeight = this.scale.height;
+    this.resolveLayout(canvasWidth, canvasHeight);   // sets portraitMobile + rowWidths
+    this.totalPairs = this.rowWidths.reduce((s, n) => s + n, 0) / 2;
 
     this.drawBackground(canvasWidth, canvasHeight);
     this.dealCards(canvasWidth, canvasHeight);
@@ -147,16 +152,25 @@ export class GameScene extends Phaser.Scene {
     this.cards.forEach((card) => card.back.setTint(backTint));
   }
 
+  // Decide the grid arrangement from the live aspect ratio. Portrait phones keep the
+  // tall MOBILE pattern; landscape phones fall back to the wide DESKTOP pattern (few
+  // rows, many columns) so the short viewport height isn't wasted. Totals are equal
+  // across patterns, so this is safe to re-run on resize without changing card count.
+  private resolveLayout(canvasWidth: number, canvasHeight: number) {
+    this.portraitMobile = this.isMobile && canvasHeight >= canvasWidth;
+    this.rowWidths = (this.portraitMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[this.difficulty];
+  }
+
   private calcRefCardSize(canvasWidth: number, canvasHeight: number): { cardWidth: number; cardHeight: number } {
     const availableHeight = canvasHeight - UI.layout.headerHeight;
     const islandSlice = GameScene.ISLAND_SLICE;
-    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
-    const maxIslandH = this.isMobile ? availableHeight - 300 : availableHeight * 0.97;
+    const islandPadding = this.portraitMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const maxIslandH = this.portraitMobile ? availableHeight - 300 : availableHeight * 0.97;
     const baseAreaW = canvasWidth * 0.90 - 2 * (islandSlice.left + islandPadding);
     const baseAreaH = maxIslandH - 2 * (islandSlice.top + islandPadding);
-    const refRows = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
+    const refRows = this.portraitMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
     const { cardWidth, cardHeight } = calcLayoutFn(refRows, Math.max(baseAreaW, 40), Math.max(baseAreaH, 40), 0, 0);
-    if (this.isMobile) {
+    if (this.portraitMobile) {
       return { cardWidth: Math.round(cardWidth * 1.5), cardHeight: Math.round(cardHeight * 1.5) };
     }
     return { cardWidth, cardHeight };
@@ -166,7 +180,7 @@ export class GameScene extends Phaser.Scene {
     const availableHeight = canvasHeight - UI.layout.headerHeight;
     const { cardWidth, cardHeight } = this.calcRefCardSize(canvasWidth, canvasHeight);
     // Island never shrinks below medium size (easy has fewer cards but same island)
-    const medRef = this.isMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
+    const medRef = this.portraitMobile ? DIFF_ROWS_MOBILE.medium : DIFF_ROWS.medium;
     const maxColumns = Math.max(Math.max(...this.rowWidths), Math.max(...medRef));
     const rowCount = Math.max(this.rowWidths.length, medRef.length);
 
@@ -175,8 +189,8 @@ export class GameScene extends Phaser.Scene {
     const gridHeight = rowCount * cardHeight + (rowCount - 1) * 24;
 
     const islandSlice = GameScene.ISLAND_SLICE;
-    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
-    const maxIslandH = this.isMobile ? availableHeight - 300 : availableHeight * 0.97;
+    const islandPadding = this.portraitMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const maxIslandH = this.portraitMobile ? availableHeight - 300 : availableHeight * 0.97;
     return {
       x: canvasWidth / 2,
       y: UI.layout.headerHeight + availableHeight / 2,
@@ -188,7 +202,7 @@ export class GameScene extends Phaser.Scene {
   // ── Card layout calculation ──────────────────────────────────────────────────
   private calcLayoutFromIsland(island: { x: number; y: number; w: number; h: number }, canvasWidth: number, canvasHeight: number): Layout {
     const islandSlice = GameScene.ISLAND_SLICE;
-    const islandPadding = this.isMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
+    const islandPadding = this.portraitMobile ? GameScene.ISLAND_INNER_PAD_MOBILE : GameScene.ISLAND_INNER_PAD;
     const areaWidth = island.w - 2 * (islandSlice.left + islandPadding);
     const areaHeight = island.h - 2 * (islandSlice.top + islandPadding);
     const { cardWidth, cardHeight } = this.calcRefCardSize(canvasWidth, canvasHeight);
@@ -250,6 +264,10 @@ export class GameScene extends Phaser.Scene {
   private onResize(gameSize: Phaser.Structs.Size) {
     const canvasWidth = gameSize.width;
     const canvasHeight = gameSize.height;
+
+    // Re-resolve the grid arrangement: an orientation flip swaps portrait↔landscape
+    // patterns (same card count) so the board re-arranges instead of staying squeezed.
+    this.resolveLayout(canvasWidth, canvasHeight);
 
     // Reposition / rescale background
     this.bgObj?.setPosition(canvasWidth / 2, canvasHeight / 2).setDisplaySize(canvasWidth, canvasHeight);
