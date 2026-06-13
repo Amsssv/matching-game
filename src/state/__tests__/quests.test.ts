@@ -10,10 +10,11 @@ describe('quests pure logic', () => {
   it('different dates generally differ', () => {
     expect(pickDailyQuests('2026-06-09')).not.toEqual(pickDailyQuests('2026-07-15'));
   });
-  it('measure: winGames counts wins, playGames counts starts, matchPairs adds pairs', () => {
+  it('measure: winGames counts wins, playGames counts completed games (not launches), matchPairs adds pairs', () => {
     expect(QUEST_BY_ID.winGames.measure({ type: 'win', difficulty: 'easy', pairs: 6, perfect: false, fast: false })).toBe(1);
     expect(QUEST_BY_ID.winGames.measure({ type: 'start' })).toBe(0);
-    expect(QUEST_BY_ID.playGames.measure({ type: 'start' })).toBe(1);
+    expect(QUEST_BY_ID.playGames.measure({ type: 'win', difficulty: 'easy', pairs: 6, perfect: false, fast: false })).toBe(1);
+    expect(QUEST_BY_ID.playGames.measure({ type: 'start' })).toBe(0);
     expect(QUEST_BY_ID.matchPairs.measure({ type: 'win', difficulty: 'easy', pairs: 6, perfect: false, fast: false })).toBe(6);
     expect(QUEST_BY_ID.winHard.measure({ type: 'win', difficulty: 'expert', pairs: 14, perfect: false, fast: false })).toBe(1);
     expect(QUEST_BY_ID.perfectWin.measure({ type: 'win', difficulty: 'easy', pairs: 6, perfect: true, fast: false })).toBe(1);

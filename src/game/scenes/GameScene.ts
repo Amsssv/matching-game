@@ -3,7 +3,7 @@ import { UI } from '../ui/config';
 import { SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
 import { DIFF_ROWS, DIFF_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
-import { isMobileDevice } from '../device';
+import { isMobileDevice, getLocalDpr } from '../device';
 import { setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { progressStore } from '../../state/progress';
@@ -38,6 +38,9 @@ export class GameScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
   private bgObj?: Phaser.GameObjects.Image;
   private islandObj?: Phaser.GameObjects.NineSlice;
+  // Portrait mobile renders the island as a full-screen stretched image instead of the
+  // grid-sized NineSlice (islandObj). Exactly one of the two exists at a time.
+  private islandImg?: Phaser.GameObjects.Image;
   private gameActive = true;
   private lastAdvTime = 0;
   private resizeTimer: Phaser.Time.TimerEvent | null = null;
@@ -51,6 +54,16 @@ export class GameScene extends Phaser.Scene {
   // Mobile: 16px (smaller screen, different island proportion)
   private static readonly ISLAND_INNER_PAD         = 40;
   private static readonly ISLAND_INNER_PAD_MOBILE  = 16;
+  // Sand region of 'island-mobile.webp' (normalized → fraction of the stretched-to-fill
+  // canvas). The taller y-extent exploits the octagonal grid ([2,4,…,4,2]): its narrow
+  // top/bottom rows sit in the chamfered corners while the 4-wide interior rows always
+  // land in the full-width sand band (y≈0.18–0.82), so cards fill the sand without
+  // overlapping the water frame.
+  private static readonly MOBILE_SAND = { x0: 0.069, y0: 0.10, x1: 0.925, y1: 0.90 };
+  // Expert packs 8 rows → the grid is height-limited, so cards shrink. A taller band
+  // gives them more vertical room; the octagonal grid keeps the 4-wide rows (at norm
+  // y≈0.19–0.81 for 8 rows) safely in the sand body even at this height.
+  private static readonly MOBILE_SAND_EXPERT = { x0: 0.069, y0: 0.045, x1: 0.925, y1: 0.955 };
 
   private onVisibilityChange = () => {
     if (document.hidden) {
@@ -72,6 +85,7 @@ export class GameScene extends Phaser.Scene {
     this.gameActive = true;
     this.bgObj = undefined;
     this.islandObj = undefined;
+    this.islandImg = undefined;
 
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     this.difficulty = difficulty;
@@ -130,17 +144,43 @@ export class GameScene extends Phaser.Scene {
       this.renderActivity?.disable();
       this.cards.forEach(card => card.shadow.destroy());
       this.islandObj?.destroy();
+      this.islandImg?.destroy();
     });
   }
 
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(canvasWidth: number, canvasHeight: number) {
+    // The sea fills the canvas and shows through the island's transparent rounded edges.
     this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight).setDepth(-1);
-    if (!this.islandObj) {
+    this.buildIsland(canvasWidth, canvasHeight);
+  }
+
+  /** True when the board should use the portrait full-screen island instead of the NineSlice. */
+  private useMobileIsland(): boolean {
+    return this.portraitMobile && this.textures.exists('island-mobile');
+  }
+
+  /** (Re)create the island for the current layout mode, destroying any previous one. */
+  private buildIsland(canvasWidth: number, canvasHeight: number) {
+    this.islandObj?.destroy(); this.islandObj = undefined;
+    this.islandImg?.destroy(); this.islandImg = undefined;
+
+    if (this.useMobileIsland()) {
+      this.islandImg = this.add.image(canvasWidth / 2, canvasHeight / 2, 'island-mobile').setDepth(0);
+      this.fitIslandFill(canvasWidth, canvasHeight);
+    } else {
       const { x, y, w, h } = this.calcIslandBounds(canvasWidth, canvasHeight);
-      const islandSlice = GameScene.ISLAND_SLICE;
-      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, islandSlice.left, islandSlice.right, islandSlice.top, islandSlice.bottom).setDepth(0);
+      const s = GameScene.ISLAND_SLICE;
+      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, s.left, s.right, s.top, s.bottom).setDepth(0);
     }
+  }
+
+  /** Stretch the mobile island to fill the board area — full width, from just below the
+   *  header down to the bottom edge — so its top frame isn't hidden behind the HUD. */
+  private fitIslandFill(canvasWidth: number, canvasHeight: number) {
+    const top = UI.layout.headerHeight;
+    const h = canvasHeight - top;
+    this.islandImg?.setPosition(canvasWidth / 2, top + h / 2).setDisplaySize(canvasWidth, h);
   }
 
   private applyEquippedTints() {
@@ -149,6 +189,7 @@ export class GameScene extends Phaser.Scene {
     const backTint = tintOf(eq.cardBack);
     this.bgObj?.setTint(seaTint);
     this.islandObj?.setTint(seaTint);
+    this.islandImg?.setTint(seaTint);
     this.cards.forEach((card) => card.back.setTint(backTint));
   }
 
@@ -215,7 +256,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   private calcLayout(canvasWidth: number, canvasHeight: number): Layout {
+    if (this.useMobileIsland()) return this.calcMobileLayout(canvasWidth, canvasHeight);
     return this.calcLayoutFromIsland(this.calcIslandBounds(canvasWidth, canvasHeight), canvasWidth, canvasHeight);
+  }
+
+  // Portrait mobile: lay cards into the cover-fit island's sand region, clamped to the
+  // visible canvas below the header. Card size is maximized to fill that area, so the
+  // grid occupies as much of the sandy zone as possible.
+  private calcMobileLayout(canvasWidth: number, canvasHeight: number): Layout {
+    // The island fills the board area below the header, so map the sand region into
+    // that same band — keeps cards aligned with the stretched sand.
+    const top = UI.layout.headerHeight;
+    const fillH = canvasHeight - top;
+    const S = this.difficulty === 'expert' ? GameScene.MOBILE_SAND_EXPERT : GameScene.MOBILE_SAND;
+    const margin = Math.round(10 * getLocalDpr());
+    const sx0 = Math.max(S.x0 * canvasWidth, margin);
+    const sx1 = Math.min(S.x1 * canvasWidth, canvasWidth - margin);
+    const sy0 = top + S.y0 * fillH;
+    const sy1 = top + S.y1 * fillH;
+    const areaWidth = Math.max(sx1 - sx0, 40);
+    const areaHeight = Math.max(sy1 - sy0, 40);
+    return calcLayoutFn(this.rowWidths, areaWidth, areaHeight, (sx0 + sx1) / 2, (sy0 + sy1) / 2);
   }
 
   // ── Deal cards ───────────────────────────────────────────────────────────────
@@ -272,17 +333,20 @@ export class GameScene extends Phaser.Scene {
     // Reposition / rescale background
     this.bgObj?.setPosition(canvasWidth / 2, canvasHeight / 2).setDisplaySize(canvasWidth, canvasHeight);
 
-    // Compute island bounds once — reused for island reposition and card layout
-    const island = this.calcIslandBounds(canvasWidth, canvasHeight);
-
-    // Reposition island
-    if (this.islandObj) {
+    // Island: an orientation flip can switch portrait↔landscape, which swaps the
+    // full-screen image and the NineSlice. Rebuild on a mode change, else update in place.
+    if (this.useMobileIsland() !== !!this.islandImg) {
+      this.buildIsland(canvasWidth, canvasHeight);
+    } else if (this.islandImg) {
+      this.fitIslandFill(canvasWidth, canvasHeight);
+    } else if (this.islandObj) {
+      const island = this.calcIslandBounds(canvasWidth, canvasHeight);
       this.islandObj.setPosition(island.x, island.y);
       this.islandObj.setSize(island.w, island.h);
     }
 
     // Relayout cards — re-bake textures at the new size, then re-point + resize each card.
-    const layout = this.calcLayoutFromIsland(island, canvasWidth, canvasHeight);
+    const layout = this.calcLayout(canvasWidth, canvasHeight);
     bakeCardTextures(this, layout.cardWidth, layout.cardHeight);
     this.cards.forEach((card) => {
       const { x, y } = layout.positions[card.index];

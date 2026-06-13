@@ -54,6 +54,16 @@ export const DEFAULT_EQUIPPED: Record<CustomAxis, string> = {
 
 export const AXES = Object.keys(DEFAULT_EQUIPPED) as CustomAxis[];
 
+// Temporarily disabled collections — the shop shows a "coming soon" placeholder for
+// these (no items, no buying). Remove an axis to re-enable it. Equipped/owned items
+// are unaffected; this only gates browsing/purchasing in the Collection shop.
+export const COMING_SOON_AXES: ReadonlySet<CustomAxis> = new Set<CustomAxis>(['seaTheme']);
+export const isComingSoon = (axis: CustomAxis): boolean => COMING_SOON_AXES.has(axis);
+
+// Temporarily hide the Store's exclusives section. Items stay in the catalog (so the
+// Founder bundle that grants them still works); flip to false to show the section again.
+export const EXCLUSIVES_HIDDEN = true;
+
 export const ITEM_BY_ID: Record<string, ShopItem> =
   Object.fromEntries(CATALOG.map((i) => [i.id, i]));
 

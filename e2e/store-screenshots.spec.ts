@@ -57,13 +57,9 @@ for (const lang of LANGS) {
         g?.loop.wake();
         g?.scene?.getScene('GameScene')?.events.emit('game-complete', 18);
       });
-      // Wait until the victory modal is actually rendered (backdrop depth=20).
-      // Replaces fixed 1.5s wait — under WebGL boot the modal can take longer.
-      await page.waitForFunction(() => {
-        const g = (window as any).__game;
-        const ui = g?.scene?.getScene('UIScene') as any;
-        return ui?.children?.list?.some((o: any) => o.depth === 20);
-      }, { timeout: 5000 });
+      // Wait until the React victory modal is actually rendered (it's a DOM overlay
+      // now, not a Phaser object) — replaces a stale depth-20 Phaser check.
+      await page.getByTestId('victory').waitFor({ state: 'visible', timeout: 5000 });
       // Let modal fade-in tween settle
       await page.waitForTimeout(400);
       await pausePhaser(page);

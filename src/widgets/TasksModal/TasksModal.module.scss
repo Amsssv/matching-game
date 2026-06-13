@@ -12,8 +12,8 @@
 .tabBadge {
   position: absolute; top: 1px; right: 3px;
   min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
-  background: $gold; border: 2px solid $navy;   // navy ring stays visible on the gold active tab
-  color: $navy; font-family: $font-body; font-weight: 800; font-size: 10px; line-height: 1;
+  background: $coral; border: 2px solid $navy;   // red notification; navy ring keeps it readable on the gold active tab
+  color: $white; font-family: $font-body; font-weight: 800; font-size: 10px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
 }
 .list { display: grid; gap: 8px; max-height: 55vh; overflow: auto; width: 100%; }

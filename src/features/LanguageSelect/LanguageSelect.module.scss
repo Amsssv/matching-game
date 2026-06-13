@@ -52,8 +52,12 @@
   &:hover { color: $gold; background: rgb(var(--color-gold-rgb, 247 208 119) / 0.18); }
 }
 
-// Very narrow phones: collapse the trigger to just the globe icon.
-@media (max-width: 380px) {
-  .trigger { height: 32px; padding: 0 8px; gap: 0; }
+// On touch / mobile devices the language picker is just the globe — a round icon
+// button matching the other top-bar controls. (pointer: coarse) = phones & tablets.
+@media (pointer: coarse) {
+  .trigger { width: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; }
   .code, .chevron { display: none; }
 }
+// Match the sibling icon buttons' shrink on narrow phones.
+@media (pointer: coarse) and (max-width: 380px) { .trigger { width: 32px; height: 32px; } }
+@media (pointer: coarse) and (max-width: 340px) { .trigger { width: 30px; height: 30px; } }

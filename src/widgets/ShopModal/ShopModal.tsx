@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useUi } from '@hooks/useUiStore';
 import { useProgress } from '@hooks/useProgress';
 import { LOCALES } from '../../game/i18n';
-import { CATALOG } from '@state/catalog';
+import { CATALOG, isComingSoon } from '@state/catalog';
 import { closeShop, switchShopTab } from '@state/shopController';
 import { ShopTabs } from '@features/shop/ShopTabs';
 import { ShopItemCard } from '@features/shop/ShopItemCard';
@@ -20,7 +20,8 @@ export function ShopModal() {
   }, []);
   if (!shop) return null;
   const L = LOCALES[lang];
-  const items = CATALOG.filter((i) => i.axis === shop.tab && !i.exclusive);   // exclusives live in the Store modal
+  const comingSoon = isComingSoon(shop.tab);   // collection temporarily disabled
+  const items = comingSoon ? [] : CATALOG.filter((i) => i.axis === shop.tab && !i.exclusive);   // exclusives live in the Store modal
   const owned = items.filter((i) => i.price === 0 || unlocked.includes(i.id)).length;
   const pct = items.length ? Math.round((owned / items.length) * 100) : 0;
   return (
@@ -34,14 +35,23 @@ export function ShopModal() {
 
         <ShopTabs L={L} current={shop.tab} onPick={switchShopTab} />
 
-        <div className={styles.progress}>
-          <span className={styles.progressLabel}>{L.shopCollected} {owned}/{items.length}</span>
-          <div className={styles.bar}><div className={styles.barFill} style={{ width: `${pct}%` }} /></div>
-        </div>
+        {comingSoon ? (
+          <div className={styles.comingSoon} data-testid="shop-coming-soon">
+            <span className={styles.comingSoonIcon} aria-hidden>🌊</span>
+            <span>{L.comingSoon}</span>
+          </div>
+        ) : (
+          <>
+            <div className={styles.progress}>
+              <span className={styles.progressLabel}>{L.shopCollected} {owned}/{items.length}</span>
+              <div className={styles.bar}><div className={styles.barFill} style={{ width: `${pct}%` }} /></div>
+            </div>
 
-        <div className={styles.list}>
-          {items.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
-        </div>
+            <div className={styles.list}>
+              {items.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -2,9 +2,12 @@ import { setModal } from './store';
 import { equipItem as equipInStore, buyItem as buyInStore } from './progress';
 import { applyUiPalette } from './uiPalette';
 import { bus } from './eventBus';
-import type { CustomAxis } from './catalog';
+import { AXES, isComingSoon, type CustomAxis } from './catalog';
 
-export function openShop(tab: CustomAxis = 'seaTheme') { setModal({ shop: { tab } }); }
+// Open on the first available collection (Sea is temporarily "coming soon").
+const DEFAULT_SHOP_TAB: CustomAxis = AXES.find((a) => !isComingSoon(a)) ?? 'cardBack';
+
+export function openShop(tab: CustomAxis = DEFAULT_SHOP_TAB) { setModal({ shop: { tab } }); }
 export function closeShop() { setModal({ shop: null }); }
 export function switchShopTab(tab: CustomAxis) { setModal({ shop: { tab } }); }
 

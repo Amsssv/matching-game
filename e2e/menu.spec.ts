@@ -64,16 +64,22 @@ test.describe('MenuScene — language variants', () => {
     await page.waitForTimeout(500);
   });
 
+  // Play-button text per language — wait for the overlay to actually re-render in the
+  // target language before snapshotting (lang propagation is async; a fixed wait races it).
+  const PLAY_TEXT: Record<string, string> = {
+    ru: 'НАЧАТЬ ИГРУ', en: 'START GAME', tr: 'OYUNA BAŞLA',
+    es: 'INICIAR JUEGO', pt: 'INICIAR JOGO', ar: 'ابدأ اللعبة',
+  };
   for (const lang of ['ru', 'en', 'tr', 'es', 'pt', 'ar'] as const) {
     test(`language: ${lang}`, async ({ page }) => {
       if (lang !== 'ru') {
-        await page.evaluate((l) => {
-          const game = (window as any).__game;
-          game.registry.set('lang', l);
-          game.scene.getScene('MenuScene').scene.restart();
-        }, lang);
-        await page.waitForTimeout(500);
+        // Switch language through the real UI (globe → option) so it runs the production
+        // cmd:set-lang → setLang path, which disables render-on-demand across the
+        // scene.restart. A direct registry.set + restart races the sleeping menu loop.
+        await page.getByTestId('lang-trigger').click();
+        await page.getByTestId(`lang-${lang}`).click();
       }
+      await expect(page.getByTestId('play')).toContainText(PLAY_TEXT[lang]);
       await pausePhaser(page);
       await expect(page).toHaveScreenshot(`menu-lang-${lang}.png`);
       await resumePhaser(page);

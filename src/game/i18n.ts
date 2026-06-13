@@ -43,6 +43,7 @@ export interface Locale {
   shopTabBack: string;
   shopTabPalette: string;
   shopCollected: string;       // collection progress label, e.g. "Собрано 2/4"
+  comingSoon: string;          // placeholder for a temporarily disabled collection
   shopItems: Record<string, string>;   // nameKey → localized item name
   dailyTitle: string;
   dailyClaim: string;
@@ -109,8 +110,8 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Загрузка...',
     lbClose:     'ЗАКРЫТЬ',
     lbPlayer: 'Игрок', lbEmpty: 'Пока нет рекордов',
-    shop: 'Коллекция', shopBuy: 'Купить', shopEquip: 'Надеть', shopEquipped: 'Надето',
-    shopTabSea: 'Море', shopTabBack: 'Рубашка', shopTabPalette: 'Палитра', shopCollected: 'Собрано',
+    shop: 'Коллекция', shopBuy: 'Купить', shopEquip: 'Надеть', shopEquipped: 'Активно',
+    shopTabSea: 'Море', shopTabBack: 'Рубашка', shopTabPalette: 'Палитра', shopCollected: 'Собрано', comingSoon: 'Скоро',
     shopItems: { seaLagoon:'Лагуна', seaReef:'Риф', seaAbyss:'Бездна', seaArctic:'Арктика', seaTropic:'Тропики', seaDusk:'Сумерки', seaEmber:'Жар',
       backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина', backSilver:'Серебро', backJade:'Нефрит', backOnyx:'Оникс',
       uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист', uiCrimson:'Багрянец', uiSlate:'Графит', uiSand:'Песок', uiAurora:'Аврора', backPrism:'Призма', bundleFounder:'Набор основателя', bundlePremium:'Премиум-набор' },
@@ -198,7 +199,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbClose:     'CLOSE',
     lbPlayer: 'Player', lbEmpty: 'No records yet',
     shop: 'Collection', shopBuy: 'Buy', shopEquip: 'Equip', shopEquipped: 'Equipped',
-    shopTabSea: 'Sea', shopTabBack: 'Card back', shopTabPalette: 'Palette', shopCollected: 'Collected',
+    shopTabSea: 'Sea', shopTabBack: 'Card back', shopTabPalette: 'Palette', shopCollected: 'Collected', comingSoon: 'Coming soon',
     shopItems: { seaLagoon:'Lagoon', seaReef:'Reef', seaAbyss:'Abyss', seaArctic:'Arctic', seaTropic:'Tropics', seaDusk:'Dusk', seaEmber:'Ember',
       backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep', backSilver:'Silver', backJade:'Jade', backOnyx:'Onyx',
       uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst', uiCrimson:'Crimson', uiSlate:'Slate', uiSand:'Sand', uiAurora:'Aurora', backPrism:'Prism', bundleFounder:"Founder's Pack", bundlePremium:'Premium Pack' },
@@ -286,7 +287,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbClose:     'KAPAT',
     lbPlayer: 'Oyuncu', lbEmpty: 'Henüz rekor yok',
     shop: 'Koleksiyon', shopBuy: 'SATIN AL', shopEquip: 'TAK', shopEquipped: 'TAKILI',
-    shopTabSea: 'Deniz', shopTabBack: 'Kart Arkası', shopTabPalette: 'Palet', shopCollected: 'Toplandı',
+    shopTabSea: 'Deniz', shopTabBack: 'Kart Arkası', shopTabPalette: 'Palet', shopCollected: 'Toplandı', comingSoon: 'Yakında',
     shopItems: { seaLagoon:'Lagün', seaReef:'Resif', seaAbyss:'Uçurum', seaArctic:'Kutup', seaTropic:'Tropikler', seaDusk:'Alacakaranlık', seaEmber:'Kor',
       backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik', backSilver:'Gümüş', backJade:'Yeşim', backOnyx:'Oniks',
       uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist', uiCrimson:'Kızıl', uiSlate:'Arduvaz', uiSand:'Kum', uiAurora:'Aurora', backPrism:'Prizma', bundleFounder:'Kurucu Paketi', bundlePremium:'Premium Paket' },
@@ -374,7 +375,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbClose:     'CERRAR',
     lbPlayer: 'Jugador', lbEmpty: 'Aún no hay récords',
     shop: 'Colección', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
-    shopTabSea: 'Mar', shopTabBack: 'Reverso', shopTabPalette: 'Paleta', shopCollected: 'Coleccionados',
+    shopTabSea: 'Mar', shopTabBack: 'Reverso', shopTabPalette: 'Paleta', shopCollected: 'Coleccionados', comingSoon: 'Próximamente',
     shopItems: { seaLagoon:'Laguna', seaReef:'Arrecife', seaAbyss:'Abismo', seaArctic:'Ártico', seaTropic:'Trópicos', seaDusk:'Crepúsculo', seaEmber:'Brasa',
       backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Plata', backJade:'Jade', backOnyx:'Ónix',
       uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista', uiCrimson:'Carmesí', uiSlate:'Pizarra', uiSand:'Arena', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pack de fundador', bundlePremium:'Pack premium' },
@@ -462,7 +463,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbClose:     'FECHAR',
     lbPlayer: 'Jogador', lbEmpty: 'Ainda não há recordes',
     shop: 'Coleção', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
-    shopTabSea: 'Mar', shopTabBack: 'Verso', shopTabPalette: 'Paleta', shopCollected: 'Coletados',
+    shopTabSea: 'Mar', shopTabBack: 'Verso', shopTabPalette: 'Paleta', shopCollected: 'Coletados', comingSoon: 'Em breve',
     shopItems: { seaLagoon:'Lagoa', seaReef:'Recife', seaAbyss:'Abismo', seaArctic:'Ártico', seaTropic:'Trópicos', seaDusk:'Crepúsculo', seaEmber:'Brasa',
       backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Prata', backJade:'Jade', backOnyx:'Ônix',
       uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista', uiCrimson:'Carmesim', uiSlate:'Ardósia', uiSand:'Areia', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pacote do fundador', bundlePremium:'Pacote premium' },
@@ -553,7 +554,7 @@ export const LOCALES: Record<Lang, Locale> = {
     lbClose:     'إغلاق',
     lbPlayer: 'اللاعب', lbEmpty: 'لا توجد أرقام قياسية بعد',
     shop: 'المجموعة', shopBuy: 'شراء', shopEquip: 'تجهيز', shopEquipped: 'مُجهَّز',
-    shopTabSea: 'البحر', shopTabBack: 'ظهر البطاقة', shopTabPalette: 'الألوان', shopCollected: 'تم الجمع',
+    shopTabSea: 'البحر', shopTabBack: 'ظهر البطاقة', shopTabPalette: 'الألوان', shopCollected: 'تم الجمع', comingSoon: 'قريبًا',
     shopItems: { seaLagoon:'بحيرة', seaReef:'شعاب', seaAbyss:'هاوية', seaArctic:'قطبي', seaTropic:'استوائي', seaDusk:'غسق', seaEmber:'جمر',
       backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق', backSilver:'فضي', backJade:'يشم', backOnyx:'عقيق',
       uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت', uiCrimson:'قرمزي', uiSlate:'أردوازي', uiSand:'رملي', uiAurora:'الشفق', backPrism:'منشور', bundleFounder:'حزمة المؤسس', bundlePremium:'الحزمة المميزة' },

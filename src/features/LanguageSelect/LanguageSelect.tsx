@@ -12,8 +12,8 @@ const FLAGS: Record<Lang, string> = {
 /**
  * Compact language picker for the top bar: a pill trigger (globe + current code +
  * chevron) that opens a themed popover of flag + code rows. Replaces the old flag
- * grid so the whole top bar stays on one row. On very narrow phones the trigger
- * collapses to just the globe icon. Click-outside and Escape close it.
+ * grid so the whole top bar stays on one row. On touch devices (phones/tablets) the
+ * trigger is just the globe icon. Click-outside and Escape close it.
  *
  * Keeps `lang-<lng>` test ids on each option, `lang-trigger` on the button, and
  * `data-testid="langs"` on the root so existing language wiring/tests keep working.

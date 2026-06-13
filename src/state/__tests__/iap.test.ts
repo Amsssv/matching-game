@@ -19,7 +19,7 @@ describe('iap', () => {
     expect(planPurchase('ui_aurora')).toEqual({ unlockItems: ['ui.aurora'], consume: false });
   });
   it('planPurchase: a bundle grants its items + bonus pearls and IS consumed', () => {
-    expect(planPurchase('bundle_founder')).toEqual({ grantPearls: 1500, unlockItems: ['ui.aurora', 'back.prism'], consume: true });
+    expect(planPurchase('bundle_founder')).toEqual({ grantPearls: 1500, unlockItems: ['back.jade', 'ui.crimson'], consume: true });
   });
   it('planPurchase: unknown product id → null', () => {
     expect(planPurchase('totally_unknown')).toBeNull();

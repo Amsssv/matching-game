@@ -69,7 +69,7 @@ test.describe('IAP (dev simulation)', () => {
     await page.getByTestId('store-open').click();
     await expect(page.getByTestId('store')).toBeVisible();
 
-    // Founder's Pack = ui.aurora + back.prism + 1500 pearls.
+    // Founder's Pack = back.jade + ui.crimson + 1500 pearls.
     await page.getByTestId('bundle-buy-bundle_founder').click();
 
     await expect.poll(async () => {
@@ -78,6 +78,6 @@ test.describe('IAP (dev simulation)', () => {
     }).toBe(1500);
 
     const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), PROGRESS_KEY);
-    expect(saved.unlocked).toEqual(expect.arrayContaining(['ui.aurora', 'back.prism']));
+    expect(saved.unlocked).toEqual(expect.arrayContaining(['back.jade', 'ui.crimson']));
   });
 });

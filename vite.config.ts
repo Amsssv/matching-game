@@ -6,6 +6,7 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  server: { host: true },
   resolve: {
     alias: {
       '@ui':       fileURLToPath(new URL('./src/ui', import.meta.url)),

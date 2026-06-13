@@ -9,7 +9,7 @@ export interface QuestDef { id: string; nameKey: string; target: number; reward:
 export const QUEST_POOL: QuestDef[] = [
   { id: 'winGames',      nameKey: 'qWinGames',      target: 3,  reward: 25, measure: (e) => (e.type === 'win' ? 1 : 0) },
   { id: 'matchPairs',    nameKey: 'qMatchPairs',    target: 20, reward: 20, measure: (e) => (e.type === 'win' ? e.pairs : 0) },
-  { id: 'playGames',     nameKey: 'qPlayGames',     target: 5,  reward: 15, measure: (e) => (e.type === 'start' ? 1 : 0) },
+  { id: 'playGames',     nameKey: 'qPlayGames',     target: 5,  reward: 15, measure: (e) => (e.type === 'win' ? 1 : 0) },   // counts completed games, not launches
   { id: 'winHard',       nameKey: 'qWinHard',       target: 1,  reward: 30, measure: (e) => (e.type === 'win' && (e.difficulty === 'hard' || e.difficulty === 'expert') ? 1 : 0) },
   { id: 'perfectWin',    nameKey: 'qPerfectWin',    target: 1,  reward: 30, measure: (e) => (e.type === 'win' && e.perfect ? 1 : 0) },
   { id: 'fastWin',       nameKey: 'qFastWin',       target: 1,  reward: 25, measure: (e) => (e.type === 'win' && e.fast ? 1 : 0) },

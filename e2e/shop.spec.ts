@@ -34,8 +34,10 @@ test.describe('Shop (Collection)', () => {
     await expect(page.getByTestId('shop')).toBeVisible();
     await expect(page.getByTestId('shop-tabs')).toBeVisible();
 
-    // Default tab = seaTheme → sea items present.
-    await expect(page.getByTestId('shop-item-sea.reef')).toBeVisible();
+    // Sea collection is temporarily disabled — its tab shows "coming soon", no items.
+    await page.getByTestId('shop-tab-seaTheme').click();
+    await expect(page.getByTestId('shop-coming-soon')).toBeVisible();
+    await expect(page.getByTestId('shop-item-sea.reef')).toHaveCount(0);
 
     // Switch to the palette tab.
     await page.getByTestId('shop-tab-uiPalette').click();
@@ -70,8 +72,8 @@ test.describe('Shop (Collection)', () => {
     await waitForCanvas(page);
 
     await page.getByTestId('shop-open').click();
-    // sea.reef costs 80; with 0 pearls its buy button is disabled.
-    await expect(page.getByTestId('shop-item-sea.reef').getByRole('button')).toBeDisabled();
+    // back.gold (default Card-back tab) costs 100; with 0 pearls its buy button is disabled.
+    await expect(page.getByTestId('shop-item-back.gold').getByRole('button')).toBeDisabled();
   });
 
   test('Escape closes the shop', async ({ page }) => {
@@ -91,14 +93,7 @@ test.describe('Shop (Collection)', () => {
     await waitForCanvas(page);
     await page.getByTestId('shop-open').click();
 
-    // Sea tab: preview uses the real bg asset and the image actually loaded.
-    const seaImg = page.getByTestId('shop-item-sea.reef').locator('img').first();
-    await expect(seaImg).toBeVisible();
-    await expect(seaImg).toHaveJSProperty('complete', true);
-    expect(await seaImg.evaluate((n: HTMLImageElement) => n.naturalWidth)).toBeGreaterThan(0);
-    expect(await seaImg.getAttribute('src')).toContain('assets/bg.webp');
-
-    // Card-back tab: preview uses the real card-back asset.
+    // Card-back tab (the default now that Sea is disabled): real card-back asset.
     await page.getByTestId('shop-tab-cardBack').click();
     const backImg = page.getByTestId('shop-item-back.gold').locator('img').first();
     await expect(backImg).toBeVisible();
@@ -109,5 +104,10 @@ test.describe('Shop (Collection)', () => {
     await page.getByTestId('shop-tab-uiPalette').click();
     await expect(page.getByTestId('shop-item-ui.sunset')).toBeVisible();
     expect(await page.getByTestId('shop-item-ui.sunset').locator('img').count()).toBe(0);
+
+    // Sea tab: temporarily disabled — shows "coming soon", no items.
+    await page.getByTestId('shop-tab-seaTheme').click();
+    await expect(page.getByTestId('shop-coming-soon')).toBeVisible();
+    await expect(page.getByTestId('shop-item-sea.reef')).toHaveCount(0);
   });
 });

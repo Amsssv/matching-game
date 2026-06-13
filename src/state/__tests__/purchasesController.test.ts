@@ -71,8 +71,8 @@ describe('purchasesController', () => {
       consumePurchase,
     });
     expect(await buyProduct('bundle_founder')).toBe(true);
-    expect(isUnlocked('ui.aurora')).toBe(true);
-    expect(isUnlocked('back.prism')).toBe(true);
+    expect(isUnlocked('back.jade')).toBe(true);
+    expect(isUnlocked('ui.crimson')).toBe(true);
     expect(progressStore.get().pearls).toBe(1500);
     expect(consumePurchase).toHaveBeenCalledWith('tok');
   });

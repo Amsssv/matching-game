@@ -14,8 +14,11 @@ export interface Bundle { id: string; nameKey: string; items: string[]; pearls: 
 
 /** Money-only bundles. `id` = console product id (consumable, since they grant pearls). */
 export const BUNDLES: Bundle[] = [
-  { id: 'bundle_founder', nameKey: 'bundleFounder', items: ['ui.aurora', 'back.prism'], pearls: 1500 },
-  { id: 'bundle_premium', nameKey: 'bundlePremium', items: ['sea.ember', 'back.onyx', 'ui.amethyst', 'ui.sand'], pearls: 1000 },
+  // Was the exclusives (ui.aurora + back.prism); those are hidden now, so the Founder
+  // pack grants available cosmetics instead (a card-back + a palette, no sea/exclusive).
+  { id: 'bundle_founder', nameKey: 'bundleFounder', items: ['back.jade', 'ui.crimson'], pearls: 1500 },
+  // sea.ember dropped while the Sea collection is "coming soon" — no sea skins in bundles.
+  { id: 'bundle_premium', nameKey: 'bundlePremium', items: ['back.onyx', 'ui.amethyst', 'ui.sand'], pearls: 1000 },
 ];
 
 const PACK_PEARLS_BY_ID: Record<string, number> =

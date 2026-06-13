@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { SYMBOLS } from '../assets-config';
 import { AudioManager } from '../AudioManager';
 import { resolveLang, readSoundEnabled } from '../settings';
+import { isMobileDevice } from '../device';
 import { getYSDK } from '../../ysdk';
 
 export class BootScene extends Phaser.Scene {
@@ -27,6 +28,8 @@ export class BootScene extends Phaser.Scene {
 
     this.load.image('bg', 'assets/bg.webp');
     this.load.image('island', 'assets/iland.webp');
+    // Phones/tablets get a portrait, full-screen island; only fetch it where it's used.
+    if (isMobileDevice()) this.load.image('island-mobile', 'assets/iland-mobile.webp');
     this.load.image('card-back', 'assets/cards/back.webp');
     SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));
   }

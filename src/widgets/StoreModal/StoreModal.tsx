@@ -3,14 +3,14 @@ import { useUi } from '@hooks/useUiStore';
 import { useProductPrices } from '@hooks/useProductPrices';
 import { LOCALES } from '../../game/i18n';
 import { PEARL_PACKS, BUNDLES } from '@state/iap';
-import { CATALOG } from '@state/catalog';
+import { CATALOG, EXCLUSIVES_HIDDEN } from '@state/catalog';
 import { buyProduct, closeStore } from '@state/purchasesController';
 import { Button } from '@ui/Button';
 import { ShopItemCard } from '@features/shop/ShopItemCard';
 import { BundleCard } from '@features/shop/BundleCard';
 import styles from './StoreModal.module.scss';
 
-const EXCLUSIVES = CATALOG.filter((i) => i.exclusive);
+const EXCLUSIVES = EXCLUSIVES_HIDDEN ? [] : CATALOG.filter((i) => i.exclusive);
 
 export function StoreModal() {
   const open = useUi((s) => s.modal.store);
@@ -44,8 +44,12 @@ export function StoreModal() {
           <h3 className={styles.section}>{L.storeBundles}</h3>
           {BUNDLES.map((b) => <BundleCard key={b.id} bundle={b} L={L} />)}
 
-          <h3 className={styles.section}>{L.shopTabExclusive}</h3>
-          {EXCLUSIVES.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
+          {EXCLUSIVES.length > 0 && (
+            <>
+              <h3 className={styles.section}>{L.shopTabExclusive}</h3>
+              {EXCLUSIVES.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
+            </>
+          )}
         </div>
       </div>
     </div>
