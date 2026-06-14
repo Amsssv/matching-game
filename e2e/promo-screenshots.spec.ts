@@ -89,6 +89,29 @@ async function matchPairs(
   return matched;
 }
 
+/**
+ * Make the play clock read ~`targetSec` seconds so the HUD timer looks like a real
+ * session instead of 0:0X. Implemented by shifting performance.now() by a constant
+ * offset: Phaser's loop is driven by the requestAnimationFrame timestamp (not
+ * performance.now()), so frame deltas — and therefore all card flip/match tweens —
+ * are unaffected; only the play clock (which reads performance.now() directly) jumps
+ * forward. Then wait one 500 ms clock tick so the new value reaches the HUD.
+ */
+async function setClock(page: import('@playwright/test').Page, targetSec: number) {
+  await page.evaluate((target) => {
+    const w = window as unknown as { __realNow?: () => number; __nowOffset: number; __game: import('phaser').Game };
+    if (!w.__realNow) {
+      w.__realNow = performance.now.bind(performance);
+      w.__nowOffset = 0;
+      performance.now = () => (w.__realNow as () => number)() + w.__nowOffset;
+    }
+    const ui = w.__game?.scene?.getScene('UIScene') as unknown as { clock?: { seconds: () => number } };
+    const cur = ui?.clock ? ui.clock.seconds() : 0;
+    w.__nowOffset += (target - cur) * 1000;
+  }, targetSec);
+  await page.waitForTimeout(650);
+}
+
 for (const lang of LANGS) {
   test.describe(`promo screenshots / ${lang}`, () => {
     // Promo capture is sequential by design — restarting the game between frames
@@ -106,7 +129,8 @@ for (const lang of LANGS) {
 
     test('capture promo frames', async ({ page }, testInfo) => {
       const project = testInfo.project.name; // promo-mobile | promo-desktop
-      const outDir = path.resolve(testInfo.config.rootDir, '../screenshots/promo', project);
+      const device = project.replace('promo-', ''); // mobile | desktop — the committed dirs
+      const outDir = path.resolve(testInfo.config.rootDir, '../screenshots', device);
       const shot = (name: string) =>
         page.screenshot({ path: path.join(outDir, `${lang}_${name}.png`), animations: 'disabled' });
 
@@ -114,9 +138,10 @@ for (const lang of LANGS) {
       await pausePhaser(page);
       await shot('01_menu');
 
-      // 2 / 5 — Fresh board: all cards face-down
+      // 2 / 5 — Fresh board: all cards face-down (just started)
       await resumePhaser(page);
       await startGameScene(page, DIFFICULTY);
+      await setClock(page, 2);
       await pausePhaser(page);
       await shot('02_board');
 
@@ -129,6 +154,7 @@ for (const lang of LANGS) {
       await clickCard(page, b);
       await page.waitForTimeout(650);
       await waitForGameUnlocked(page);
+      await setClock(page, 9);
       await pausePhaser(page);
       await shot('03_match');
 
@@ -137,11 +163,15 @@ for (const lang of LANGS) {
       const totalPairs = deck.length / 2;
       const midTarget = Math.max(2, Math.floor(totalPairs * 0.4));
       const midState = await matchPairs(page, deck, new Set([a, b]), midTarget);
+      await setClock(page, 33);
       await pausePhaser(page);
       await shot('04_midgame');
 
       // 5 / 5 — Decision moment: two non-matching cards revealed mid-flip
       await resumePhaser(page);
+      // Bump the clock BEFORE revealing the cards — setClock waits 650ms, which would
+      // otherwise let the auto-flip-back (~UI.animation.cardFlipDelay) hide them.
+      await setClock(page, 51);
       const remaining = deck.map((_, idx) => idx).filter(idx => !midState.has(idx));
       const first = remaining[0];
       const second = remaining.find(idx => deck[idx] !== deck[first]) ?? remaining[1];

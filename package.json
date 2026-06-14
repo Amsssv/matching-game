@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
-    "screenshots:promo": "playwright test --project=promo-mobile --project=promo-desktop e2e/promo-screenshots.spec.ts && rm -f screenshots/promo/promo.zip && cd screenshots/promo && zip -r promo.zip promo-desktop promo-mobile",
+    "screenshots:promo": "playwright test --project=promo-mobile --project=promo-desktop e2e/promo-screenshots.spec.ts && rm -f screenshots/promo.zip && cd screenshots && zip -r promo.zip desktop mobile",
     "preview": "vite preview"
   },
   "dependencies": {
