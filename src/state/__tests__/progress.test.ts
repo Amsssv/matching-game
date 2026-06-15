@@ -196,7 +196,7 @@ describe('shop economy (progress v2)', () => {
     expect(progressStore.get().equipped.uiPalette).toBe('ui.crimson');
   });
   it('grantItem unlocks without charging pearls, idempotent, and persists', () => {
-    awardPearls(50);                              // far less than ui.sand's 900 price
+    awardPearls(50);                              // far less than ui.sand's 1500 price
     expect(grantItem('ui.sand')).toBe(true);
     expect(progressStore.get().pearls).toBe(50);  // not charged
     expect(isUnlocked('ui.sand')).toBe(true);

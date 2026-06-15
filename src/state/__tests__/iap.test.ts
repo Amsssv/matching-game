@@ -10,7 +10,7 @@ describe('iap', () => {
     expect([...pearls].sort((a, b) => a - b)).toEqual(pearls);
   });
   it('planPurchase: a pack grants its pearls and is consumable', () => {
-    expect(planPurchase('pearls_medium')).toEqual({ grantPearls: 1300, consume: true });
+    expect(planPurchase('pearls_medium')).toEqual({ grantPearls: 1500, consume: true });
   });
   it('planPurchase: a single product unlocks one item and is NOT consumed', () => {
     expect(planPurchase('ui_sand')).toEqual({ unlockItems: ['ui.sand'], consume: false });

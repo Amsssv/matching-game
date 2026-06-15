@@ -5,8 +5,8 @@ export interface PearlPack { id: string; pearls: number; }
 /** Consumable pearl packs. `id` must match the product id in the Yandex Developer Console. */
 export const PEARL_PACKS: PearlPack[] = [
   { id: 'pearls_small',  pearls: 500 },
-  { id: 'pearls_medium', pearls: 1300 },
-  { id: 'pearls_large',  pearls: 3500 },
+  { id: 'pearls_medium', pearls: 1500 },
+  { id: 'pearls_large',  pearls: 4000 },
   { id: 'pearls_mega',   pearls: 8000 },
 ];
 

@@ -40,7 +40,7 @@ describe('purchasesController', () => {
       consumePurchase,
     });
     expect(await buyProduct('pearls_large')).toBe(true);
-    expect(progressStore.get().pearls).toBe(3500);
+    expect(progressStore.get().pearls).toBe(4000);
     expect(consumePurchase).toHaveBeenCalledWith('tok');
   });
 
@@ -84,9 +84,9 @@ describe('purchasesController', () => {
       consumePurchase: vi.fn().mockRejectedValue(new Error('consume failed')),
     });
     expect(await buyProduct('pearls_large')).toBe(true);
-    expect(progressStore.get().pearls).toBe(3500);            // credited once
+    expect(progressStore.get().pearls).toBe(4000);            // credited once
     await reconcilePurchases();                                // re-sees the still-unconsumed purchase
-    expect(progressStore.get().pearls).toBe(3500);            // NOT 7000 — ledger blocks the re-credit
+    expect(progressStore.get().pearls).toBe(4000);            // NOT 8000 — ledger blocks the re-credit
     expect(progressStore.get().processedPurchases).toContain('tok');
   });
 
