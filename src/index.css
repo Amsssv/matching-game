@@ -192,6 +192,13 @@
 /* === SELF-HOSTED FONTS END === */
 
 
+:root {
+  /* Height reserved for the Yandex sticky banner. Set at runtime from JS
+     (GameMount.tsx) to the real banner height, 0px when hidden. Declared here
+     so the token has a default and tooling can resolve it. */
+  --banner-height: 0px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -254,3 +261,7 @@ html {
   display: block;
   touch-action: none;
 }
+
+/* During the scene-transition cover fade the overlay is visually gone but its
+   buttons would still catch taps (opacity doesn't disable hit-testing). */
+.overlay-frozen * { pointer-events: none !important; }

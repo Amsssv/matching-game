@@ -4,7 +4,9 @@ import { openShop } from '@state/shopController';
 import { LOCALES } from '../../game/i18n';
 import { Title } from './Title';
 import { Subtitle } from './Subtitle';
-import { DifficultyPicker } from '@features/DifficultyPicker';
+import { ModePicker } from '@features/ModePicker';
+import { openModeStart } from '@state/modeStartController';
+import { useProgress } from '@hooks/useProgress';
 import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
 import { LanguageSelect } from '@features/LanguageSelect';
@@ -17,7 +19,8 @@ import { HelpButton } from '@features/HelpButton';
 import styles from './MainMenu.module.scss';
 
 export function MainMenu() {
-  const { difficulty, soundEnabled, lang } = useUi(s => s.menu);
+  const { soundEnabled, lang } = useUi(s => s.menu);
+  const xp = useProgress((s) => s.stats.xp);
   const L = LOCALES[lang];
   return (
     <div className={styles.root} data-testid="menu">
@@ -36,11 +39,7 @@ export function MainMenu() {
         <div className={styles.centerInner}>
           <Title text={L.title} />
           <Subtitle text={L.subtitle} />
-          <DifficultyPicker L={L} current={difficulty} onPick={(d) => bus.emit('cmd:set-difficulty', { difficulty: d })} />
-          <Button testId="play" type="primary" size="large" className={styles.play} onClick={() => bus.emit('cmd:play')}>
-            <svg className={styles.playIcon} viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
-            {L.play}
-          </Button>
+          <ModePicker L={L} xp={xp} onPick={openModeStart} />
         </div>
       </main>
 

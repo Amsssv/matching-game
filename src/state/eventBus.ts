@@ -1,5 +1,6 @@
 import type { Difficulty } from '../game/layout';
 import type { Lang } from '../game/i18n';
+import type { GameMode } from '../game/modes';
 
 /**
  * Typed command bus, React → Phaser. Replaces the old `bridge.ts` (which reached
@@ -10,10 +11,9 @@ import type { Lang } from '../game/i18n';
  * call `state/leaderboardController` functions directly.
  */
 export type BusEvents = {
-  'cmd:set-difficulty': { difficulty: Difficulty };
   'cmd:toggle-sound': undefined;
   'cmd:set-lang': { lang: Lang };
-  'cmd:play': undefined;
+  'cmd:play': { mode: GameMode; difficulty: Difficulty };
   'cmd:open-leaderboard': { source: 'menu' | 'victory' };
   'cmd:exit-to-menu': undefined;
   'cmd:victory-restart': undefined;

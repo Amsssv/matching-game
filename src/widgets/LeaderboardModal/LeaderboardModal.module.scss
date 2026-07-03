@@ -6,3 +6,4 @@
 .panel { @include modal-panel; width: min(92vw, 486px); }
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
 .separator { @include modal-separator; }
+.modeTabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }

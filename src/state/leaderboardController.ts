@@ -2,6 +2,7 @@ import { uiStore, setModal } from './store';
 import { fetchLeaderboard } from '../game/leaderboard';
 import { getYSDK } from '../ysdk';
 import type { Difficulty } from '../game/layout';
+import type { GameMode } from '../game/modes';
 
 /**
  * Opens the DOM leaderboard modal. Auth-gating stays Phaser-side per Yandex rule
@@ -10,7 +11,8 @@ import type { Difficulty } from '../game/layout';
  * These are pure React-side state transitions (store + SDK + network), so the
  * modal calls them directly rather than routing through the command bus.
  */
-export async function openLeaderboard(source: 'menu' | 'victory') {
+export async function openLeaderboard(source: 'menu' | 'victory', mode?: GameMode) {
+  const m: GameMode = mode ?? uiStore.get().menu.mode;   // default = last played mode
   const difficulty: Difficulty = uiStore.get().menu.difficulty;
   let isGuest = false;
   try {
@@ -19,23 +21,33 @@ export async function openLeaderboard(source: 'menu' | 'victory') {
   } catch {
     isGuest = false;
   }
-  setModal({ leaderboard: { difficulty, data: null, isGuest, source } });
-  const data = await fetchLeaderboard(difficulty);
+  setModal({ leaderboard: { mode: m, difficulty, data: null, isGuest, source } });
+  const data = await fetchLeaderboard(m, difficulty);
   const cur = uiStore.get().modal.leaderboard;
-  if (cur && cur.difficulty === difficulty) {
+  if (cur && cur.mode === m && cur.difficulty === difficulty) {
     setModal({ leaderboard: { ...cur, data: data ?? { rows: [] } } }); // null (no SDK/error) → empty state (fallback A)
+  }
+}
+
+async function refetch(mode: GameMode, difficulty: Difficulty) {
+  const cur = uiStore.get().modal.leaderboard;
+  if (!cur) return;
+  setModal({ leaderboard: { ...cur, mode, difficulty, data: null } });
+  const data = await fetchLeaderboard(mode, difficulty);
+  const now = uiStore.get().modal.leaderboard;
+  if (now && now.mode === mode && now.difficulty === difficulty) {
+    setModal({ leaderboard: { ...now, data: data ?? { rows: [] } } }); // null (no SDK/error) → empty state (fallback A)
   }
 }
 
 export async function switchLeaderboardDifficulty(difficulty: Difficulty) {
   const cur = uiStore.get().modal.leaderboard;
-  if (!cur) return;
-  setModal({ leaderboard: { ...cur, difficulty, data: null } });
-  const data = await fetchLeaderboard(difficulty);
-  const now = uiStore.get().modal.leaderboard;
-  if (now && now.difficulty === difficulty) {
-    setModal({ leaderboard: { ...now, data: data ?? { rows: [] } } }); // null (no SDK/error) → empty state (fallback A)
-  }
+  if (cur) await refetch(cur.mode, difficulty);
+}
+
+export async function switchLeaderboardMode(mode: GameMode) {
+  const cur = uiStore.get().modal.leaderboard;
+  if (cur) await refetch(mode, cur.difficulty);
 }
 
 export function closeLeaderboard() {
@@ -49,7 +61,7 @@ export async function leaderboardLogin() {
     const authResult = await sdk.auth.openAuthDialog();
     if (authResult.action === 'login') {
       const cur = uiStore.get().modal.leaderboard;
-      if (cur) await switchLeaderboardDifficulty(cur.difficulty);
+      if (cur) await refetch(cur.mode, cur.difficulty);
     }
   } catch {
     /* user cancelled */

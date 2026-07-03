@@ -1,5 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import styles from './Title.module.scss';
+
+const LOGO_SRC = `${import.meta.env.BASE_URL}assets/title-bg.webp`;
 
 export function Title({ text }: { text: string }) {
   const textRef = useRef<HTMLHeadingElement>(null);
@@ -36,9 +38,15 @@ export function Title({ text }: { text: string }) {
     return () => window.removeEventListener('resize', measure);
   }, [text]);
 
+  // Expose the plaque image to CSS so the premium sheen can be masked to its shape
+  // (sweep only over the picture, not the whole rectangular block).
+  const rootStyle = {
+    ...(width ? { width: `${width}px` } : {}),
+    '--logo-src': `url(${LOGO_SRC})`,
+  } as CSSProperties;
   return (
-    <div className={styles.root} style={width ? { width: `${width}px` } : undefined}>
-      <img className={styles.background} src={`${import.meta.env.BASE_URL}assets/title-bg.webp`} alt="" aria-hidden />
+    <div className={styles.root} style={rootStyle}>
+      <img className={styles.background} src={LOGO_SRC} alt="" aria-hidden />
       <h1 className={styles.text} ref={textRef}>{text}</h1>
     </div>
   );

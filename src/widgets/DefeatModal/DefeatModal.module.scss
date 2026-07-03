@@ -1,0 +1,19 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/modal' as *;
+
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; }
+.panel { @include modal-panel; }
+.title { @include modal-title; }
+.subtitle { @include modal-subtitle; }
+.actions { @include modal-actions; }
+
+.reward { color: $gold; font-weight: 800; font-size: clamp(18px, 6vw, 26px); margin: 0; }
+.xpInline { color: $text-muted; font-size: 0.62em; font-weight: 700; }
+.levelUp { color: $gold; font-weight: 800; font-size: 14px; margin: 0; }
+.restartCta {
+  border: 2px solid $gold-border;
+  background: $gradient-button-active;
+  &:hover { background: $gradient-button-active; border-color: $gold-border; }
+}

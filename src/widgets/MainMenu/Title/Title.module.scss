@@ -7,7 +7,27 @@
   max-width: 92vw;
   margin-top: clamp(6px, 4vh, 16px);
   display: grid; place-items: center;
+  // The logo is a raster image, so it can't read the palette vars — tint the whole
+  // plaque toward the equipped palette (0deg/1× on the default ocean palette, so it
+  // stays untouched; a desaturated palette like Graphite greys it via saturate).
+  filter: hue-rotate(var(--logo-hue, 0deg)) saturate(var(--logo-sat, 1));
+  transition: filter .3s ease;
 }
+@media (prefers-reduced-motion: reduce) { .root { transition: none; } }
+
+// Premium shimmer — a slow diagonal sheen sweeping across the plaque, only when a
+// paid palette is equipped. Masked to the logo image so the sheen tracks the ornate
+// plaque shape, not the rectangular block; band moves via background-position.
+:global(.palette-premium) .root::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: linear-gradient(105deg, transparent 43%, rgba(255, 255, 255, .30) 50%, transparent 57%);
+  background-size: 300% 100%; background-repeat: no-repeat; mix-blend-mode: screen;
+  -webkit-mask: var(--logo-src) center / 100% 100% no-repeat;
+  mask: var(--logo-src) center / 100% 100% no-repeat;
+  animation: logo-sheen 12.6s ease-in-out infinite;
+}
+@keyframes logo-sheen { 0% { background-position: 130% 0; } 55%, 100% { background-position: -130% 0; } }
+@media (prefers-reduced-motion: reduce) { :global(.palette-premium) .root::after { animation: none; } }
 .background { display: block; width: 100%; height: auto; }
 
 // Landscape phones: the logo would otherwise eat most of the short height. Cap the

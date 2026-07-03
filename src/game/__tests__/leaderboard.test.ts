@@ -4,7 +4,21 @@ import * as ysdkModule from '../../ysdk';
 vi.mock('../../ysdk', () => ({ getYSDK: vi.fn() }));
 
 // Import after mock so the module picks up the mock
-const { fetchLeaderboard } = await import('../leaderboard');
+const { fetchLeaderboard, LB_ID } = await import('../leaderboard');
+
+// Pins the Yandex board names per (mode, difficulty). These map to boards created
+// by hand in the Yandex console; a typo here silently orphans a real board and the
+// score submit no-ops. classic MUST keep the pre-existing matching* names.
+describe('LB_ID board names', () => {
+  it('maps every mode × difficulty to the exact console board id', () => {
+    expect(LB_ID).toEqual({
+      classic:    { easy: 'matchingEasy',   medium: 'matchingMedium',   hard: 'matchingHard',   expert: 'matchingExpert' },
+      timeAttack: { easy: 'timeAttackEasy', medium: 'timeAttackMedium', hard: 'timeAttackHard', expert: 'timeAttackExpert' },
+      survival:   { easy: 'survivalEasy',   medium: 'survivalMedium',   hard: 'survivalHard',   expert: 'survivalExpert' },
+      noMistakes: { easy: 'noMistakesEasy', medium: 'noMistakesMedium', hard: 'noMistakesHard', expert: 'noMistakesExpert' },
+    });
+  });
+});
 
 const makeSDK = (overrides: object) => overrides as unknown as YandexGamesSDK;
 
@@ -14,14 +28,14 @@ describe('fetchLeaderboard', () => {
   });
 
   it('returns null when SDK is unavailable', async () => {
-    expect(await fetchLeaderboard('medium')).toBeNull();
+    expect(await fetchLeaderboard('classic', 'medium')).toBeNull();
   });
 
   it('returns null when leaderboards API is missing', async () => {
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(
       makeSDK({ leaderboards: undefined })
     );
-    expect(await fetchLeaderboard('medium')).toBeNull();
+    expect(await fetchLeaderboard('classic', 'medium')).toBeNull();
   });
 
   it('returns top entries and marks player row for authorized user', async () => {
@@ -37,7 +51,7 @@ describe('fetchLeaderboard', () => {
       },
     }));
 
-    const result = await fetchLeaderboard('medium');
+    const result = await fetchLeaderboard('classic', 'medium');
     expect(result).not.toBeNull();
     expect(result!.rows).toHaveLength(2);
     expect(result!.rows[1].isPlayer).toBe(true);
@@ -56,7 +70,7 @@ describe('fetchLeaderboard', () => {
       },
     }));
 
-    const result = await fetchLeaderboard('medium');
+    const result = await fetchLeaderboard('classic', 'medium');
     expect(result!.rows).toHaveLength(2);
     expect(result!.rows[1].rank).toBe(7);
     expect(result!.rows[1].isPlayer).toBe(true);
@@ -74,7 +88,7 @@ describe('fetchLeaderboard', () => {
       },
     }));
 
-    const result = await fetchLeaderboard('medium');
+    const result = await fetchLeaderboard('classic', 'medium');
     expect(result!.rows).toHaveLength(1);
     expect(result!.playerRank).toBeUndefined();
     expect(result!.rows[0].isPlayer).toBe(false);
@@ -89,6 +103,6 @@ describe('fetchLeaderboard', () => {
       },
     }));
 
-    expect(await fetchLeaderboard('medium')).toBeNull();
+    expect(await fetchLeaderboard('classic', 'medium')).toBeNull();
   });
 });

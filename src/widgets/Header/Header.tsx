@@ -1,11 +1,12 @@
 import { useUi } from '@hooks/useUiStore';
 import { bus } from '@state/eventBus';
 import { LOCALES } from '../../game/i18n';
+import { MODE_EMOJI } from '../../game/modes';
 import { Button } from '@ui/Button';
 import styles from './Header.module.scss';
 
 export function Header() {
-  const { timer, moves, pairs, movesCount, pairsFound, pairsTotal } = useUi(s => s.hud);
+  const { timer, moves, pairs, movesCount, pairsFound, pairsTotal, mode, timerWarning, preview } = useUi(s => s.hud);
   const lang = useUi(s => s.menu.lang);
   const L = LOCALES[lang];
   const pct = pairsTotal ? Math.round((pairsFound / pairsTotal) * 100) : 0;
@@ -19,7 +20,10 @@ export function Header() {
         <span className={styles.value}>{movesCount}</span>
       </div>
 
-      <span className={styles.timer} data-testid="hud-timer">{timer}</span>
+      <div className={styles.timerCluster}>
+        {mode !== 'classic' && <span className={styles.mode} data-testid="hud-mode">{MODE_EMOJI[mode]}</span>}
+        <span className={timerWarning ? `${styles.timer} ${styles.timerWarning}` : styles.timer} data-testid="hud-timer">{timer}</span>
+      </div>
 
       <div className={styles.rightCluster}>
         <div className={styles.stat} data-testid="hud-pairs" aria-label={pairs}>
@@ -33,6 +37,13 @@ export function Header() {
 
       {/* Pairs progress along the header's bottom edge */}
       <div className={styles.progress} aria-hidden="true"><div className={styles.progressFill} style={{ width: `${pct}%` }} /></div>
+
+      {/* noMistakes memorize countdown — centered over the board, never intercepts taps */}
+      {preview != null && (
+        <div className={styles.previewOverlay} data-testid="preview-overlay" aria-hidden="true">
+          {L.memorize} {preview}
+        </div>
+      )}
     </header>
   );
 }

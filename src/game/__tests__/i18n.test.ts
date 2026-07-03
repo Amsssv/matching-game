@@ -4,10 +4,12 @@ import type { Lang, Locale } from '../i18n';
 
 const LANGS: Lang[] = ['ru', 'en', 'tr', 'es', 'pt', 'ar'];
 const DIFFS = ['easy', 'medium', 'hard', 'expert'] as const;
+const MODES = ['classic', 'timeAttack', 'survival', 'noMistakes'] as const;
 
 const STRING_KEYS: (keyof Locale)[] = [
   'title', 'subtitle', 'difficulty', 'sound', 'soundOn', 'soundOff',
   'play', 'menu', 'victory', 'allPairsFound', 'restart', 'toMenu',
+  'modesTitle', 'modeRecommended', 'modeBeginner', 'playCta', 'memorize', 'defeatTimeout', 'defeatMistake',
 ];
 
 describe('LOCALES', () => {
@@ -61,6 +63,22 @@ describe('LOCALES', () => {
 
       it('timeResult(t) contains the time string', () => {
         expect(L.timeResult('02:45')).toContain('02:45');
+      });
+
+      it('modeLabels + modeDesc defined for all modes', () => {
+        for (const m of MODES) {
+          expect(L.modeLabels[m].length, `modeLabels.${m}`).toBeGreaterThan(0);
+          expect(L.modeDesc[m].length, `modeDesc.${m}`).toBeGreaterThan(0);
+        }
+      });
+
+      it('mode function keys interpolate their numbers (western digits)', () => {
+        expect(L.modeLockedLv(3)).toContain('3');
+        expect(L.defeatPairs(2, 10)).toContain('2');
+        expect(L.defeatPairs(2, 10)).toContain('10');
+        expect(L.taParams(10, 3)).toContain('10');
+        expect(L.taParams(10, 3)).toContain('3');
+        expect(L.previewParams(5)).toContain('5');
       });
     });
   }

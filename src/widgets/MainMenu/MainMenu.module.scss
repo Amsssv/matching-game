@@ -74,29 +74,6 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
 // Only the two pills stretch; the trailing round "?" help button keeps its circle.
 .bottomActions > button:nth-child(-n+2) { flex: 1; min-width: 0; }
 
-// Hero CTA — accent applied HERE (not on Button .primary) so difficulty cards,
-// which are also .primary, never inherit the play button's heavier treatment.
-.play {
-  flex-direction: row; gap: 8px;
-  min-width: clamp(220px, 42vw, 360px);
-  border: 2px solid $gold-border;
-  background: $gradient-button-active;
-  text-transform: uppercase; letter-spacing: 1px;
-  &:hover {
-    transform: none; // stays grounded; depth comes from the shadow, not a lift
-    background: $gradient-button-active;
-    border-color: $gold-border;
-    box-shadow:
-      0 10px 22px rgba(0, 0, 0, 0.34),
-      0 0 18px rgb(var(--color-gold-rgb, 247 208 119) / 0.3);
-  }
-  &:active { // press response (beats .button:active scale by source order)
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 rgb(var(--color-navy-rgb, 0 20 40) / 0.6);
-  }
-}
-.playIcon { flex: none; }
-
 // Bottom-bar accents.
 .records {
   border-color: $gold-border; color: $gold;

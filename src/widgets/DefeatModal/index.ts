@@ -1,0 +1,1 @@
+export { DefeatModal } from './DefeatModal';

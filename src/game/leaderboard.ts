@@ -1,5 +1,6 @@
 import { getYSDK } from '../ysdk';
 import type { Difficulty } from './layout';
+import type { GameMode } from './modes';
 
 // Stored in Yandex as (SCORE_BASE - seconds) so less time = higher rank.
 // Convert back to seconds for display: seconds = SCORE_BASE - yandexScore.
@@ -11,11 +12,21 @@ export function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export const LB_ID: Record<Difficulty, string> = {
-  easy:   'matchingEasy',
-  medium: 'matchingMedium',
-  hard:   'matchingHard',
-  expert: 'matchingExpert',
+// Board names are Yandex-console resources (manual prereq: create the 12 new ones
+// with the same config as the matching* boards before release).
+export const LB_ID: Record<GameMode, Record<Difficulty, string>> = {
+  classic: {
+    easy: 'matchingEasy', medium: 'matchingMedium', hard: 'matchingHard', expert: 'matchingExpert',
+  },
+  timeAttack: {
+    easy: 'timeAttackEasy', medium: 'timeAttackMedium', hard: 'timeAttackHard', expert: 'timeAttackExpert',
+  },
+  survival: {
+    easy: 'survivalEasy', medium: 'survivalMedium', hard: 'survivalHard', expert: 'survivalExpert',
+  },
+  noMistakes: {
+    easy: 'noMistakesEasy', medium: 'noMistakesMedium', hard: 'noMistakesHard', expert: 'noMistakesExpert',
+  },
 };
 
 const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
@@ -72,7 +83,7 @@ export interface LeaderboardData {
   playerRank?: number;
 }
 
-export async function fetchLeaderboard(difficulty: Difficulty): Promise<LeaderboardData | null> {
+export async function fetchLeaderboard(mode: GameMode, difficulty: Difficulty): Promise<LeaderboardData | null> {
   const sdk = getYSDK();
   if (!sdk) return (import.meta.env.DEV && import.meta.env.MODE !== 'test') ? MOCK_LEADERBOARD[difficulty] : null;
   const leaderboard = sdk.leaderboards;
@@ -83,8 +94,8 @@ export async function fetchLeaderboard(difficulty: Difficulty): Promise<Leaderbo
     const isGuest = !player.isAuthorized();
 
     const [topResult, playerResult] = await Promise.allSettled([
-      leaderboard.getEntries(LB_ID[difficulty], { quantityTop: 10, includeUser: !isGuest }),
-      isGuest ? Promise.reject('guest') : leaderboard.getPlayerEntry(LB_ID[difficulty]),
+      leaderboard.getEntries(LB_ID[mode][difficulty], { quantityTop: 10, includeUser: !isGuest }),
+      isGuest ? Promise.reject('guest') : leaderboard.getPlayerEntry(LB_ID[mode][difficulty]),
     ]);
 
     if (topResult.status === 'rejected') return null;

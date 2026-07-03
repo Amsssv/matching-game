@@ -10,6 +10,7 @@ import { progressStore } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
 import { bakeCardTextures } from '../cardTextures';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
+import { PREVIEW_SEC, type GameMode } from '../modes';
 
 interface Card {
   container: Phaser.GameObjects.Container;
@@ -36,6 +37,19 @@ export class GameScene extends Phaser.Scene {
   // desktop) use the wide DESKTOP grid so cards aren't squeezed into a short height.
   private portraitMobile = false;
   private difficulty: Difficulty = 'medium';
+  // Public (not private) so the staged-feature type gate passes while its reads land
+  // in Tasks 12/13 (survival/noMistakes); UIScene also holds a gameScene ref.
+  mode: GameMode = 'classic';
+  // End-of-game latch. The board is pipelined (flippedCards clears BEFORE checkMatch
+  // runs 300ms later; victory emits 600ms late), so this single flag must gate
+  // onCardClick, checkMatch entry, the victory branch AND the timeout — otherwise a
+  // timeout racing the final pending check settles a defeat AND a victory (double pay).
+  private gameEnded = false;
+  private checksInFlight = 0;    // pending scheduleCheck callbacks (timeout defers on >0)
+  private expiryPending = false; // a timeout arrived while a check was in flight
+  private checkGen = 0;          // survival: bumping this neutralizes stale pending checks
+  private previewActive = false;
+  private previewRemaining = 0;
   private bgObj?: Phaser.GameObjects.Image;
   private islandObj?: Phaser.GameObjects.NineSlice;
   // Portrait mobile renders the island as a full-screen stretched image instead of the
@@ -83,6 +97,13 @@ export class GameScene extends Phaser.Scene {
     this.moves = 0;
     this.matchedPairs = 0;
     this.gameActive = true;
+    this.gameEnded = false;
+    this.checksInFlight = 0;
+    this.expiryPending = false;
+    this.checkGen = 0;
+    this.previewActive = false;
+    this.previewRemaining = 0;
+    this.mode = this.game.registry.get('gameMode') ?? 'classic';
     this.bgObj = undefined;
     this.islandObj = undefined;
     this.islandImg = undefined;
@@ -101,6 +122,7 @@ export class GameScene extends Phaser.Scene {
     // Board fully built (bg + island assigned, cards dealt) — tint all targets from
     // the equipped sea/card-back items (default tints are 0xffffff → no visible change).
     this.applyEquippedTints();
+    if (this.mode === 'noMistakes') this.startPreview();
     // Live re-tint if the player equips something while the game is running.
     const offEquip = bus.on('cmd:equip-changed', () => this.applyEquippedTints());
 
@@ -134,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     };
     this.scale.on('resize', onResizeDebounced, this);
     this.events.once('game-complete', () => { this.gameActive = false; });
+    this.events.once('game-over',     () => { this.gameActive = false; });
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.events.once('shutdown', () => {
       this.scale.off('resize', onResizeDebounced, this);
@@ -361,11 +384,16 @@ export class GameScene extends Phaser.Scene {
         .setPosition(x + UI.card.shadowOffset, y + UI.card.shadowOffset);
     });
     this.applyEquippedTints();   // re-tint the rebuilt back textures
+
+    // Relayout remaps card positions by index — the memorized layout changed, so the
+    // player gets a fresh full preview window.
+    if (this.previewActive) this.previewRemaining = this.previewSec();
     this.renderActivity?.scheduleSleep();
   }
 
   // ── Game logic ───────────────────────────────────────────────────────────────
   private onCardClick(card: Card) {
+    if (this.gameEnded || this.previewActive) return;
     if (card.isFlipped || card.isMatched) return;
     if (this.flippedCards.length >= 2) return;
 
@@ -381,14 +409,26 @@ export class GameScene extends Phaser.Scene {
       this.events.emit('moves-updated', this.moves);
       const [cardA, cardB] = this.flippedCards;
       this.flippedCards = [];
-      this.scheduleCheck(UI.animation.cardFlipDelay, () => this.checkMatch(cardA, cardB));
+      const gen = this.checkGen;
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => { if (gen === this.checkGen) this.checkMatch(cardA, cardB); });
     }
   }
 
-  /** Wrap a flip/match delayedCall so render-on-demand keeps the loop awake until it fires. */
+  /** Wrap a flip/match delayedCall so render-on-demand keeps the loop awake until it
+   * fires, and so a timeAttack expiry can defer to an in-flight check (the check may
+   * credit +bonus seconds — a pair flipped before expiry ALWAYS gets its bonus first). */
   private scheduleCheck(delay: number, fn: () => void) {
     this.renderActivity?.beginCheck();
-    this.time.delayedCall(delay, () => { this.renderActivity?.endCheck(); fn(); });
+    this.checksInFlight++;
+    this.time.delayedCall(delay, () => {
+      this.renderActivity?.endCheck();
+      this.checksInFlight--;
+      fn();
+      if (this.expiryPending && this.checksInFlight === 0 && !this.gameEnded) {
+        this.expiryPending = false;
+        this.events.emit('expiry-recheck');
+      }
+    });
   }
 
   private flipCard(card: Card, faceUp: boolean) {
@@ -408,11 +448,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkMatch(cardA: Card, cardB: Card) {
+    if (this.gameEnded) return;   // a timeout/mistake settled while this check was pending
 
     if (cardA.symbol === cardB.symbol) {
       this.matchedPairs++;
       cardA.isMatched = true;
       cardB.isMatched = true;
+
+      // Latch the win BEFORE emitting 'match-found'. In timeAttack that emit runs
+      // UIScene.onMatch → updateCountdown SYNCHRONOUSLY, which would otherwise call
+      // tryEndByTimeout and settle a DEFEAT on the very pair that completes the board
+      // (razor-edge: board finished exactly at/after the time budget). A finished
+      // board must beat the buzzer (spec §5: win beats loss).
+      const won = this.matchedPairs === this.totalPairs;
+      if (won) this.gameEnded = true;
 
       this.tweens.add({
         targets: [cardA.container, cardB.container],
@@ -433,17 +482,101 @@ export class GameScene extends Phaser.Scene {
       this.sfx('sfx-match');
       this.events.emit('match-found', this.matchedPairs);
 
-      if (this.matchedPairs === this.totalPairs)
+      if (won) {
         this.scheduleCheck(UI.animation.cardMatchDelay, () => {
           this.sfx('sfx-win');
           this.events.emit('game-complete', this.moves);
         });
+      }
+    } else if (this.mode === 'noMistakes') {
+      // Latch the loss SYNCHRONOUSLY — input dies now; only the modal is delayed so
+      // the player sees which pair betrayed them.
+      this.gameEnded = true;
+      this.scheduleCheck(UI.animation.cardMatchDelay, () => {
+        this.events.emit('game-over', { reason: 'mistake' as const, pairsFound: this.matchedPairs });
+      });
+    } else if (this.mode === 'survival') {
+      // Let the player see the failed pair for the standard beat, then wipe progress.
+      this.scheduleCheck(UI.animation.cardFlipDelay, () => this.survivalReset());
     } else {
       this.scheduleCheck(UI.animation.cardFlipDelay, () => {
         this.flipCard(cardA, false);
         this.flipCard(cardB, false);
       });
     }
+  }
+
+  /** timeAttack: UIScene asks to end the game on expiry. Defers while a match-check
+   * is in flight — the check may credit bonus seconds; after it resolves,
+   * 'expiry-recheck' asks UIScene to re-evaluate the remaining time. Emits
+   * 'game-over' at most once (gameEnded latch). No renderActivity.wake(): all defeat
+   * feedback is DOM/React, and an un-paired wake would keep the loop spinning
+   * behind the modal. */
+  tryEndByTimeout(): void {
+    if (this.gameEnded) return;
+    if (this.checksInFlight > 0) { this.expiryPending = true; return; }
+    this.gameEnded = true;
+    this.events.emit('game-over', { reason: 'timeout' as const, pairsFound: this.matchedPairs });
+  }
+
+  /** Survival: a mismatch wipes ALL found pairs. Pending checks are neutralized via
+   * checkGen (their closures compare generations; endCheck still ran, so the
+   * render-on-demand pendingChecks counter can't leak). killTweensOf skips tween
+   * onComplete callbacks, so every touched card is normalized imperatively to a
+   * settled face-up state BEFORE the animated flip-down — flipping from a corrupted
+   * mid-tween state (scaleX≈0, wrong face) is the known failure mode here. */
+  private survivalReset() {
+    if (this.gameEnded) return;
+    this.checkGen++;
+    this.flippedCards = [];
+    for (const card of this.cards) {
+      if (!card.isMatched && !card.isFlipped) continue;
+      this.tweens.killTweensOf(card.container);
+      this.tweens.killTweensOf(card.shadow);
+      card.container.setScale(1).setAlpha(1);
+      card.shadow.setScale(1).setAlpha(1);
+      card.back.setVisible(false);
+      card.front.setVisible(true);   // settled face-up → clean animated flip-down below
+      card.isMatched = false;
+      card.isFlipped = true;
+      card.container.setInteractive();
+      this.flipCard(card, false);
+    }
+    this.matchedPairs = 0;
+    this.events.emit('pairs-reset');
+  }
+
+  private previewSec(): number {
+    const ov: import('../modes').ModeTestOverrides = this.game.registry.get('modeTestOverrides') ?? {};
+    return ov.previewSec ?? PREVIEW_SEC[this.difficulty];
+  }
+
+  /** noMistakes: show the whole board face-up. Cards flip up instantly in create()
+   * (the opaque DOM cover still hides the canvas); the countdown starts only after
+   * the cover lifts (fadeScene) so the player gets the FULL memorize window. */
+  private startPreview() {
+    this.previewActive = true;
+    this.previewRemaining = this.previewSec();
+    for (const card of this.cards) {
+      card.isFlipped = true;
+      card.back.setVisible(false);
+      card.front.setVisible(true);
+    }
+    this.scheduleCheck(UI.animation.fadeScene, () => this.previewTick());
+  }
+
+  private previewTick() {
+    if (this.gameEnded || !this.previewActive) return;
+    if (this.previewRemaining <= 0) { this.endPreview(); return; }
+    this.events.emit('preview-tick', this.previewRemaining);
+    this.previewRemaining--;
+    this.scheduleCheck(1000, () => this.previewTick());
+  }
+
+  private endPreview() {
+    for (const card of this.cards) this.flipCard(card, false);
+    this.previewActive = false;
+    this.events.emit('preview-ended');   // UIScene starts the play clock here
   }
 
   // ── SFX helper ───────────────────────────────────────────────────────────────

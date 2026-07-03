@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { computePearls, levelFromXp } from '../progress';
+import { computePearls, levelFromXp, xpForLevel } from '../progress';
 import {
   progressStore, awardPearls, recordGameStart, recordGameWin, resetProgress,
   buyItem, equipItem, grantItem, isUnlocked,
   claimDaily, doubleDaily, isDailyAvailable,
   claimQuest, rerollQuest, claimAchievement, ensureTodayQuests, achSignals,
+  INITIAL_PROGRESS, resolveProgress, winContext, recordGameLoss,
 } from '../progress';
 import { pickDailyQuests, QUEST_BY_ID } from '../quests';
 import { todayStr } from '../daily';
@@ -50,6 +51,18 @@ describe('levelFromXp', () => {
   it('tracks progress within a level', () => { expect(levelFromXp(40)).toEqual({ level: 1, into: 40, span: 100 }); });
   it('reaches level 2 at 100 xp (span grows to 150)', () => { expect(levelFromXp(100)).toEqual({ level: 2, into: 0, span: 150 }); });
   it('reaches level 3 at 250 xp (100 + 150)', () => { expect(levelFromXp(250)).toEqual({ level: 3, into: 0, span: 200 }); });
+});
+
+describe('xpForLevel', () => {
+  it('cumulative XP thresholds match the level costs', () => {
+    expect(xpForLevel(1)).toBe(0);
+    expect(xpForLevel(2)).toBe(100);
+    expect(xpForLevel(3)).toBe(250);
+    expect(xpForLevel(5)).toBe(700);
+  });
+  it('is the exact boundary of levelFromXp (reaching the threshold = that level)', () => {
+    for (const L of [2, 3, 4, 5, 6]) expect(levelFromXp(xpForLevel(L)).level).toBe(L);
+  });
 });
 
 describe('progress mutators', () => {
@@ -322,5 +335,150 @@ describe('quests + achievements (progress v4)', () => {
     expect(before).not.toContain(newId);
     expect(progressStore.get().quests.active[0].id).toBe(newId);
     expect(progressStore.get().quests.rerolls).toBe(1);
+  });
+});
+
+describe('modeBests + loss counters persistence', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+
+  it('INITIAL_PROGRESS has null bests for every new mode/difficulty and zero loss counters', () => {
+    const s = INITIAL_PROGRESS.stats;
+    for (const m of ['timeAttack', 'survival', 'noMistakes'] as const) {
+      expect(s.modeBests[m]).toEqual({ easy: null, medium: null, hard: null, expert: null });
+    }
+    expect(s.lastLossDate).toBeNull();
+    expect(s.lossesToday).toBe(0);
+  });
+
+  it('merge fills missing difficulties of a partial blob with null (not undefined)', async () => {
+    localStorage.setItem('sea-pairs-progress', JSON.stringify({
+      version: 4,
+      stats: { modeBests: { timeAttack: { easy: 42 } } },
+    }));
+    const p = await resolveProgress();
+    expect(p.stats.modeBests.timeAttack).toEqual({ easy: 42, medium: null, hard: null, expert: null });
+    expect(p.stats.modeBests.survival).toEqual({ easy: null, medium: null, hard: null, expert: null });
+    // Strict null, not undefined — `=== null` checks depend on it:
+    expect(p.stats.modeBests.timeAttack.medium).toBeNull();
+  });
+
+  it('merge sanitizes garbage best values to null and never aliases INITIAL_PROGRESS', async () => {
+    localStorage.setItem('sea-pairs-progress', JSON.stringify({
+      version: 4,
+      stats: { modeBests: { survival: { easy: -5, medium: 'zzz' } }, lossesToday: 3, lastLossDate: '2026-07-01' },
+    }));
+    const p = await resolveProgress();
+    expect(p.stats.modeBests.survival).toEqual({ easy: null, medium: null, hard: null, expert: null });
+    expect(p.stats.lossesToday).toBe(3);
+    expect(p.stats.lastLossDate).toBe('2026-07-01');
+    // No aliasing: mutating the loaded state must not leak into INITIAL_PROGRESS.
+    p.stats.modeBests.timeAttack.easy = 999;
+    expect(INITIAL_PROGRESS.stats.modeBests.timeAttack.easy).toBeNull();
+  });
+});
+
+describe('mode-aware win economy', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+
+  const ctx = { isRecord: false, winIndex: 2 }; // no record bonus, no first-win ×2, farm ×1
+
+  it('timeAttack: multiplier applies, speed bonus suppressed, perfect kept', () => {
+    // easy base 10; blazing time (5s ≤ 30×0.6) would add +0.5 in classic
+    expect(computePearls('easy', 5, 6, 6, ctx, 'classic')).toBe(Math.round(10 * (1 + 0.5 + 0.5)));      // perfect + blazing
+    expect(computePearls('easy', 5, 6, 6, ctx, 'timeAttack')).toBe(Math.round(10 * 1.5 * (1 + 0.5)));   // perfect only
+  });
+
+  it('noMistakes: perfect AND speed suppressed, per-cell multiplier applies', () => {
+    expect(computePearls('easy', 5, 6, 6, ctx, 'noMistakes')).toBe(Math.round(10 * 1.25 * 1));
+    expect(computePearls('expert', 30, 14, 14, ctx, 'noMistakes')).toBe(Math.round(50 * 2 * 1));
+  });
+
+  it('record bonus still applies in every mode', () => {
+    const rec = { isRecord: true, winIndex: 2 };
+    expect(computePearls('easy', 5, 6, 6, rec, 'noMistakes')).toBe(Math.round(10 * 1.25 * 1.5));
+  });
+
+  it('winContext reads prevBest from modeBests for new modes and recordGameWin writes it there', () => {
+    recordGameWin({ difficulty: 'easy', seconds: 40, pairs: 6, moves: 9, mode: 'timeAttack' });
+    const s = progressStore.get().stats;
+    expect(s.modeBests.timeAttack.easy).toBe(40);
+    expect(s.bestSeconds.easy).toBeNull();               // classic records untouched
+    expect(s.winsByDifficulty.easy).toBe(1);             // shared counters count all modes
+    const ctx2 = winContext('easy', 35, 'timeAttack');
+    expect(ctx2.isRecord).toBe(true);
+    expect(ctx2.prevBest).toBe(40);
+    const ctx3 = winContext('easy', 35, 'classic');      // classic context unaffected
+    expect(ctx3.prevBest).toBeNull();
+  });
+
+  it('forced signals are suppressed in stats: timeAttack win is not "fast", noMistakes win is not "perfect"', () => {
+    recordGameWin({ difficulty: 'easy', seconds: 5, pairs: 6, moves: 6, mode: 'timeAttack' });
+    expect(progressStore.get().stats.fastWins).toBe(0);
+    expect(progressStore.get().stats.perfectWins).toBe(1); // perfect kept for timeAttack
+    recordGameWin({ difficulty: 'easy', seconds: 5, pairs: 6, moves: 6, mode: 'noMistakes' });
+    expect(progressStore.get().stats.fastWins).toBe(0);
+    expect(progressStore.get().stats.perfectWins).toBe(1); // unchanged — suppressed for noMistakes
+  });
+
+  it('XP is multiplied per cell', () => {
+    const win = recordGameWin({ difficulty: 'expert', seconds: 60, pairs: 14, moves: 20, mode: 'timeAttack' });
+    expect(win.xpGained).toBe(Math.round(25 * 1.5)); // 38
+  });
+});
+
+describe('recordGameLoss (consolation)', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+
+  it('pays zero at zero progress (instant-dump farming is worthless)', () => {
+    const r = recordGameLoss({ mode: 'timeAttack', difficulty: 'expert', pairsFound: 0, totalPairs: 14 });
+    expect(r.pearls).toBe(0);
+    expect(r.xp).toBe(0);
+  });
+
+  it('pays linearly with progress and applies the mode/cell multiplier', () => {
+    const r = recordGameLoss({ mode: 'noMistakes', difficulty: 'expert', pairsFound: 13, totalPairs: 14 });
+    const expected = Math.round(50 * 2 * 0.2 * (13 / 14)); // base×mult×RATE×progress = 19
+    expect(r.pearls).toBe(expected);
+    expect(progressStore.get().pearls).toBe(expected);
+  });
+
+  it('max consolation stays below the same cell farmed-win floor (invariant, all cells)', () => {
+    // Exercises the REAL production functions (not duplicated constants) so a change to
+    // CONSOLATION_RATE, the progress curve, or the farm tiers in progress.ts fails this test.
+    const totalPairsByDifficulty = { easy: 6, medium: 10, hard: 12, expert: 14 } as const;
+    for (const mode of ['timeAttack', 'noMistakes'] as const) {
+      for (const d of ['easy', 'medium', 'hard', 'expert'] as const) {
+        const totalPairs = totalPairsByDifficulty[d];
+
+        // MAX consolation: max pre-win progress (totalPairs - 1), first loss of the day (lossFarm ×1).
+        resetProgress();
+        const maxConsolation = recordGameLoss({ mode, difficulty: d, pairsFound: totalPairs - 1, totalPairs }).pearls;
+
+        // Farmed-win FLOOR: no perfect (moves off by one), no speed bonus (huge seconds),
+        // not the first win of the day and deep into anti-farm (winIndex 7 → farm ×0.25).
+        const farmedWinFloor = computePearls(d, 99999, totalPairs + 1, totalPairs, { isRecord: false, winIndex: 7 }, mode);
+
+        expect(maxConsolation, `${mode}/${d}`).toBeLessThan(farmedWinFloor);
+      }
+    }
+  });
+
+  it('applies the loss anti-farm tiers and tracks lossesToday', () => {
+    const full = { mode: 'timeAttack', difficulty: 'expert', pairsFound: 13, totalPairs: 14 } as const;
+    const first = recordGameLoss(full).pearls;   // lossIndex 1 → ×1
+    recordGameLoss(full); recordGameLoss(full);  // 2, 3
+    const fourth = recordGameLoss(full).pearls;  // lossIndex 4 → ×0.5
+    expect(fourth).toBe(Math.round(first * 0.5));
+    expect(progressStore.get().stats.lossesToday).toBe(4);
+    expect(progressStore.get().stats.lastLossDate).not.toBeNull();
+  });
+
+  it('level-up from consolation XP mints the level reward', () => {
+    progressStore.set({ stats: { ...progressStore.get().stats, xp: 99 } });
+    const before = progressStore.get().pearls;
+    const r = recordGameLoss({ mode: 'noMistakes', difficulty: 'expert', pairsFound: 13, totalPairs: 14 }); // xp ≈ 6 → crosses 100
+    expect(r.leveledUp).toBe(true);
+    expect(r.newLevel).toBe(2);
+    expect(progressStore.get().pearls).toBe(before + r.pearls + 50);
   });
 });

@@ -1,0 +1,140 @@
+@use '../../styles/mixins' as *;
+@use '../../styles/tokens' as *;
+
+.root { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.label { @include section-label; }
+
+// Desktop / tablet: 4 vertical cards in a row.
+.grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  width: 100%; max-width: 760px;
+}
+
+// ── Card base (a real <button> so `disabled` drives the e2e + click-sound gate) ──
+.card {
+  pointer-events: auto; appearance: none; cursor: pointer;
+  position: relative; overflow: visible;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  gap: 10px; padding: 22px 14px 16px; min-height: 128px;
+  border-radius: 16px; border: 1.5px solid transparent; color: #eaf2f8;
+  font-family: inherit; text-align: center;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  @include focus-ring;
+  &:disabled { cursor: default; }
+}
+.ico { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; }
+.ico svg { width: 100%; height: 100%; }
+.body { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; min-width: 0; }
+.name { font-family: 'Oswald', 'Roboto Condensed', #{$font-body}; font-weight: 700; text-transform: uppercase; letter-spacing: .11em; font-size: 15px; line-height: 1.1; }
+.aff { display: none; }   // desktop: chevron hidden; lock repositioned per state below
+
+// unlock progress (locked)
+.unlock { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.ubar { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.ubar > i { display: block; height: 100%; background: linear-gradient(90deg, #5fb0c4, #8fd6e6); box-shadow: 0 0 8px rgba(143, 214, 230, .5); }
+.utxt { font-size: 11.5px; font-weight: 500; color: rgba(143, 214, 230, .9); }
+
+// State backgrounds/accents are palette-driven (same --color-*-rgb custom props the
+// difficulty cards used), so equipping a UI palette re-skins the mode cards too. The
+// teal "unlock" accent is intentionally fixed — it reads as an informational
+// coming-soon color, separate from the brand accent.
+// ── State: recommended (Классика) ──
+.rec {
+  background: $gradient-button-active;
+  border: 2px solid $gold-border; color: $white;
+  box-shadow:
+    0 0 0 1px rgb(var(--color-gold-rgb, 247 208 119) / .28),
+    0 0 28px rgb(var(--color-gold-rgb, 247 208 119) / .28),
+    0 16px 30px -18px rgba(0, 0, 0, .7);
+  animation: mp-glow 2.6s ease-in-out infinite;
+  .ico { color: $gold; }
+}
+// ── State: normal (На время) ──
+.normal {
+  background: $gradient-button-idle;
+  border: 1.5px solid rgb(var(--color-gold-border-rgb, 212 168 83) / .42);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, .6);
+  .ico { color: #8fd6e6; }
+}
+// ── State: locked (Выживание / Без ошибок) ──
+.locked {
+  background: rgb(var(--color-navy-rgb, 9 38 58) / .5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, .14); color: rgba(234, 242, 248, .55);
+  .ico { color: rgba(234, 242, 248, .4); }
+  .name { color: rgba(234, 242, 248, .62); }
+  .aff { display: flex; position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; padding: 4px;
+    border-radius: 50%; background: rgba(4, 15, 26, .7); border: 1px solid rgba(255, 255, 255, .14); color: rgba(234, 242, 248, .7); }
+  .aff svg { width: 100%; height: 100%; }
+}
+
+// ── Ribbon ──
+.ribbon {
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  font-family: 'Oswald', 'Roboto Condensed', #{$font-body}; font-weight: 700; text-transform: uppercase; letter-spacing: .16em;
+  font-size: 10px; color: #3a2708; background: linear-gradient(180deg, #{$gold}, #{$gold-border});
+  padding: 4px 12px; border-radius: 999px; box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .6); white-space: nowrap;
+}
+
+// ── Hover / press (unlocked only) ──
+.rec:hover:not(:disabled), .normal:hover:not(:disabled) { transform: translateY(-4px); }
+.normal:hover:not(:disabled) { border-color: $gold-border; box-shadow: 0 20px 34px -18px rgba(0, 0, 0, .7), 0 0 20px rgb(var(--color-gold-rgb, 247 208 119) / .22); }
+.rec:hover:not(:disabled) { box-shadow: 0 0 0 1px rgb(var(--color-gold-rgb, 247 208 119) / .4), 0 0 40px rgb(var(--color-gold-rgb, 247 208 119) / .42), 0 20px 36px -18px rgba(0, 0, 0, .75); }
+.card:active:not(:disabled) { transform: scale(.97); }
+
+@keyframes mp-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(var(--color-gold-rgb, 247 208 119) / .22), 0 0 20px rgb(var(--color-gold-rgb, 247 208 119) / .22), 0 16px 30px -18px rgba(0, 0, 0, .7); }
+  50%      { box-shadow: 0 0 0 1px rgb(var(--color-gold-rgb, 247 208 119) / .4),  0 0 38px rgb(var(--color-gold-rgb, 247 208 119) / .42), 0 16px 30px -18px rgba(0, 0, 0, .7); }
+}
+
+// ══ Mobile portrait: full-width horizontal rows (icon · name/progress · chevron|lock) ══
+@media (max-width: 767px) and (orientation: portrait) {
+  .grid { grid-template-columns: 1fr; gap: 10px; width: min(94vw, 380px); max-width: none; }
+  .card {
+    flex-direction: row; align-items: center; justify-content: flex-start;
+    gap: 14px; padding: 12px 14px; min-height: 0; text-align: left;
+  }
+  .ico { width: 44px; height: 44px; flex: none; border-radius: 12px; }
+  .ico svg { width: 58%; height: 58%; }
+  .rec .ico { background: rgb(var(--color-gold-rgb, 247 208 119) / .14); }
+  .normal .ico { background: rgba(95, 176, 196, .16); }
+  .locked .ico { background: rgba(255, 255, 255, .06); }
+  .body { flex: 1; align-items: flex-start; gap: 7px; }
+  .name { font-size: 16px; letter-spacing: .07em; }
+  .unlock { flex-direction: column; }
+  .utxt { font-size: 11px; }
+  // affordance sits inline on the right for BOTH states on mobile
+  .aff { display: flex; position: static; width: 22px; height: 22px; padding: 0; flex: none; background: none; border: 0; }
+  .rec .aff, .normal .aff { color: #f0c86e; }
+  .locked .aff { color: rgba(234, 242, 248, .6); }
+  .ribbon { top: -9px; left: 16px; transform: none; font-size: 9px; padding: 3px 10px; }
+}
+
+// ══ Short landscape: keep 4 compact vertical cards so the menu fits without scroll ══
+@media (orientation: landscape) and (max-height: 560px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(96vw, 760px); gap: 8px; }
+  .card { padding: 12px 8px 10px; min-height: 0; gap: 6px; }
+  .ico { width: 34px; height: 34px; }
+  .name { font-size: 12.5px; }
+  .utxt { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec { animation: none; }
+  .card { transition: none; }
+}
+
+// Premium shimmer — a diagonal sheen sweeps the cards only when a paid palette is
+// equipped, staggered so it reads as a wave, not a flash. background-position keeps
+// the band inside each card (the ribbon overhangs above and is unaffected).
+:global(.palette-premium) .card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 44%, rgba(255, 255, 255, .22) 50%, transparent 56%);
+  background-size: 300% 100%; background-repeat: no-repeat; mix-blend-mode: screen;
+  animation: mp-sheen 4.4s ease-in-out infinite;
+}
+:global(.palette-premium) .card:nth-child(2)::after { animation-delay: .35s; }
+:global(.palette-premium) .card:nth-child(3)::after { animation-delay: .7s; }
+:global(.palette-premium) .card:nth-child(4)::after { animation-delay: 1.05s; }
+@keyframes mp-sheen { 0% { background-position: 130% 0; } 55%, 100% { background-position: -130% 0; } }
+@media (prefers-reduced-motion: reduce) { :global(.palette-premium) .card::after { animation: none; } }

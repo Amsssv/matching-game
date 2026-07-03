@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForCanvas, pausePhaser, resumePhaser } from './helpers';
+import { waitForCanvas, pausePhaser, resumePhaser, seedProgress } from './helpers';
 
 test.describe('MenuScene', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,19 +15,37 @@ test.describe('MenuScene', () => {
     await resumePhaser(page);
   });
 
-  for (const diff of ['easy', 'medium', 'hard', 'expert'] as const) {
-    test(`difficulty selected: ${diff}`, async ({ page }) => {
-      await page.evaluate((d) => {
-        const game = (window as any).__game;
-        game.registry.set('difficulty', d);
-        game.scene.getScene('MenuScene').scene.restart();
-      }, diff);
-      await page.waitForTimeout(400);
-      await pausePhaser(page);
-      await expect(page).toHaveScreenshot(`menu-difficulty-${diff}.png`);
-      await resumePhaser(page);
-    });
-  }
+  test('mode picker: all modes unlocked at level 5', async ({ page }) => {
+    // beforeEach already loaded the page as a fresh player; re-seed and reload.
+    await seedProgress(page, { xp: 700 });
+    await page.reload();
+    await waitForCanvas(page);
+    await page.waitForTimeout(500);
+    await expect(page.getByTestId('mode-noMistakes')).toBeEnabled();
+    await pausePhaser(page);
+    await expect(page).toHaveScreenshot('menu-modes-unlocked.png');
+    await resumePhaser(page);
+  });
+
+  test('mode start modal (difficulty select)', async ({ page }) => {
+    await seedProgress(page, { xp: 700 });
+    await page.reload();
+    await waitForCanvas(page);
+    await page.waitForTimeout(500);
+    await page.getByTestId('mode-timeAttack').click();
+    await expect(page.getByTestId('mode-start')).toBeVisible();
+    await page.waitForTimeout(400); // modal fade-in settle
+    await pausePhaser(page);
+    await expect(page).toHaveScreenshot('menu-mode-start.png');
+    await resumePhaser(page);
+  });
+
+  test('locked modes are disabled for a fresh player', async ({ page }) => {
+    await expect(page.getByTestId('mode-classic')).toBeEnabled();
+    await expect(page.getByTestId('mode-timeAttack')).toBeDisabled();
+    await expect(page.getByTestId('mode-survival')).toBeDisabled();
+    await expect(page.getByTestId('mode-noMistakes')).toBeDisabled();
+  });
 
   test('sound toggled off', async ({ page }) => {
     await page.evaluate(() => {
@@ -43,9 +61,9 @@ test.describe('MenuScene', () => {
 
   test('leaderboard panel', async ({ page }) => {
     // Open via the real React path — the old Phaser `openLeaderboardModal` was
-    // removed in the React migration. Difficulty defaults to 'medium'; select it
-    // explicitly so the (SDK-less) mock leaderboard rows are deterministic.
-    await page.getByTestId('diff-medium').click();
+    // removed in the React migration. Difficulty defaults to 'medium' in the ui
+    // store, so the (SDK-less) mock leaderboard rows are deterministic without
+    // any selection click.
     await page.getByTestId('leaderboard-open').click();
     await expect(page.getByTestId('leaderboard')).toBeVisible();
     // Wait for the async mock data to land (null → loading, then lb-table renders).
@@ -64,11 +82,11 @@ test.describe('MenuScene — language variants', () => {
     await page.waitForTimeout(500);
   });
 
-  // Play-button text per language — wait for the overlay to actually re-render in the
+  // Classic mode-card label per language — wait for the overlay to actually re-render in the
   // target language before snapshotting (lang propagation is async; a fixed wait races it).
-  const PLAY_TEXT: Record<string, string> = {
-    ru: 'НАЧАТЬ ИГРУ', en: 'START GAME', tr: 'OYUNA BAŞLA',
-    es: 'INICIAR JUEGO', pt: 'INICIAR JOGO', ar: 'ابدأ اللعبة',
+  const MODE_TEXT: Record<string, string> = {
+    ru: 'КЛАССИКА', en: 'CLASSIC', tr: 'KLASİK',
+    es: 'CLÁSICO', pt: 'CLÁSSICO', ar: 'كلاسيكي',
   };
   for (const lang of ['ru', 'en', 'tr', 'es', 'pt', 'ar'] as const) {
     test(`language: ${lang}`, async ({ page }) => {
@@ -79,7 +97,7 @@ test.describe('MenuScene — language variants', () => {
         await page.getByTestId('lang-trigger').click();
         await page.getByTestId(`lang-${lang}`).click();
       }
-      await expect(page.getByTestId('play')).toContainText(PLAY_TEXT[lang]);
+      await expect(page.getByTestId('mode-classic')).toContainText(MODE_TEXT[lang]);
       await pausePhaser(page);
       await expect(page).toHaveScreenshot(`menu-lang-${lang}.png`);
       await resumePhaser(page);

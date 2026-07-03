@@ -36,16 +36,20 @@ export async function waitForCanvas(page: Page) {
 export async function goToGameScene(
   page: Page,
   difficulty: 'easy' | 'medium' | 'hard' | 'expert' = 'easy',
+  mode: 'classic' | 'timeAttack' | 'survival' | 'noMistakes' = 'classic',
+  overrides?: { timeAttackStartSec?: number; timeAttackBonusSec?: number; previewSec?: number },
 ) {
-  await page.evaluate((diff) => {
+  await page.evaluate(({ diff, mode, overrides }) => {
     const game = (window as any).__game;
     game.registry.set('difficulty', diff);
+    game.registry.set('gameMode', mode);
+    if (overrides) game.registry.set('modeTestOverrides', overrides);
     game.registry.set('soundEnabled', false);
     game.scene.start('GameScene');
     // Stop MenuScene so its `shutdown` handler runs setMenu({ active: false });
     // otherwise the React menu overlay stays mounted on top of the game canvas.
     game.scene.stop('MenuScene');
-  }, difficulty);
+  }, { diff: difficulty, mode, overrides });
   // Wait for scene transition + fade-in
   await page.waitForTimeout(700);
 }
@@ -83,15 +87,15 @@ export async function clickCard(page: Page, index: number) {
   await page.mouse.click(x, y);
 }
 /**
- * Wait until GameScene is unlocked and no cards are pending flip.
- * More reliable than fixed timeouts when the CPU is under load.
+ * Wait until GameScene accepts input: no pending pair, not in the noMistakes
+ * preview, and the game hasn't ended.
  */
 export async function waitForGameUnlocked(page: Page, timeout = 2000) {
   await page.waitForFunction(() => {
     const game = (window as any).__game;
     const scene = game?.scene?.getScene('GameScene') as any;
     if (!scene) return true;
-    return !scene.isLocked && scene.flippedCards?.length === 0;
+    return !scene.gameEnded && !scene.previewActive && scene.flippedCards?.length === 0;
   }, { timeout });
 }
 
@@ -127,5 +131,17 @@ export async function pausePhaser(page: Page) {
 
 export async function resumePhaser(page: Page) {
   await page.evaluate(() => (window as any).__game?.loop.wake());
+}
+
+// ── Progress seeding ─────────────────────────────────────────────────────────
+
+/** Seed persistent progress before page load. xp: 700 unlocks all modes (level 5).
+ * Idempotent (matches daily.spec/shop.spec): seeds only on first load, so a later
+ * reload keeps whatever the app persisted — persistence assertions stay meaningful. */
+export async function seedProgress(page: Page, patch: { xp?: number; pearls?: number } = {}) {
+  await page.addInitScript(({ key, xp, pearls }) => {
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, JSON.stringify({ version: 4, pearls, stats: { xp } }));
+  }, { key: 'sea-pairs-progress', xp: patch.xp ?? 0, pearls: patch.pearls ?? 0 });
 }
 

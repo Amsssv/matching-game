@@ -33,11 +33,11 @@ test.describe('MainMenu — small-screen layout', () => {
       expect(footer!.y + footer!.height).toBeLessThanOrEqual(vp.height + 1);
 
       // No scroll: every zone must fit on screen (nothing clipped by overflow:hidden).
-      // Top of the difficulty grid and bottom of the Play button stay in the viewport.
-      const diff = await page.getByTestId('difficulty').boundingBox();
-      const play = await page.getByTestId('play').boundingBox();
-      expect(diff!.y).toBeGreaterThanOrEqual(-1);
-      expect(play!.y + play!.height).toBeLessThanOrEqual(vp.height + 1);
+      // Top and bottom of the mode picker stay in the viewport.
+      const modes = await page.getByTestId('modes').boundingBox();
+      expect(modes).not.toBeNull();
+      expect(modes!.y).toBeGreaterThanOrEqual(-1);
+      expect(modes!.y + modes!.height).toBeLessThanOrEqual(vp.height + 1);
       // The whole document must not scroll vertically.
       const scrolls = await page.evaluate(() =>
         document.scrollingElement!.scrollHeight > document.scrollingElement!.clientHeight + 1);

@@ -10,13 +10,13 @@ describe('eventBus', () => {
     off();
   });
 
-  it('fans out to every subscriber of a payload-less event', () => {
+  it('fans out a payload event to every subscriber', () => {
     const a = vi.fn();
     const b = vi.fn();
     const offA = bus.on('cmd:play', a);
     const offB = bus.on('cmd:play', b);
-    bus.emit('cmd:play');
-    expect(a).toHaveBeenCalledTimes(1);
+    bus.emit('cmd:play', { mode: 'classic', difficulty: 'easy' });
+    expect(a).toHaveBeenCalledWith({ mode: 'classic', difficulty: 'easy' });
     expect(b).toHaveBeenCalledTimes(1);
     offA(); offB();
   });

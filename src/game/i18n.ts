@@ -1,3 +1,5 @@
+import type { GameMode } from './modes';
+
 export type Lang = 'ru' | 'en' | 'tr' | 'es' | 'pt' | 'ar';
 
 export interface Locale {
@@ -8,6 +10,19 @@ export interface Locale {
   diffLabels: Record<'easy' | 'medium' | 'hard' | 'expert', string>;
   diffDesc:   Record<'easy' | 'medium' | 'hard' | 'expert', string>;
   diffHint:   Record<'easy' | 'medium' | 'hard' | 'expert', string>;
+  modesTitle: string;                              // menu section header above the mode picker
+  modeRecommended: string;                         // ribbon on the recommended (classic) mode card
+  modeBeginner: string;                            // ribbon on the "easy" difficulty tile (mode-start modal)
+  playCta: string;                                 // mode-start CTA verb, e.g. "Play · Easy"
+  modeLabels: Record<GameMode, string>;            // short card labels (must fit ~144px cards)
+  modeDesc:   Record<GameMode, string>;            // 1-line rules (mode-start modal + help)
+  modeLockedLv: (n: number) => string;             // locked-card sub-line, e.g. "Unlocks at level N"
+  taParams: (start: number, bonus: number) => string;   // timeAttack difficulty sub-line
+  previewParams: (sec: number) => string;               // noMistakes preview sub-line
+  memorize: string;                                // preview overlay "Memorize!"
+  defeatTimeout: string;                           // defeat modal title (timeout)
+  defeatMistake: string;                           // defeat modal title (mistake)
+  defeatPairs: (n: number, total: number) => string;    // "Pairs found: n of total"
   sound: string;
   soundOn: string;
   soundOff: string;
@@ -86,6 +101,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'Для настоящих мастеров',
       expert: 'Все 14 существ!',
     },
+    modesTitle: 'РЕЖИМ ИГРЫ',
+    modeRecommended: 'Рекомендуем',
+    modeBeginner: 'Для новичков', playCta: 'Играть',
+    modeLabels: { classic: 'КЛАССИКА', timeAttack: 'НА ВРЕМЯ', survival: 'ВЫЖИВАНИЕ', noMistakes: 'БЕЗ ОШИБОК' },
+    modeDesc: {
+      classic:    'Находи пары в своём темпе — без ограничений.',
+      timeAttack: 'Успей до конца времени! Каждая найденная пара добавляет секунды.',
+      survival:   'Ошибся — все найденные пары закрываются. Собери всё без промаха!',
+      noMistakes: 'Запомни карты за время показа. Одна ошибка — поражение!',
+    },
+    modeLockedLv: (n) => `Откроется на ур. ${n}`,
+    taParams: (start, bonus) => `${start} сек, +${bonus} за пару`,
+    previewParams: (sec) => `показ ${sec} сек`,
+    memorize: 'Запоминай!',
+    defeatTimeout: 'ВРЕМЯ ВЫШЛО!',
+    defeatMistake: 'ОШИБКА!',
+    defeatPairs: (n, total) => `Найдено пар: ${n} из ${total}`,
     sound:   'ЗВУК',
     soundOn: 'ВКЛЮЧЁН',
     soundOff: 'ВЫКЛЮЧЕН',
@@ -133,6 +165,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Лёгкий — 6 пар, средний — 10, сложный — 12, эксперт — 14.',
           'Чем выше сложность, тем больше карточек и награда.',
         ] },
+        { h: 'Режимы игры', lines: [
+          'Классика — обычная игра без ограничений.',
+          'На время (со 2 уровня) — успей до конца таймера; каждая пара добавляет секунды.',
+          'Выживание (с 3 уровня) — ошибка закрывает все найденные пары.',
+          'Без ошибок (с 5 уровня) — запомни карты за время показа; одна ошибка — поражение.',
+        ] },
         { h: 'Что есть в игре', lines: [
           'Коллекция — открывай оформление моря, рубашки и палитры за жемчуг.',
           'Ежедневная награда — заходи каждый день и забирай жемчуг.',
@@ -174,6 +212,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'For true masters',
       expert: 'All 14 creatures!',
     },
+    modesTitle: 'GAME MODE',
+    modeRecommended: 'Recommended',
+    modeBeginner: 'For beginners', playCta: 'Play',
+    modeLabels: { classic: 'CLASSIC', timeAttack: 'TIME ATTACK', survival: 'SURVIVAL', noMistakes: 'NO MISTAKES' },
+    modeDesc: {
+      classic:    'Find pairs at your own pace — no limits.',
+      timeAttack: 'Beat the clock! Every pair you find adds seconds.',
+      survival:   'One miss flips all found pairs back. Clear the board without a slip!',
+      noMistakes: 'Memorize the cards during the preview. One mistake and you lose!',
+    },
+    modeLockedLv: (n) => `Unlocks at level ${n}`,
+    taParams: (start, bonus) => `${start} sec, +${bonus} per pair`,
+    previewParams: (sec) => `${sec} sec preview`,
+    memorize: 'Memorize!',
+    defeatTimeout: "TIME'S UP!",
+    defeatMistake: 'A MISTAKE!',
+    defeatPairs: (n, total) => `Pairs found: ${n} of ${total}`,
     sound:   'SOUND',
     soundOn: 'ON',
     soundOff: 'OFF',
@@ -221,6 +276,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Easy — 6 pairs, medium — 10, hard — 12, expert — 14.',
           'Higher difficulty means more cards and a bigger reward.',
         ] },
+        { h: 'Game modes', lines: [
+          'Classic — the regular game, no limits.',
+          'Time attack (from level 2) — beat the timer; every pair adds seconds.',
+          'Survival (from level 3) — one miss flips all found pairs back.',
+          'No mistakes (from level 5) — memorize the preview; one mistake loses the game.',
+        ] },
         { h: "What's in the game", lines: [
           'Collection — unlock sea themes, card backs and palettes for pearls.',
           'Daily reward — come back each day to claim pearls.',
@@ -262,6 +323,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'Gerçek ustalar için',
       expert: 'Tüm 14 yaratık!',
     },
+    modesTitle: 'OYUN MODU',
+    modeRecommended: 'Önerilen',
+    modeBeginner: 'Yeni başlayanlar', playCta: 'Oyna',
+    modeLabels: { classic: 'KLASİK', timeAttack: 'ZAMANA KARŞI', survival: 'HAYATTA KALMA', noMistakes: 'HATASIZ' },
+    modeDesc: {
+      classic:    'Çiftleri kendi hızında bul — sınır yok.',
+      timeAttack: 'Süre dolmadan yetiş! Bulduğun her çift saniye ekler.',
+      survival:   'Bir hata — bulunan tüm çiftler kapanır. Hatasız tamamla!',
+      noMistakes: 'Kartları gösterim sırasında ezberle. Tek hata — kaybedersin!',
+    },
+    modeLockedLv: (n) => `${n}. seviyede açılır`,
+    taParams: (start, bonus) => `${start} sn, çift başına +${bonus}`,
+    previewParams: (sec) => `${sec} sn gösterim`,
+    memorize: 'Ezberle!',
+    defeatTimeout: 'SÜRE DOLDU!',
+    defeatMistake: 'HATA!',
+    defeatPairs: (n, total) => `Bulunan çift: ${n} / ${total}`,
     sound:   'SES',
     soundOn: 'AÇIK',
     soundOff: 'KAPALI',
@@ -309,6 +387,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Kolay — 6 çift, orta — 10, zor — 12, uzman — 14.',
           'Zorluk arttıkça kart sayısı ve ödül artar.',
         ] },
+        { h: 'Oyun modları', lines: [
+          'Klasik — sınırsız normal oyun.',
+          'Zamana karşı (2. seviyeden) — süre dolmadan bitir; her çift saniye ekler.',
+          'Hayatta kalma (3. seviyeden) — bir hata bulunan tüm çiftleri kapatır.',
+          'Hatasız (5. seviyeden) — gösterimde kartları ezberle; tek hata kaybettirir.',
+        ] },
         { h: 'Oyunda neler var', lines: [
           'Koleksiyon — inci ile deniz temaları, kart arkaları ve paletler aç.',
           'Günlük ödül — her gün gel ve inci al.',
@@ -350,6 +434,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'Para los verdaderos maestros',
       expert: '¡Las 14 criaturas!',
     },
+    modesTitle: 'MODO DE JUEGO',
+    modeRecommended: 'Recomendado',
+    modeBeginner: 'Para principiantes', playCta: 'Jugar',
+    modeLabels: { classic: 'CLÁSICO', timeAttack: 'CONTRARRELOJ', survival: 'SUPERVIVENCIA', noMistakes: 'SIN ERRORES' },
+    modeDesc: {
+      classic:    'Encuentra los pares a tu ritmo — sin límites.',
+      timeAttack: '¡Gana al reloj! Cada par encontrado añade segundos.',
+      survival:   'Un fallo y todos los pares encontrados se cierran. ¡Completa sin fallar!',
+      noMistakes: 'Memoriza las cartas durante la vista previa. ¡Un error y pierdes!',
+    },
+    modeLockedLv: (n) => `Se abre en el nivel ${n}`,
+    taParams: (start, bonus) => `${start} s, +${bonus} por par`,
+    previewParams: (sec) => `vista previa ${sec} s`,
+    memorize: '¡Memoriza!',
+    defeatTimeout: '¡SE ACABÓ EL TIEMPO!',
+    defeatMistake: '¡ERROR!',
+    defeatPairs: (n, total) => `Pares encontrados: ${n} de ${total}`,
     sound:   'SONIDO',
     soundOn: 'ACTIVADO',
     soundOff: 'DESACTIVADO',
@@ -397,6 +498,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Fácil — 6 pares, medio — 10, difícil — 12, experto — 14.',
           'A mayor dificultad, más cartas y mayor recompensa.',
         ] },
+        { h: 'Modos de juego', lines: [
+          'Clásico — el juego normal, sin límites.',
+          'Contrarreloj (desde nivel 2) — gana al temporizador; cada par añade segundos.',
+          'Supervivencia (desde nivel 3) — un fallo cierra todos los pares encontrados.',
+          'Sin errores (desde nivel 5) — memoriza la vista previa; un error pierde la partida.',
+        ] },
         { h: 'Qué hay en el juego', lines: [
           'Colección — desbloquea mares, reversos y paletas con perlas.',
           'Recompensa diaria — vuelve cada día para reclamar perlas.',
@@ -438,6 +545,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'Para os verdadeiros mestres',
       expert: 'Todas as 14 criaturas!',
     },
+    modesTitle: 'MODO DE JOGO',
+    modeRecommended: 'Recomendado',
+    modeBeginner: 'Para iniciantes', playCta: 'Jogar',
+    modeLabels: { classic: 'CLÁSSICO', timeAttack: 'CONTRA O TEMPO', survival: 'SOBREVIVÊNCIA', noMistakes: 'SEM ERROS' },
+    modeDesc: {
+      classic:    'Encontre os pares no seu ritmo — sem limites.',
+      timeAttack: 'Vença o relógio! Cada par encontrado adiciona segundos.',
+      survival:   'Um erro e todos os pares encontrados se fecham. Complete sem falhar!',
+      noMistakes: 'Memorize as cartas durante a prévia. Um erro e você perde!',
+    },
+    modeLockedLv: (n) => `Abre no nível ${n}`,
+    taParams: (start, bonus) => `${start} s, +${bonus} por par`,
+    previewParams: (sec) => `prévia de ${sec} s`,
+    memorize: 'Memorize!',
+    defeatTimeout: 'O TEMPO ACABOU!',
+    defeatMistake: 'ERRO!',
+    defeatPairs: (n, total) => `Pares encontrados: ${n} de ${total}`,
     sound:   'SOM',
     soundOn: 'LIGADO',
     soundOff: 'DESLIGADO',
@@ -485,6 +609,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Fácil — 6 pares, médio — 10, difícil — 12, especialista — 14.',
           'Quanto maior a dificuldade, mais cartas e maior recompensa.',
         ] },
+        { h: 'Modos de jogo', lines: [
+          'Clássico — o jogo normal, sem limites.',
+          'Contra o tempo (do nível 2) — vença o cronômetro; cada par adiciona segundos.',
+          'Sobrevivência (do nível 3) — um erro fecha todos os pares encontrados.',
+          'Sem erros (do nível 5) — memorize a prévia; um erro perde o jogo.',
+        ] },
         { h: 'O que há no jogo', lines: [
           'Coleção — desbloqueie mares, versos e paletas com pérolas.',
           'Recompensa diária — volte todos os dias para resgatar pérolas.',
@@ -529,6 +659,23 @@ export const LOCALES: Record<Lang, Locale> = {
       hard:   'للأساتذة الحقيقيين',
       expert: 'جميع المخلوقات الـ ١٤!',
     },
+    modesTitle: 'وضع اللعب',
+    modeRecommended: 'موصى به',
+    modeBeginner: 'للمبتدئين', playCta: 'العب',
+    modeLabels: { classic: 'كلاسيكي', timeAttack: 'ضد الوقت', survival: 'البقاء', noMistakes: 'بدون أخطاء' },
+    modeDesc: {
+      classic:    'اعثر على الأزواج بوتيرتك — بلا حدود.',
+      timeAttack: 'اسبق الوقت! كل زوج تجده يضيف ثواني.',
+      survival:   'خطأ واحد يقلب كل الأزواج المكشوفة. أكمل اللوحة دون زلة!',
+      noMistakes: 'احفظ البطاقات أثناء العرض. خطأ واحد يعني الخسارة!',
+    },
+    modeLockedLv: (n) => `يفتح في المستوى ${n}`,
+    taParams: (start, bonus) => `${start} ث، +${bonus} لكل زوج`,
+    previewParams: (sec) => `عرض ${sec} ث`,
+    memorize: 'احفظ الأماكن!',
+    defeatTimeout: 'انتهى الوقت!',
+    defeatMistake: 'خطأ!',
+    defeatPairs: (n, total) => `الأزواج الموجودة: ${n} من ${total}`,
     sound:   'الصوت',
     soundOn: 'مفعّل',
     soundOff: 'معطّل',
@@ -575,6 +722,12 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'الصعوبات', lines: [
           'سهل — ٦ أزواج، متوسط — ١٠، صعب — ١٢، خبير — ١٤.',
           'كلما زادت الصعوبة زاد عدد البطاقات والمكافأة.',
+        ] },
+        { h: 'أوضاع اللعب', lines: [
+          'كلاسيكي — اللعبة العادية بلا حدود.',
+          'ضد الوقت (من المستوى 2) — اسبق المؤقت؛ كل زوج يضيف ثواني.',
+          'البقاء (من المستوى 3) — خطأ واحد يغلق كل الأزواج المكشوفة.',
+          'بدون أخطاء (من المستوى 5) — احفظ البطاقات أثناء العرض؛ خطأ واحد يخسر اللعبة.',
         ] },
         { h: 'ماذا في اللعبة', lines: [
           'المجموعة — افتح أشكال البحر وظهور البطاقات والألوان مقابل اللؤلؤ.',

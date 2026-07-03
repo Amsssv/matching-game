@@ -1,0 +1,135 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+@use '../../styles/modal' as *;
+
+@include modal-keyframes;
+
+$cond: 'Oswald', 'Roboto Condensed', 'Rubik', sans-serif;
+$serif: 'Playfair Display', 'Georgia', serif;
+
+// Backdrop: darken + blur the scene behind so the logo/mode cards recede.
+.backdrop {
+  @include modal-backdrop;
+  background: rgba(3, 25, 40, .62);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+
+// Panel surfaces are palette-driven (--color-blue/navy/gold-rgb) so an equipped UI
+// palette re-skins the modal. Fallbacks reproduce the approved ocean mockup exactly.
+.panel {
+  position: relative;
+  width: min(452px, calc(100vw - 32px));
+  max-height: 92vh; max-height: 90dvh; overflow: auto; overscroll-behavior: contain;
+  border-radius: 22px; padding: 22px 22px 24px; color: $white;
+  background: linear-gradient(160deg, rgb(var(--color-blue-rgb, 18 63 102)), rgb(var(--color-navy-rgb, 11 40 70)));
+  border: 1.5px solid rgb(var(--color-gold-border-rgb, 240 200 110) / .4);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .55), inset 0 0 0 1px rgb(var(--color-gold-border-rgb, 240 200 110) / .12);
+  animation: modal-pop $duration-fade cubic-bezier(.34, 1.56, .64, 1);
+}
+
+// ── Header ──
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.eyebrow { font-family: $cond; text-transform: uppercase; letter-spacing: 3px; font-size: 11px; color: $text-muted; margin: 0 0 6px; }
+.titleRow { display: flex; align-items: center; gap: 12px; }
+.modeIco {
+  width: 30px; height: 30px; flex: none; border-radius: 8px;
+  background: rgb(var(--color-gold-rgb, 247 208 119) / .16); color: $gold;
+  display: flex; align-items: center; justify-content: center;
+}
+.modeIco svg { width: 19px; height: 19px; }
+.title { font-family: $serif; font-weight: 700; font-size: 28px; line-height: 1; margin: 0; letter-spacing: .01em; color: rgb(var(--color-gold-rgb, 255 230 168)); }
+.close {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); color: $white;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; line-height: 1;
+  transition: background .15s ease;
+  @include focus-ring;
+  &:hover { background: rgba(255, 255, 255, .14); }
+}
+.desc { text-align: center; color: $text-muted; font-size: 15px; line-height: 1.45; margin: 16px 4px 18px; }
+
+// ── Section divider ──
+.sect { display: flex; align-items: center; gap: 14px; margin: 0 2px 14px; }
+.sect hr { flex: 1; border: 0; border-top: 1px solid rgb(var(--color-gold-border-rgb, 240 200 110) / .3); }
+.sect span { font-family: $cond; text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: rgb(var(--color-gold-rgb, 243 210 122)); }
+
+// ── Difficulty grid ──
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile {
+  position: relative; cursor: pointer; appearance: none; text-align: left; color: $white; font-family: inherit;
+  border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+  background: $gradient-button-idle;
+  border: 1.5px solid rgb(var(--color-gold-border-rgb, 240 200 110) / .28);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+  @include focus-ring;
+  &:hover { border-color: rgb(var(--color-gold-border-rgb, 240 200 110) / .7); }
+  &:active { transform: scale(.98); }
+}
+.tname { font-family: $cond; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 19px; }
+.bars { display: flex; gap: 5px; }
+.bars i { width: 20px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .18); }
+.tcap { font-size: 12.5px; color: rgb(var(--color-text-muted-rgb, 191 219 230) / .85); font-variant-numeric: tabular-nums; }
+
+// Bar fill by difficulty: easy = brand gold (palette-aware); medium/hard = fixed teal,
+// expert = fixed orange (difficulty-severity is semantic, separate from the brand accent).
+.easy .on { background: rgb(var(--color-gold-rgb, 255 224 138)); }
+.medium .on, .hard .on { background: #6fb7cc; }
+.expert .on { background: #ff9d6f; }
+
+// Selected tile
+.sel {
+  background: $gradient-button-active;
+  border: 2px solid $gold-border;
+  box-shadow: 0 0 20px rgb(var(--color-gold-rgb, 240 200 110) / .4);
+}
+.check {
+  position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(180deg, rgb(var(--color-gold-rgb, 255 224 138)), rgb(var(--color-gold-border-rgb, 224 169 63)));
+  color: #0a2540; display: none; align-items: center; justify-content: center;
+}
+.check svg { width: 13px; height: 13px; }
+.sel .check { display: flex; }
+.ribbon {
+  position: absolute; top: -9px; left: 12px; font-family: $cond; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em; font-size: 9px; color: #3a2708;
+  background: linear-gradient(180deg, rgb(var(--color-gold-rgb, 255 224 138)), rgb(var(--color-gold-border-rgb, 224 169 63)));
+  padding: 3px 9px; border-radius: 999px; box-shadow: 0 5px 12px -4px rgba(0, 0, 0, .6);
+}
+
+// ── CTA ──
+.cta {
+  position: relative; overflow: hidden;
+  margin-top: 20px; width: 100%; cursor: pointer; appearance: none; border: 0;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: $cond; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 18px;
+  color: #0a2540; border-radius: 14px; padding: 15px 20px;
+  background: linear-gradient(180deg, rgb(var(--color-gold-rgb, 255 224 138)), rgb(var(--color-gold-border-rgb, 224 169 63)));
+  box-shadow: 0 10px 24px rgb(var(--color-gold-border-rgb, 224 169 63) / .4);
+  transition: filter .15s ease, transform .12s ease;
+  @include focus-ring;
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: translateY(1px); }
+}
+.play { width: 15px; height: 15px; display: inline-flex; }
+.play svg { width: 100%; height: 100%; }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .panel { padding: 16px 18px 18px; }
+  .desc { margin: 12px 4px 14px; }
+  .title { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation: none; }
+  .tile, .close, .cta { transition: none; }
+}
+
+// Premium shimmer on the gold CTA — only when a paid palette is equipped.
+:global(.palette-premium) .cta::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .5) 50%, transparent 58%);
+  background-size: 300% 100%; background-repeat: no-repeat;
+  animation: cta-sheen 3.8s ease-in-out infinite;
+}
+@keyframes cta-sheen { 0% { background-position: 130% 0; } 55%, 100% { background-position: -130% 0; } }
+@media (prefers-reduced-motion: reduce) { :global(.palette-premium) .cta::after { animation: none; } }

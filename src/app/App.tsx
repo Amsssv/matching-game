@@ -5,6 +5,7 @@ import { bus } from '@state/eventBus';
 import { MainMenu } from '@widgets/MainMenu';
 import { Header } from '@widgets/Header';
 import { VictoryModal } from '@widgets/VictoryModal';
+import { DefeatModal } from '@widgets/DefeatModal';
 import { LeaderboardModal } from '@widgets/LeaderboardModal';
 import { ShopModal } from '@widgets/ShopModal';
 import { DailyRewardModal } from '@widgets/DailyRewardModal';
@@ -12,11 +13,13 @@ import { TasksModal } from '@widgets/TasksModal';
 import { ProfileModal } from '@widgets/ProfileModal';
 import { HelpModal } from '@widgets/HelpModal';
 import { StoreModal } from '@widgets/StoreModal';
+import { ModeStartModal } from '@widgets/ModeStartModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
   const hudActive = useUi(s => s.hud.active);
   const victory = useUi(s => s.modal.victory);
+  const defeat = useUi(s => s.modal.defeat);
   const leaderboard = useUi(s => s.modal.leaderboard);
   const shop = useUi(s => s.modal.shop);
   const daily = useUi(s => s.modal.daily);
@@ -24,6 +27,7 @@ export function App() {
   const profile = useUi(s => s.modal.profile);
   const help = useUi(s => s.modal.help);
   const store = useUi(s => s.modal.store);
+  const modeStart = useUi(s => s.modal.modeStart);
   const visible = useUi(s => s.transition.visible);
 
   // Click feedback for every overlay button (menu, HUD, all modals) via one
@@ -44,7 +48,7 @@ export function App() {
   return (
     <GameMount>
       <div
-        className="overlay-root"
+        className={visible ? 'overlay-root' : 'overlay-root overlay-frozen'}
         style={{
           position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 10,
           // Promote the overlay to its own GPU layer so each Phaser canvas frame only
@@ -59,6 +63,7 @@ export function App() {
         {menuActive && <MainMenu />}
         {hudActive && <Header />}
         {victory && <VictoryModal />}
+        {defeat && <DefeatModal />}
         {leaderboard && <LeaderboardModal />}
         {shop && <ShopModal />}
         {daily && <DailyRewardModal />}
@@ -66,6 +71,7 @@ export function App() {
         {profile && <ProfileModal />}
         {help && <HelpModal />}
         {store && <StoreModal />}
+        {modeStart && <ModeStartModal />}
       </div>
 
       {/* Scene-transition cover. Replaces the per-frame Phaser camera fade (which

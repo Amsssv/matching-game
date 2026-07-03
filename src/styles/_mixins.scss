@@ -13,7 +13,7 @@
 // Apply on the overlay root for Arabic
 @mixin rtl { :global([dir='rtl']) & { @content; } }
 
-// Shared section label ("СЛОЖНОСТЬ", "ЗВУК") used by DifficultyPicker + SoundToggle
+// Shared section label ("РЕЖИМ ИГРЫ", "ЗВУК") used by ModePicker + SoundToggle
 @mixin section-label {
   font-weight: 700; color: #f5f5f0; letter-spacing: 0.3em;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9); margin-bottom: 10px;   // tighter blur = cheaper raster

@@ -1,4 +1,5 @@
 import type { Difficulty } from '../game/layout';
+import { PEARL_MULT, XP_MULT, type GameMode } from '../game/modes';
 import { createStore } from './createStore';
 import { getYSDK } from '../ysdk';
 import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
@@ -22,17 +23,20 @@ const SPEED_BLAZING = 0.6;   // ≤ par × this = "blazing" (the higher speed ti
  *  - first win of the day → ×2
  *  - anti-farm diminishing returns by win-of-day: wins 1-3 ×1, 4-6 ×0.5, 7+ ×0.25
  */
-export function computePearls(difficulty: Difficulty, seconds: number, moves: number, totalPairs: number, ctx: WinContext): number {
+export function computePearls(difficulty: Difficulty, seconds: number, moves: number, totalPairs: number, ctx: WinContext, mode: GameMode = 'classic'): number {
   const base = PEARL_BASE[difficulty];
   const par = SPEED_PAR[difficulty];
   let skill = 1;
-  if (moves === totalPairs) skill += 0.5;
-  if (seconds <= par * SPEED_BLAZING) skill += 0.5;
-  else if (seconds <= par)            skill += 0.25;
+  // Anti-double-pay: bonuses a mode FORCES are folded into its multiplier instead.
+  if (mode !== 'noMistakes' && moves === totalPairs) skill += 0.5;                 // perfect is forced in noMistakes
+  if (mode !== 'timeAttack' && mode !== 'noMistakes') {                            // speed is forced in both
+    if (seconds <= par * SPEED_BLAZING) skill += 0.5;
+    else if (seconds <= par)            skill += 0.25;
+  }
   if (ctx.isRecord) skill += 0.5;
   const firstWin = ctx.winIndex === 1 ? 2 : 1;
   const farm = ctx.winIndex <= 3 ? 1 : ctx.winIndex <= 6 ? 0.5 : 0.25;
-  return Math.round(base * skill * firstWin * farm);
+  return Math.round(base * PEARL_MULT[mode][difficulty] * skill * firstWin * farm);
 }
 
 // ── Player level / XP (B8) ──
@@ -48,7 +52,19 @@ export function levelFromXp(xp: number): { level: number; into: number; span: nu
   return { level, into: remaining, span };
 }
 
+/** Cumulative XP needed to REACH `level` (level 1 = 0). Used for the "unlock progress"
+ * bar on a locked mode card: fraction = xp / xpForLevel(unlockLevel). */
+export function xpForLevel(level: number): number {
+  let total = 0;
+  for (let L = 1; L < Math.max(1, Math.floor(level)); L++) total += 100 + 50 * (L - 1);
+  return total;
+}
+
 const STORAGE_KEY = 'sea-pairs-progress';
+
+export type NewMode = Exclude<GameMode, 'classic'>;
+export type ModeBests = Record<NewMode, Record<Difficulty, number | null>>;
+const NEW_MODES: readonly NewMode[] = ['timeAttack', 'survival', 'noMistakes'];
 
 export interface ProgressStats {
   gamesPlayed: number;
@@ -62,6 +78,9 @@ export interface ProgressStats {
   lastWinDate: string | null;   // local date of the last win (first-win-of-day ×2)
   winsToday: number;            // wins on lastWinDate (anti-farm diminishing returns)
   xp: number;                   // cumulative XP (player level, B8)
+  modeBests: ModeBests;          // best seconds per (new mode, difficulty); classic keeps bestSeconds
+  lastLossDate: string | null;   // local date of the last consolation-paid loss
+  lossesToday: number;           // losses on lastLossDate (anti-farm for consolation)
 }
 export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
@@ -88,6 +107,12 @@ export const INITIAL_PROGRESS: ProgressState = {
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
     perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
     lastWinDate: null, winsToday: 0, xp: 0,
+    modeBests: {
+      timeAttack: { easy: null, medium: null, hard: null, expert: null },
+      survival:   { easy: null, medium: null, hard: null, expert: null },
+      noMistakes: { easy: null, medium: null, hard: null, expert: null },
+    },
+    lastLossDate: null, lossesToday: 0,
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
@@ -120,6 +145,20 @@ function validStreak(s: unknown): StreakState {
   return { current, lastClaimDate, best: Math.max(best, current), doubledDate };
 }
 
+const bestVal = (v: unknown): number | null => (typeof v === 'number' && v >= 0 ? v : null);
+function bestRec(r: unknown): Record<Difficulty, number | null> {
+  const o = (r && typeof r === 'object') ? r as Record<string, unknown> : {};
+  return { easy: bestVal(o.easy), medium: bestVal(o.medium), hard: bestVal(o.hard), expert: bestVal(o.expert) };
+}
+/** Two-level sanitize: a one-level spread over a partial blob would leave `undefined`
+ * where the type promises `number | null`, and would alias nested INITIAL objects. */
+function validModeBests(m: unknown): ModeBests {
+  const o = (m && typeof m === 'object') ? m as Record<string, unknown> : {};
+  const out = {} as ModeBests;
+  for (const mode of NEW_MODES) out[mode] = bestRec(o[mode]);
+  return out;
+}
+
 function validQuests(q: unknown): QuestsState {
   const o = (q && typeof q === 'object') ? q as Record<string, unknown> : {};
   const date = typeof o.date === 'string' ? o.date : null;
@@ -138,7 +177,7 @@ function mergeProgress(raw: unknown): ProgressState {
     return {
       version: 4,
       pearls: 0,
-      stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty } },
+      stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, modeBests: validModeBests(null) },
       unlocked: [],
       equipped: { ...DEFAULT_EQUIPPED },
       streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
@@ -164,6 +203,9 @@ function mergeProgress(raw: unknown): ProgressState {
       lastWinDate: typeof s.lastWinDate === 'string' ? s.lastWinDate : null,
       winsToday:   num(s.winsToday),
       xp:          num(s.xp),
+      modeBests: validModeBests(s.modeBests),
+      lastLossDate: typeof s.lastLossDate === 'string' ? s.lastLossDate : null,
+      lossesToday: num(s.lossesToday),
     },
     unlocked: Array.isArray(r.unlocked)
       ? (r.unlocked.filter((x): x is string => typeof x === 'string'))
@@ -366,23 +408,29 @@ export function recordGameStart(): void {
   recordQuestEvent({ type: 'start' });   // saves local (game-start stays local-only, cloud coalesced)
 }
 
-/** Win context from the CURRENT state — call BEFORE recordGameWin updates it. */
-export function winContext(difficulty: Difficulty, seconds: number): { isRecord: boolean; prevBest: number | null; winIndex: number; firstWinOfDay: boolean } {
+/** Win context from the CURRENT state — call BEFORE recordGameWin updates it.
+ * isRecord/prevBest are scoped to (mode, difficulty): classic reads bestSeconds,
+ * new modes read modeBests. */
+export function winContext(difficulty: Difficulty, seconds: number, mode: GameMode = 'classic'): { isRecord: boolean; prevBest: number | null; winIndex: number; firstWinOfDay: boolean } {
   const s = progressStore.get().stats;
-  const prevBest = s.bestSeconds[difficulty];
+  const prevBest = mode === 'classic' ? s.bestSeconds[difficulty] : s.modeBests[mode][difficulty];
   const winsBefore = s.lastWinDate === todayStr() ? s.winsToday : 0;
   const winIndex = winsBefore + 1;
   return { isRecord: prevBest === null || seconds < prevBest, prevBest, winIndex, firstWinOfDay: winIndex === 1 };
 }
 
-export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number }): { xpGained: number; leveledUp: boolean; newLevel: number } {
+export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pairs: number; moves: number; mode?: GameMode }): { xpGained: number; leveledUp: boolean; newLevel: number } {
+  const mode = r.mode ?? 'classic';
   const s = progressStore.get().stats;
-  const prevBest = s.bestSeconds[r.difficulty];
-  const perfect = r.moves === r.pairs;
-  const fast = r.seconds <= SPEED_PAR[r.difficulty];
+  const prevBest = mode === 'classic' ? s.bestSeconds[r.difficulty] : s.modeBests[mode][r.difficulty];
+  const newBest = prevBest === null ? r.seconds : Math.min(prevBest, r.seconds);
+  // Forced-signal suppression mirrors computePearls (spec §7): quests/achievements
+  // must not be trivialized by structurally-guaranteed fast/perfect wins.
+  const perfect = mode === 'noMistakes' ? false : r.moves === r.pairs;
+  const fast = (mode === 'timeAttack' || mode === 'noMistakes') ? false : r.seconds <= SPEED_PAR[r.difficulty];
   const today = todayStr();
   const sameDay = s.lastWinDate === today;
-  const xpGained = XP_PER_WIN[r.difficulty];
+  const xpGained = Math.round(XP_PER_WIN[r.difficulty] * XP_MULT[mode][r.difficulty]);
   const newXp = s.xp + xpGained;
   const newLevel = levelFromXp(newXp).level;
   const levelsGained = newLevel - levelFromXp(s.xp).level;
@@ -391,7 +439,9 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
       ...s,
       gamesWon: s.gamesWon + 1,
       pairsMatched: s.pairsMatched + r.pairs,
-      bestSeconds:      { ...s.bestSeconds,      [r.difficulty]: prevBest === null ? r.seconds : Math.min(prevBest, r.seconds) },
+      bestSeconds: mode === 'classic' ? { ...s.bestSeconds, [r.difficulty]: newBest } : s.bestSeconds,
+      modeBests: mode === 'classic' ? s.modeBests
+        : { ...s.modeBests, [mode]: { ...s.modeBests[mode], [r.difficulty]: newBest } },
       winsByDifficulty: { ...s.winsByDifficulty, [r.difficulty]: s.winsByDifficulty[r.difficulty] + 1 },
       perfectWins: s.perfectWins + (perfect ? 1 : 0),
       fastWins:    s.fastWins + (fast ? 1 : 0),
@@ -405,6 +455,32 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
   recordQuestEvent({ type: 'win', difficulty: r.difficulty, pairs: r.pairs, perfect, fast });   // sets quests + saveLocal
   saveCloud(progressStore.get());   // a win is significant → one cloud write, after quest progress is applied
   return { xpGained, leveledUp: levelsGained > 0, newLevel };
+}
+
+const CONSOLATION_RATE = 0.2;
+
+/** Consolation for a lost game (timeAttack timeout / noMistakes mistake).
+ * Linear in progress (instant dumps at progress 0 still pay 0, but a genuine
+ * attempt that ended early isn't demoralised with a rounded-to-zero prize) with
+ * its own daily anti-farm (lossesToday mirrors winsToday) so losing can never
+ * out-earn winning. No quests, no records, no leaderboards, no first-win ×2. */
+export function recordGameLoss(r: { mode: GameMode; difficulty: Difficulty; pairsFound: number; totalPairs: number }): { pearls: number; xp: number; leveledUp: boolean; newLevel: number } {
+  const s = progressStore.get().stats;
+  const today = todayStr();
+  const lossIndex = (s.lastLossDate === today ? s.lossesToday : 0) + 1;
+  const lossFarm = lossIndex <= 3 ? 1 : lossIndex <= 6 ? 0.5 : 0.25;
+  const progress = r.totalPairs > 0 ? r.pairsFound / r.totalPairs : 0;
+  const scale = CONSOLATION_RATE * progress * lossFarm;
+  const pearls = Math.round(PEARL_BASE[r.difficulty] * PEARL_MULT[r.mode][r.difficulty] * scale);
+  const xp = Math.round(XP_PER_WIN[r.difficulty] * XP_MULT[r.mode][r.difficulty] * scale);
+  const newXp = s.xp + xp;
+  const newLevel = levelFromXp(newXp).level;
+  const levelsGained = newLevel - levelFromXp(s.xp).level;
+  progressStore.set({ stats: { ...s, lastLossDate: today, lossesToday: lossIndex, xp: newXp } });
+  if (pearls > 0) addPearls(pearls);
+  if (levelsGained > 0) addPearls(LEVEL_UP_REWARD * levelsGained);
+  persist();
+  return { pearls, xp, leveledUp: levelsGained > 0, newLevel };
 }
 
 export function claimQuest(id: string): number | null {

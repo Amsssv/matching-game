@@ -6,12 +6,13 @@ import { saveLang, saveSoundEnabled } from '../settings';
 import { type Difficulty } from '../layout';
 import { isMobileDevice } from '../device';
 import { UI } from '../ui/config';
-import { setMenu, setTransition } from '../../state/store';
+import { setMenu, setModal, setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
-import { progressStore } from '../../state/progress';
+import { progressStore, levelFromXp } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
+import { MODE_UNLOCK, type GameMode } from '../modes';
 
 /**
  * Thin MenuScene: owns menu *state* + imperative actions, draws only the
@@ -23,6 +24,8 @@ export class MenuScene extends Phaser.Scene {
   private difficulty: Difficulty = 'medium';
   private soundEnabled = true;
   private lang: Lang = 'ru';
+  private lastMode: GameMode = 'classic';
+  private starting = false;   // reentrancy latch: double-tap must not double-start
   private bgObj?: Phaser.GameObjects.Image;
   private renderActivity?: RenderActivity;
 
@@ -34,6 +37,8 @@ export class MenuScene extends Phaser.Scene {
     this.difficulty   = this.game.registry.get('difficulty')   ?? 'medium';
     this.soundEnabled = this.game.registry.get('soundEnabled') ?? true;
     this.lang         = this.game.registry.get('lang')         ?? 'ru';
+    this.lastMode = this.game.registry.get('gameMode') ?? 'classic';
+    this.starting = false;   // Phaser reuses this scene instance; reset the latch on every (re)entry
 
     const canvasWidth = this.scale.width;
     const canvasHeight = this.scale.height;
@@ -49,10 +54,9 @@ export class MenuScene extends Phaser.Scene {
     // unsubscribes on shutdown (so a restarted / inactive MenuScene never
     // double-fires). Replaces the old direct-scene-access bridge.
     const offBus = [
-      bus.on('cmd:set-difficulty', ({ difficulty }) => this.setDifficulty(difficulty)),
       bus.on('cmd:toggle-sound', () => this.toggleSound()),
       bus.on('cmd:set-lang', ({ lang }) => this.setLang(lang)),
-      bus.on('cmd:play', () => this.play()),
+      bus.on('cmd:play', ({ mode, difficulty }) => this.play(mode, difficulty)),
       bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') this.openLeaderboard(); }),
       bus.on('cmd:equip-changed', () => this.applySeaTint()),
       bus.on('cmd:set-muted', (muted) => {
@@ -92,6 +96,7 @@ export class MenuScene extends Phaser.Scene {
     }
     this.events.once('shutdown', () => {
       setMenu({ active: false });
+      setModal({ modeStart: null });   // defensive: never leave the modal over the game HUD
       getYSDK()?.adv.hideBannerAdv();
     });
 
@@ -130,17 +135,13 @@ export class MenuScene extends Phaser.Scene {
   private publish() {
     setMenu({
       difficulty:   this.difficulty,
+      mode:         this.lastMode,
       soundEnabled: this.soundEnabled,
       lang:         this.lang,
     });
   }
 
   // ── Actions invoked from the command bus ─────────────────────────────────────
-  setDifficulty(d: Difficulty) {
-    this.difficulty = d;
-    this.publish();
-  }
-
   toggleSound() {
     this.soundEnabled = !this.soundEnabled;
     saveSoundEnabled(this.soundEnabled);
@@ -162,16 +163,26 @@ export class MenuScene extends Phaser.Scene {
     this.scene.restart();
   }
 
-  play() {
-    this.startGame();
+  play(mode: GameMode, difficulty: Difficulty) {
+    if (this.starting) return;   // double-tap during the cover fade must not double-start
+    // Defense in depth: the picker disables locked modes, but a raw bus emit must not bypass the gate.
+    const level = levelFromXp(progressStore.get().stats.xp).level;
+    if (level < MODE_UNLOCK[mode]) return;
+    this.starting = true;
+    this.difficulty = difficulty;
+    this.lastMode = mode;
+    this.publish();
+    setModal({ modeStart: null });   // close the difficulty modal BEFORE the cover fades in
+    this.startGame(mode);
   }
 
   openLeaderboard() {
     openLeaderboard('menu');
   }
 
-  private startGame() {
+  private startGame(mode: GameMode) {
     this.renderActivity?.disable();   // loop must run through the cover fade + scene swap
+    this.game.registry.set('gameMode',     mode);
     this.game.registry.set('difficulty',   this.difficulty);
     this.game.registry.set('soundEnabled', this.soundEnabled);
     this.game.registry.set('lang',         this.lang);
