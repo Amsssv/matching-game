@@ -10,6 +10,8 @@ import type { AudioManager } from '../game/AudioManager';
 declare global {
   interface Window {
     __game?: Phaser.Game;
+    /** Cold-load screen control (defined inline in index.html). */
+    __appLoader?: { set: (p: number) => void; hide: () => void };
   }
 }
 

@@ -14,8 +14,140 @@
     <meta name="description" content="Морские пары — весёлая игра на память для детей от 6 лет. Переворачивай карточки, находи совпадения и тренируй внимание вместе с морскими обитателями!" />
     <title>Морские пары</title>
     <script src="/sdk.js"></script>
+    <!-- Cold-load screen: inlined so it paints on the very first frame, before the
+         JS/CSS bundle, React or Phaser. Ocean gradient + a real progress bar fed by
+         Phaser's asset loader (window.__appLoader.set), removed once the menu shows. -->
+    <style>
+      /* Underwater depth: bright sunlit surface up top fading into a dark abyss. */
+      #app-loader {
+        position: fixed; inset: 0; z-index: 9999; overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+        background:
+          radial-gradient(130% 90% at 50% -25%, rgba(126, 214, 238, 0.42), rgba(126, 214, 238, 0) 55%),
+          radial-gradient(120% 75% at 50% 125%, rgba(0, 6, 16, 0.7), rgba(0, 6, 16, 0) 60%),
+          linear-gradient(180deg, #0a4d72 0%, #063a5a 32%, #002440 66%, #000f1e 100%);
+        transition: opacity 300ms linear;
+      }
+      #app-loader.app-loader--hide { opacity: 0; pointer-events: none; }
+
+      /* Caustic light shafts drifting down from the surface. */
+      #app-loader .app-loader__rays {
+        position: absolute; left: -20%; right: -20%; top: -40%; height: 150%;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          102deg,
+          rgba(150, 224, 248, 0) 0px, rgba(150, 224, 248, 0) 46px,
+          rgba(150, 224, 248, 0.07) 66px, rgba(150, 224, 248, 0) 96px
+        );
+        animation: app-loader-rays 9s ease-in-out infinite alternate;
+      }
+      @keyframes app-loader-rays {
+        from { transform: translateX(-4%) skewX(-7deg);  opacity: 0.45; }
+        to   { transform: translateX(4%)  skewX(-11deg); opacity: 0.9; }
+      }
+
+      /* Ambient rising bubbles. */
+      #app-loader .app-loader__bubbles { position: absolute; inset: 0; pointer-events: none; }
+      #app-loader .app-loader__bubbles span {
+        position: absolute; bottom: -6vh; border-radius: 50%;
+        background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.9), rgba(184, 232, 248, 0.18) 68%, rgba(184, 232, 248, 0));
+        box-shadow: 0 0 6px rgba(184, 232, 248, 0.35);
+        animation: app-loader-rise linear infinite;
+      }
+      @keyframes app-loader-rise {
+        0%   { transform: translate(0, 0) scale(0.55); opacity: 0; }
+        12%  { opacity: 0.85; }
+        85%  { opacity: 0.65; }
+        100% { transform: translate(var(--drift, 12px), -112vh) scale(1); opacity: 0; }
+      }
+      #app-loader .app-loader__bubbles span:nth-child(1) { left: 10%; width: 10px; height: 10px; animation-duration: 7.5s; animation-delay: 0s;   --drift: 16px; }
+      #app-loader .app-loader__bubbles span:nth-child(2) { left: 22%; width: 6px;  height: 6px;  animation-duration: 6s;   animation-delay: 1.4s; --drift: -12px; }
+      #app-loader .app-loader__bubbles span:nth-child(3) { left: 38%; width: 14px; height: 14px; animation-duration: 9s;   animation-delay: 0.6s; --drift: 20px; }
+      #app-loader .app-loader__bubbles span:nth-child(4) { left: 50%; width: 5px;  height: 5px;  animation-duration: 5.5s; animation-delay: 2.2s; --drift: 8px; }
+      #app-loader .app-loader__bubbles span:nth-child(5) { left: 63%; width: 11px; height: 11px; animation-duration: 8s;   animation-delay: 0.2s; --drift: -18px; }
+      #app-loader .app-loader__bubbles span:nth-child(6) { left: 74%; width: 7px;  height: 7px;  animation-duration: 6.5s; animation-delay: 3s;   --drift: 12px; }
+      #app-loader .app-loader__bubbles span:nth-child(7) { left: 86%; width: 13px; height: 13px; animation-duration: 9.5s; animation-delay: 1s;   --drift: -14px; }
+      #app-loader .app-loader__bubbles span:nth-child(8) { left: 92%; width: 6px;  height: 6px;  animation-duration: 6.8s; animation-delay: 2.6s; --drift: 10px; }
+
+      #app-loader .app-loader__center {
+        position: relative; z-index: 1;
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+      }
+      #app-loader .app-loader__track {
+        position: relative; width: min(80vw, 528px); height: 24px; border-radius: 999px;
+        background: rgba(3, 20, 34, 0.55); overflow: hidden;
+        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.06);
+        animation: app-loader-pulse 1.4s ease-in-out infinite;
+      }
+      #app-loader.app-loader--active .app-loader__track { animation: none; }
+      #app-loader .app-loader__fill {
+        position: relative; height: 100%; width: 0; border-radius: inherit;
+        background: linear-gradient(180deg, #ffe9a8, #f7d077 45%, #e8a24d);
+        box-shadow: 0 0 12px rgba(247, 208, 119, 0.6);
+        transition: width 220ms ease-out;
+      }
+      #app-loader .app-loader__fill::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(100deg, transparent 18%, rgba(255, 255, 255, 0.55) 50%, transparent 82%);
+        transform: translateX(-100%);
+        animation: app-loader-sheen 1.7s ease-in-out infinite;
+      }
+      #app-loader .app-loader__pct {
+        color: #d6f0fb; font-family: system-ui, -apple-system, sans-serif;
+        font-size: 15px; font-weight: 600; letter-spacing: 0.12em;
+        font-variant-numeric: tabular-nums; text-shadow: 0 0 12px rgba(126, 214, 238, 0.5);
+      }
+      @keyframes app-loader-sheen { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(240%); } }
+      @keyframes app-loader-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        #app-loader .app-loader__rays,
+        #app-loader .app-loader__bubbles span,
+        #app-loader .app-loader__fill::after,
+        #app-loader .app-loader__track { animation: none; }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loader" aria-hidden="true">
+      <div class="app-loader__rays"></div>
+      <div class="app-loader__bubbles">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="app-loader__center">
+        <div class="app-loader__track"><div class="app-loader__fill" id="app-loader-fill"></div></div>
+        <div class="app-loader__pct" id="app-loader-pct">0%</div>
+      </div>
+    </div>
+    <script>
+      // Framework-agnostic control API, available immediately (classic script runs
+      // before the deferred main.tsx module). Guarded so any early/late call is safe.
+      (function () {
+        var el = document.getElementById('app-loader');
+        var fill = document.getElementById('app-loader-fill');
+        var pct = document.getElementById('app-loader-pct');
+        var hidden = false;
+        window.__appLoader = {
+          set: function (p) {
+            if (!el) return;
+            el.classList.add('app-loader--active');
+            var v = p < 0 ? 0 : p > 1 ? 1 : (p || 0);
+            var n = Math.round(v * 100);
+            if (fill) fill.style.width = n + '%';
+            if (pct) pct.textContent = n + '%';
+          },
+          hide: function () {
+            if (hidden || !el) return;
+            hidden = true;
+            el.classList.add('app-loader--hide');
+            var remove = function () { if (el && el.parentNode) el.parentNode.removeChild(el); };
+            el.addEventListener('transitionend', remove, { once: true });
+            setTimeout(remove, 500); // fallback if transitionend never fires
+          }
+        };
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

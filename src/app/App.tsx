@@ -45,6 +45,13 @@ export function App() {
     return () => document.removeEventListener('click', onClick, true);
   }, []);
 
+  // Dismiss the cold-load screen once the real menu is on screen (covers the blank
+  // #root during boot awaits AND the Phaser asset preload). Idempotent: hide() no-ops
+  // after the first call, so a later menu toggle won't try to re-hide a removed node.
+  useEffect(() => {
+    if (menuActive) window.__appLoader?.hide();
+  }, [menuActive]);
+
   return (
     <GameMount>
       <div

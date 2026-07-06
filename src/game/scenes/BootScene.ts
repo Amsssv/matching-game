@@ -18,6 +18,9 @@ export class BootScene extends Phaser.Scene {
       this.failedKeys.add(file.key);
     });
 
+    // Feed the cold-load screen's progress bar (0..1) as assets stream in.
+    this.load.on('progress', (v: number) => window.__appLoader?.set(v));
+
     this.load.audio('music', ['assets/music.mp3']);
 
     // ── SFX — раскомментируй когда добавишь файлы в public/assets/sfx/ ──────
