@@ -2,10 +2,6 @@
 @use '../../styles/tokens' as *;
 @use '../../styles/mixins' as *;
 
-@include modal-keyframes;
-
-.backdrop { @include modal-backdrop; }
-.panel { @include modal-panel; width: min(92vw, 420px); }
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
 
 // ── 7-day ladder (desktop 7-in-row, mobile 4+3) ──

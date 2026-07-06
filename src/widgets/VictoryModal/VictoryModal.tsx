@@ -6,6 +6,7 @@ import { Button } from '@ui/Button';
 import { CompactLeaderboard } from '@features/leaderboard/CompactLeaderboard';
 import { doubleVictoryReward } from '@state/victoryController';
 import { getYSDK } from '../../ysdk';
+import { Modal } from '@ui/Modal';
 import styles from './VictoryModal.module.scss';
 
 export function VictoryModal() {
@@ -19,48 +20,46 @@ export function VictoryModal() {
   const delta = prevBest != null ? seconds - prevBest : null; // <0 = faster than the old best
 
   return (
-    <div className={styles.backdrop} data-testid="victory">
-      <div className={styles.panel}>
-        {isRecord && <div className={styles.record} data-testid="victory-record">🏆 {L.vRecord}</div>}
-        <h2 className={styles.title}>{L.victory}</h2>
-        <p className={styles.subtitle}>{L.allPairsFound}</p>
+    <Modal testId="victory">
+      {isRecord && <div className={styles.record} data-testid="victory-record">🏆 {L.vRecord}</div>}
+      <h2 className={styles.title}>{L.victory}</h2>
+      <p className={styles.subtitle}>{L.allPairsFound}</p>
 
-        {pearlsEarned > 0 && (
-          <p className={styles.reward} data-testid="victory-pearls">+{shownPearls} 🦪<span className={styles.xpInline} data-testid="victory-xp"> · +{xpGained} XP</span></p>
-        )}
-        {leveledUp && <p className={styles.levelUp} data-testid="victory-levelup">🎉 {L.level} {newLevel}</p>}
-        {firstWinOfDay && <p className={styles.firstWin} data-testid="victory-firstwin">🎁 {L.vFirstWin}</p>}
-        {canDouble && (
-          <Button testId="victory-double" type="primary" size="large" className={styles.doubleCta} onClick={doubleVictoryReward}>{`▶ ${L.dailyDouble}`}</Button>
-        )}
+      {pearlsEarned > 0 && (
+        <p className={styles.reward} data-testid="victory-pearls">+{shownPearls} 🦪<span className={styles.xpInline} data-testid="victory-xp"> · +{xpGained} XP</span></p>
+      )}
+      {leveledUp && <p className={styles.levelUp} data-testid="victory-levelup">🎉 {L.level} {newLevel}</p>}
+      {firstWinOfDay && <p className={styles.firstWin} data-testid="victory-firstwin">🎁 {L.vFirstWin}</p>}
+      {canDouble && (
+        <Button testId="victory-double" type="primary" size="large" className={styles.doubleCta} onClick={doubleVictoryReward}>{`▶ ${L.dailyDouble}`}</Button>
+      )}
 
-        <div className={styles.stats}>
-          <div className={styles.tile}>
-            <span className={styles.statLabel}>{L.movesLabel}</span>
-            <span className={styles.statValue}>{moves}</span>
-          </div>
-          <div className={styles.tile}>
-            <span className={styles.statLabel}>{L.timeLabel}</span>
-            <span className={styles.statValue}>{formatTime(seconds)}</span>
-            {delta != null && delta !== 0 && (
-              <span className={delta < 0 ? styles.deltaGood : styles.deltaBad}>
-                🏆 {delta < 0 ? '−' : '+'}{formatTime(Math.abs(delta))}
-              </span>
-            )}
-          </div>
+      <div className={styles.stats}>
+        <div className={styles.tile}>
+          <span className={styles.statLabel}>{L.movesLabel}</span>
+          <span className={styles.statValue}>{moves}</span>
         </div>
-
-        {compact && <CompactLeaderboard data={compact} />}
-
-        <div className={styles.actions}>
-          <Button testId="victory-restart" type="primary" size="large" className={styles.restartCta} onClick={() => bus.emit('cmd:victory-restart')}>{L.restart}</Button>
-          <Button testId="victory-menu" type="secondary" size="large" onClick={() => bus.emit('cmd:victory-to-menu')}>{L.toMenu}</Button>
-          <Button testId="victory-lb" type="secondary" size="large" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'victory' })}>{`🏆 ${L.leaderboard}`}</Button>
-          {showAuthCta && (
-            <Button testId="victory-login" type="secondary" size="large" onClick={() => bus.emit('cmd:login-and-save')}>{L.loginToSave}</Button>
+        <div className={styles.tile}>
+          <span className={styles.statLabel}>{L.timeLabel}</span>
+          <span className={styles.statValue}>{formatTime(seconds)}</span>
+          {delta != null && delta !== 0 && (
+            <span className={delta < 0 ? styles.deltaGood : styles.deltaBad}>
+              🏆 {delta < 0 ? '−' : '+'}{formatTime(Math.abs(delta))}
+            </span>
           )}
         </div>
       </div>
-    </div>
+
+      {compact && <CompactLeaderboard data={compact} />}
+
+      <div className={styles.actions}>
+        <Button testId="victory-restart" type="primary" size="large" className={styles.restartCta} onClick={() => bus.emit('cmd:victory-restart')}>{L.restart}</Button>
+        <Button testId="victory-menu" type="secondary" size="large" onClick={() => bus.emit('cmd:victory-to-menu')}>{L.toMenu}</Button>
+        <Button testId="victory-lb" type="secondary" size="large" onClick={() => bus.emit('cmd:open-leaderboard', { source: 'victory' })}>{`🏆 ${L.leaderboard}`}</Button>
+        {showAuthCta && (
+          <Button testId="victory-login" type="secondary" size="large" onClick={() => bus.emit('cmd:login-and-save')}>{L.loginToSave}</Button>
+        )}
+      </div>
+    </Modal>
   );
 }

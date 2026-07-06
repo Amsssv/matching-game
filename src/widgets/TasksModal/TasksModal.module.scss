@@ -1,10 +1,6 @@
 @use '../../styles/modal' as *;
 @use '../../styles/tokens' as *;
 
-@include modal-keyframes;
-
-.backdrop { @include modal-backdrop; }
-.panel { @include modal-panel; width: min(92vw, 460px); }
 .title { @include modal-title; font-size: clamp(18px, 6vw, 26px); }
 .tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
 .tabs button { min-width: 0; padding: 6px 4px; }

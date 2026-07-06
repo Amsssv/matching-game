@@ -1,6 +1,7 @@
 import { useUi } from '@hooks/useUiStore';
 import { LOCALES } from '../../game/i18n';
 import { Button } from '@ui/Button';
+import { Modal } from '@ui/Modal';
 import { cx } from '@ui/cx';
 import { DAILY_REWARDS } from '@state/daily';
 import { claim, watchDoubleAd, closeDaily } from '@state/dailyController';
@@ -15,40 +16,38 @@ export function DailyRewardModal() {
   const cyclePos = ((day - 1) % DAILY_REWARDS.length) + 1;   // 1..7 position in the cycle
   const shown = doubled ? reward * 2 : reward;
   return (
-    <div className={styles.backdrop} data-testid="daily" onClick={closeDaily}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{L.dailyTitle}</h2>
+    <Modal testId="daily" onClose={closeDaily} width="min(92vw, 420px)">
+      <h2 className={styles.title}>{L.dailyTitle}</h2>
 
-        <div className={styles.ladder}>
-          {DAILY_REWARDS.map((r, i) => {
-            const n = i + 1;
-            const got = n < cyclePos || (n === cyclePos && claimed); // claimed days
-            const today = n === cyclePos && !claimed;                 // claimable now
-            const special = n === DAILY_REWARDS.length;               // day 7 = big reward
-            return (
-              <div key={n} className={cx(styles.cell, got && styles.got, today && styles.today, !got && !today && styles.locked, special && styles.special)}>
-                {special && <span className={styles.crown} aria-hidden>🎁</span>}
-                <span className={styles.amt}>{r}</span>
-                {got && <span className={styles.check} aria-hidden>✓</span>}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className={styles.reward}>{`+${shown} 🦪`}</div>
-
-        <div className={styles.actions}>
-          {!claimed ? (
-            <Button testId="daily-claim" type="primary" size="large" className={styles.claimCta} onClick={claim}>{L.dailyClaim}</Button>
-          ) : (
-            <>
-              {!doubled && <Button testId="daily-double" type="primary" size="large" className={styles.claimCta} onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
-              {doubled && <p className={styles.comeBack}>{L.dailyComeBack}</p>}
-              <Button testId="daily-close" type="secondary" size="large" onClick={closeDaily}>{L.lbClose}</Button>
-            </>
-          )}
-        </div>
+      <div className={styles.ladder}>
+        {DAILY_REWARDS.map((r, i) => {
+          const n = i + 1;
+          const got = n < cyclePos || (n === cyclePos && claimed); // claimed days
+          const today = n === cyclePos && !claimed;                 // claimable now
+          const special = n === DAILY_REWARDS.length;               // day 7 = big reward
+          return (
+            <div key={n} className={cx(styles.cell, got && styles.got, today && styles.today, !got && !today && styles.locked, special && styles.special)}>
+              {special && <span className={styles.crown} aria-hidden>🎁</span>}
+              <span className={styles.amt}>{r}</span>
+              {got && <span className={styles.check} aria-hidden>✓</span>}
+            </div>
+          );
+        })}
       </div>
-    </div>
+
+      <div className={styles.reward}>{`+${shown} 🦪`}</div>
+
+      <div className={styles.actions}>
+        {!claimed ? (
+          <Button testId="daily-claim" type="primary" size="large" className={styles.claimCta} onClick={claim}>{L.dailyClaim}</Button>
+        ) : (
+          <>
+            {!doubled && <Button testId="daily-double" type="primary" size="large" className={styles.claimCta} onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
+            {doubled && <p className={styles.comeBack}>{L.dailyComeBack}</p>}
+            <Button testId="daily-close" type="secondary" size="large" onClick={closeDaily}>{L.lbClose}</Button>
+          </>
+        )}
+      </div>
+    </Modal>
   );
 }

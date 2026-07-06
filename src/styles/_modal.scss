@@ -24,7 +24,7 @@
 }
 @mixin modal-panel {
   @include panel;
-  width: min(85vw, 340px);
+  width: var(--modal-w, min(85vw, 340px));
   max-height: 92vh;             // fallback for browsers without dvh
   max-height: 90dvh;            // dynamic viewport — survives mobile toolbar show/hide
   overflow: auto; overscroll-behavior: contain;

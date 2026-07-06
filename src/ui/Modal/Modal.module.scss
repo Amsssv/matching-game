@@ -1,0 +1,6 @@
+@use '../../styles/modal' as *;
+
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; }
+.panel { @include modal-panel; }

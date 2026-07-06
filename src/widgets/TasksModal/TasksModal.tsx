@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
 import { useUi } from '@hooks/useUiStore';
 import { useProgress } from '@hooks/useProgress';
 import { LOCALES } from '../../game/i18n';
 import { Button } from '@ui/Button';
+import { Modal } from '@ui/Modal';
 import { ACHIEVEMENTS } from '@state/achievements';
 import { buildAchSignals } from '@state/progress';
 import { QUEST_BY_ID } from '@state/quests';
@@ -20,11 +20,6 @@ export function TasksModal() {
   const stats = useProgress((s) => s.stats);
   const streakBest = useProgress((s) => s.streak.best);
   const unlockedCount = useProgress((s) => s.unlocked.length);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeTasks(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
   if (!tasks) return null;
   const L = LOCALES[lang];
   const signals = buildAchSignals(stats, streakBest, unlockedCount);
@@ -32,28 +27,26 @@ export function TasksModal() {
   const questClaimable = quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length;
   const achClaimable = ACHIEVEMENTS.filter((a) => a.done(signals) && !claimed.includes(a.id)).length;
   return (
-    <div className={styles.backdrop} data-testid="tasks" onClick={closeTasks}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{L.tasks}</h2>
-        <div className={styles.tabs} data-testid="tasks-tabs">
-          <Button testId="tasks-tab-quests" type="primary" size="small" className={styles.tab}
-                  active={tasks.tab === 'quests'} onClick={() => switchTasksTab('quests')}>
-            {L.tasksTabQuests}{questClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{questClaimable}</span>}
-          </Button>
-          <Button testId="tasks-tab-achievements" type="primary" size="small" className={styles.tab}
-                  active={tasks.tab === 'achievements'} onClick={() => switchTasksTab('achievements')}>
-            {L.tasksTabAch}{achClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{achClaimable}</span>}
-          </Button>
-        </div>
-        <div className={styles.list}>
-          {tasks.tab === 'quests'
-            ? quests.active.map((slot, i) => <QuestRow key={slot.id} slot={slot} index={i} L={L} />)
-            : ACHIEVEMENTS.map((def) => (
-                <AchievementRow key={def.id} def={def} done={def.done(signals)} progress={def.progress(signals)} claimed={claimed.includes(def.id)} L={L} />
-              ))}
-        </div>
-        <Button testId="tasks-close" type="secondary" size="large" onClick={closeTasks}>{L.lbClose}</Button>
+    <Modal testId="tasks" onClose={closeTasks} width="min(92vw, 460px)">
+      <h2 className={styles.title}>{L.tasks}</h2>
+      <div className={styles.tabs} data-testid="tasks-tabs">
+        <Button testId="tasks-tab-quests" type="primary" size="small" className={styles.tab}
+                active={tasks.tab === 'quests'} onClick={() => switchTasksTab('quests')}>
+          {L.tasksTabQuests}{questClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{questClaimable}</span>}
+        </Button>
+        <Button testId="tasks-tab-achievements" type="primary" size="small" className={styles.tab}
+                active={tasks.tab === 'achievements'} onClick={() => switchTasksTab('achievements')}>
+          {L.tasksTabAch}{achClaimable > 0 && <span className={styles.tabBadge} aria-hidden>{achClaimable}</span>}
+        </Button>
       </div>
-    </div>
+      <div className={styles.list}>
+        {tasks.tab === 'quests'
+          ? quests.active.map((slot, i) => <QuestRow key={slot.id} slot={slot} index={i} L={L} />)
+          : ACHIEVEMENTS.map((def) => (
+              <AchievementRow key={def.id} def={def} done={def.done(signals)} progress={def.progress(signals)} claimed={claimed.includes(def.id)} L={L} />
+            ))}
+      </div>
+      <Button testId="tasks-close" type="secondary" size="large" onClick={closeTasks}>{L.lbClose}</Button>
+    </Modal>
   );
 }
