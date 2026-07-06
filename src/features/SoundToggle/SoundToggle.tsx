@@ -1,11 +1,12 @@
+import { cx } from '@ui/cx';
 import styles from './SoundToggle.module.scss';
 import type { Locale } from '../../game/i18n';
 
 export function SoundToggle({
-  L, enabled, onToggle,
-}: { L: Locale; enabled: boolean; onToggle: () => void }) {
+  L, enabled, onToggle, className,
+}: { L: Locale; enabled: boolean; onToggle: () => void; className?: string }) {
   return (
-    <div className={styles.sound}>
+    <div className={cx(styles.sound, className)}>
       <span className={styles.label}>{L.sound}</span>
       <button
         type="button"

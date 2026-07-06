@@ -27,7 +27,8 @@
   }
 }
 
-// When the bottom bar stacks (≤600px), center the label + toggle row.
+// Mobile: the toggle sits inline in the bottom-actions row (right of "?") as an
+// icon-only control — hide the text label.
 @media (max-width: 600px) {
-  .sound { justify-content: center; }
+  .label { display: none; }
 }

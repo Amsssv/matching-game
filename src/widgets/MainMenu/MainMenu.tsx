@@ -49,19 +49,19 @@ export function MainMenu() {
 
       <footer className={styles.bottomBar} data-testid="menu-footer">
         <div className={styles.bottomActions}>
-          <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>{`🏆 ${L.leaderboard}`}</Button>
+          <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>🏆<span className={styles.btnLabel}> {L.leaderboard}</span></Button>
           <Button testId="shop-open" type="secondary" size="medium" onClick={() => openShop()}>
             <span className={styles.iconLabel}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
                 <rect x="4" y="7" width="12" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth={1.8} />
                 <path d="M8 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {L.shop}
+              <span className={styles.btnLabel}>{L.shop}</span>
             </span>
           </Button>
           <HelpButton />
+          <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} className={styles.soundAction} />
         </div>
-        <SoundToggle L={L} enabled={soundEnabled} onToggle={() => bus.emit('cmd:toggle-sound')} />
       </footer>
     </div>
   );

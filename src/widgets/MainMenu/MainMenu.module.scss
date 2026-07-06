@@ -63,16 +63,20 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   gap: clamp(8px, 2vh, 22px);
 }
 
-// ── Zone 3: bottom bar (records + shop + help, plus sound) ──
-// MOBILE base: stack — sound row on top, action pills full-width below.
+// ── Zone 3: bottom bar (records + shop + help + sound) ──
+// MOBILE base: a single row — the two pills stretch, then the "?" help button and
+// the icon-only sound toggle sit at the right.
 .bottomBar {
   width: 100%;
-  display: flex; flex-direction: column-reverse; align-items: stretch; gap: 8px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
   pointer-events: auto;
 }
-.bottomActions { display: flex; gap: 8px; width: 100%; }
-// Only the two pills stretch; the trailing round "?" help button keeps its circle.
-.bottomActions > button:nth-child(-n+2) { flex: 1; min-width: 0; }
+.bottomActions { display: flex; align-items: center; gap: 8px; width: 100%; }
+// Records + Collection hug their content (icon [+ label on desktop]); the "?" help
+// and sound icon keep their size too.
+.bottomActions > button:nth-child(-n+2) { flex: 0 0 auto; min-width: 0; }
+// Hidden on mobile (icon-only), shown on desktop — the button's text label.
+.btnLabel { display: inline; }
 
 // Bottom-bar accents.
 .records {
@@ -86,17 +90,33 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   .bottomBar {
     flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
   }
-  .bottomActions { width: auto; }
+  .bottomActions { width: 100%; }
   .bottomActions > button:nth-child(-n+2) { flex: 0 0 auto; }
+  // Keep the sound toggle pinned to the far right of the bar (its pre-move position).
+  .soundAction { margin-left: auto; }
 }
 
 // Short landscape: tighten gaps and, as a fallback for very short heights, let the
-// center scroll (portrait stays strictly no-scroll; landscape may scroll the middle
-// zone while the pinned top bar + footer stay reachable).
+// center scroll while the pinned top bar + footer stay reachable.
 @media (orientation: landscape) and (max-height: 560px) {
   .root { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
   .center { overflow-y: auto; }
   .centerInner { gap: clamp(6px, 1.5vh, 14px); }
+}
+
+// Portrait phones stack the four mode cards vertically, which overflows the center
+// zone on small/short screens. Instead of scrolling the whole zone, fill the center
+// height (drop the margin:auto centring) so the Title/Subtitle stay pinned at the
+// top and the ModePicker's card list owns the leftover height and scrolls on its own
+// (see ModePicker.module.scss).
+@media (max-width: 767px) and (orientation: portrait) {
+  .centerInner { margin: 0; flex: 1 1 auto; min-height: 0; justify-content: flex-start; }
+}
+
+// Mobile: Records + Collection become icon-only; spread all four controls evenly.
+@media (max-width: 600px) {
+  .btnLabel { display: none; }
+  .bottomActions { justify-content: space-between; }
 }
 
 // Very narrow phones: tighten the top-row gaps so the single row fits.

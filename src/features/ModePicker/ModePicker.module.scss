@@ -89,10 +89,19 @@
 
 // ══ Mobile portrait: full-width horizontal rows (icon · name/progress · chevron|lock) ══
 @media (max-width: 767px) and (orientation: portrait) {
-  .grid { grid-template-columns: 1fr; gap: 10px; width: min(94vw, 380px); max-width: none; }
+  // Fill the center's leftover height, then scroll ONLY the cards (label stays put).
+  // align-content: safe center keeps them centred when they fit and top-aligned
+  // (scroll-safe, no top clip) when they overflow.
+  .root { flex: 1 1 auto; min-height: 0; align-self: stretch; }
+  .grid {
+    grid-template-columns: 1fr; gap: 10px; width: min(94vw, 380px); max-width: none;
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: safe center;
+    justify-self: center; pointer-events: auto; -webkit-overflow-scrolling: touch;
+  }
   .card {
     flex-direction: row; align-items: center; justify-content: flex-start;
-    gap: 14px; padding: 12px 14px; min-height: 0; text-align: left;
+    gap: 14px; padding: 12px 14px; min-height: 72px; text-align: left;
+    flex: 0 0 auto;   // never let the scroll grid squash a card below its min-height
   }
   .ico { width: 44px; height: 44px; flex: none; border-radius: 12px; }
   .ico svg { width: 58%; height: 58%; }
