@@ -6,7 +6,7 @@ import styles from './HelpModal.module.scss';
 
 // One icon per help section (sections are in the same order across all locales):
 // goal · difficulties · modes · features · pearl accrual · XP/level.
-const SECTION_ICONS = ['🎯', '🎚️', '🕹️', '🎮', '🦪', '⭐'];
+const SECTION_ICONS = ['🎯', '🎚️', '🕹️', '🗺️', '🎮', '🦪', '⭐'];
 
 export function HelpModal() {
   const open = useUi((s) => s.modal.help);

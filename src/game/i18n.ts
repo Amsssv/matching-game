@@ -194,6 +194,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Выживание (с 3 уровня) — ошибка закрывает все найденные пары.',
           'Без ошибок (с 5 уровня) — запомни карты за время показа; одна ошибка — поражение.',
         ] },
+        { h: 'Путешествие', lines: [
+          'Карта из островов-глав, в каждой 12 уровней со своими целями.',
+          'Звёзды: 1 за победу и по звезде за цели (мало ходов, быстрое время, без ошибок) — до 3 за уровень.',
+          'Энергия: запуск уровня тратит 1 жизнь (макс 5); жизнь восстанавливается за 25 минут или пополни за жемчуг.',
+          'Новые острова открываются, когда наберёшь достаточно звёзд.',
+        ] },
         { h: 'Что есть в игре', lines: [
           'Коллекция — открывай оформление моря, рубашки и палитры за жемчуг.',
           'Ежедневная награда — заходи каждый день и забирай жемчуг.',
@@ -319,6 +325,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Records — the leaderboard of best results.',
           'Store — pearl packs, bundles and exclusive items for real money.',
         ] },
+        { h: 'Journey', lines: [
+          'A map of island chapters, each with 12 levels and their own goals.',
+          'Stars: 1 for winning plus a star per goal met (few moves, fast time, no mistakes) — up to 3 per level.',
+          'Energy: starting a level costs 1 life (max 5); a life refills every 25 minutes, or top up with pearls.',
+          'New islands unlock once you earn enough stars.',
+        ] },
         { h: 'How to earn pearls', lines: [
           'A base reward for every win.',
           'Bonuses: a perfect game with no mistakes, a fast time and a new personal record.',
@@ -429,6 +441,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Zamana karşı (2. seviyeden) — süre dolmadan bitir; her çift saniye ekler.',
           'Hayatta kalma (3. seviyeden) — bir hata bulunan tüm çiftleri kapatır.',
           'Hatasız (5. seviyeden) — gösterimde kartları ezberle; tek hata kaybettirir.',
+        ] },
+        { h: 'Yolculuk', lines: [
+          'Ada-bölümlerden oluşan bir harita; her birinde kendi hedefli 12 seviye.',
+          'Yıldızlar: galibiyet için 1, her hedef için birer yıldız (az hamle, hızlı süre, hatasız) — seviye başına 3’e kadar.',
+          'Enerji: bir seviyeyi başlatmak 1 can harcar (en fazla 5); bir can 25 dakikada dolar veya inciyle doldur.',
+          'Yeterince yıldız topladıkça yeni adalar açılır.',
         ] },
         { h: 'Oyunda neler var', lines: [
           'Koleksiyon — inci ile deniz temaları, kart arkaları ve paletler aç.',
@@ -548,6 +566,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Supervivencia (desde nivel 3) — un fallo cierra todos los pares encontrados.',
           'Sin errores (desde nivel 5) — memoriza la vista previa; un error pierde la partida.',
         ] },
+        { h: 'Aventura', lines: [
+          'Un mapa de islas-capítulos, cada una con 12 niveles y sus propios objetivos.',
+          'Estrellas: 1 por ganar y una estrella por cada objetivo (pocos movimientos, tiempo rápido, sin errores) — hasta 3 por nivel.',
+          'Energía: iniciar un nivel cuesta 1 vida (máx. 5); una vida se recupera cada 25 minutos o recárgala con perlas.',
+          'Se desbloquean nuevas islas cuando consigues suficientes estrellas.',
+        ] },
         { h: 'Qué hay en el juego', lines: [
           'Colección — desbloquea mares, reversos y paletas con perlas.',
           'Recompensa diaria — vuelve cada día para reclamar perlas.',
@@ -665,6 +689,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Contra o tempo (do nível 2) — vença o cronômetro; cada par adiciona segundos.',
           'Sobrevivência (do nível 3) — um erro fecha todos os pares encontrados.',
           'Sem erros (do nível 5) — memorize a prévia; um erro perde o jogo.',
+        ] },
+        { h: 'Aventura', lines: [
+          'Um mapa de ilhas-capítulos, cada uma com 12 níveis e objetivos próprios.',
+          'Estrelas: 1 por vencer e uma estrela por objetivo (poucos movimentos, tempo rápido, sem erros) — até 3 por nível.',
+          'Energia: iniciar um nível custa 1 vida (máx. 5); uma vida recupera a cada 25 minutos, ou reabasteça com pérolas.',
+          'Novas ilhas são desbloqueadas quando você ganha estrelas suficientes.',
         ] },
         { h: 'O que há no jogo', lines: [
           'Coleção — desbloqueie mares, versos e paletas com pérolas.',
@@ -786,6 +816,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'ضد الوقت (من المستوى 2) — اسبق المؤقت؛ كل زوج يضيف ثواني.',
           'البقاء (من المستوى 3) — خطأ واحد يغلق كل الأزواج المكشوفة.',
           'بدون أخطاء (من المستوى 5) — احفظ البطاقات أثناء العرض؛ خطأ واحد يخسر اللعبة.',
+        ] },
+        { h: 'رحلة', lines: [
+          'خريطة من الجزر-الفصول، في كل منها 12 مستوى بأهدافها الخاصة.',
+          'النجوم: نجمة للفوز ونجمة لكل هدف (نقلات قليلة، وقت سريع، بلا أخطاء) — حتى 3 لكل مستوى.',
+          'الطاقة: بدء المستوى يكلّف حياة واحدة (بحد أقصى 5)؛ تُستعاد حياة كل 25 دقيقة أو املأها باللؤلؤ.',
+          'تُفتح جزر جديدة عندما تجمع نجومًا كافية.',
         ] },
         { h: 'ماذا في اللعبة', lines: [
           'المجموعة — افتح أشكال البحر وظهور البطاقات والألوان مقابل اللؤلؤ.',

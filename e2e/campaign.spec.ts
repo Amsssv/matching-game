@@ -80,4 +80,21 @@ test.describe('Campaign', () => {
     await page.getByTestId('island-back').click();
     await expect(page.getByTestId('energy-meter')).toContainText('4/5');
   });
+
+  test('in-game Menu returns to the journey, not the main menu', async ({ page }) => {
+    await page.getByTestId('journey').click();
+    await page.getByTestId('chapter-lagoon').click();
+    await page.getByTestId('level-lagoon-1').click();
+    await expect(page.getByTestId('level-start')).toBeVisible();
+    await page.getByTestId('level-play').click();
+    await expect(page.getByTestId('hud')).toBeVisible();
+
+    // Pressing the in-game Menu button from a campaign level must go back to the
+    // journey (CampaignScene), NOT the main menu.
+    await page.getByTestId('hud-menu').click();
+    await expect.poll(() =>
+      page.evaluate(() => (window as any).__game.scene.isActive('CampaignScene')),
+    ).toBe(true);
+    await expect(page.getByTestId('menu')).toHaveCount(0);
+  });
 });

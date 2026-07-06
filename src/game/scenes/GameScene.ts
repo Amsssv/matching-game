@@ -173,16 +173,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   // ── Background ───────────────────────────────────────────────────────────────
+  /** Sea skin for THIS run: the campaign biome's skin during a journey level (registry
+   *  `campaignSeaSkin`), else the globally-equipped one. Journey-scoped — never mutates equip. */
+  private seaSkinId(): string {
+    return (this.game.registry.get('campaignSeaSkin') as string | null) ?? progressStore.get().equipped.seaTheme;
+  }
+
   private drawBackground(canvasWidth: number, canvasHeight: number) {
     // The sea fills the canvas and shows through the island's transparent rounded edges.
-    const skin = skinFor(progressStore.get().equipped.seaTheme);
+    const skin = skinFor(this.seaSkinId());
     this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.bgKey).setDisplaySize(canvasWidth, canvasHeight).setDepth(-1);
     this.buildIsland(canvasWidth, canvasHeight);
   }
 
   /** True when the board should use the portrait full-screen island instead of the NineSlice. */
   private useMobileIsland(): boolean {
-    return this.portraitMobile && this.textures.exists(skinFor(progressStore.get().equipped.seaTheme).islandMobileKey);
+    return this.portraitMobile && this.textures.exists(skinFor(this.seaSkinId()).islandMobileKey);
   }
 
   /** (Re)create the island for the current layout mode, destroying any previous one. */
@@ -190,7 +196,7 @@ export class GameScene extends Phaser.Scene {
     this.islandObj?.destroy(); this.islandObj = undefined;
     this.islandImg?.destroy(); this.islandImg = undefined;
 
-    const skin = skinFor(progressStore.get().equipped.seaTheme);
+    const skin = skinFor(this.seaSkinId());
     if (this.useMobileIsland()) {
       this.islandImg = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.islandMobileKey).setDepth(0);
       this.fitIslandFill(canvasWidth, canvasHeight);
@@ -212,7 +218,8 @@ export class GameScene extends Phaser.Scene {
   private applyEquippedTints() {
     const eq = progressStore.get().equipped;
     // Sea axis = real art: swap textures, no tint. Card-back axis keeps its tint.
-    const skin = skinFor(eq.seaTheme);
+    // Sea skin is journey-aware (biome background during a campaign level).
+    const skin = skinFor(this.seaSkinId());
     this.bgObj?.setTexture(skin.bgKey).clearTint().setDisplaySize(this.scale.width, this.scale.height);
     this.islandObj?.setTexture(skin.islandKey).clearTint();
     this.islandImg?.setTexture(skin.islandMobileKey).clearTint();

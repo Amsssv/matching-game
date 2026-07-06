@@ -12,9 +12,6 @@ describe('campaign content', () => {
     expect(CHAPTERS[0].starsToUnlock).toBe(0);
     expect(CHAPTERS[1].starsToUnlock).toBeGreaterThan(0);
   });
-  it('each level maps a catalog skin on its chapter', () => {
-    for (const c of CHAPTERS) expect(typeof c.skinId).toBe('string');
-  });
 });
 
 describe('computeStars', () => {

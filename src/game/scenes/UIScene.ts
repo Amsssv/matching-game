@@ -218,7 +218,9 @@ export class UIScene extends Phaser.Scene {
   // ── Actions invoked from the command bus ─────────────────────────────────────
   exitToMenu() {
     this.scene.stop();
-    this.gameScene.goToMenu();
+    // A campaign level returns to the journey map; free play returns to the main menu.
+    if (this.campaignLevelId) this.gameScene.goToCampaign();
+    else this.gameScene.goToMenu();
   }
 
   /** Return from a campaign level to the journey map (CampaignScene). */

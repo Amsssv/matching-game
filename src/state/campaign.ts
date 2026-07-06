@@ -20,11 +20,11 @@ export interface CampaignLevel {
 }
 export interface CampaignChapter {
   biome: BiomeId;
-  skinId: string;             // catalog sea-skin id granted on chapter completion
-  starsToUnlock: number;      // stars needed in the PREVIOUS chapter
+  seaSkin: string;            // biome sea-skin id — used as the journey background for this
+                              // biome (NOT granted; sea skins stay purchase-only)
+  starsToUnlock: number;      // stars needed in the PREVIOUS chapter to unlock this one
   levels: CampaignLevel[];
-  worldPosition: { x: number; y: number };        // % on world-map.png
-  nodePositions: { x: number; y: number }[];      // % on the island art, len === levels.length
+  worldPosition: { x: number; y: number };        // % of the island on world-map.webp
 }
 
 export interface LevelResult { won: boolean; seconds: number; moves: number; mistakes: number }
@@ -81,25 +81,15 @@ function buildLevels(biome: BiomeId): CampaignLevel[] {
   });
 }
 
-// Node positions are % coordinates laid out along each island (placeholder even spread;
-// re-measure against the final art in Task 14). 12 nodes in a serpentine.
-const NODES: { x: number; y: number }[] = Array.from({ length: LEVELS_PER_CHAPTER }, (_, i) => {
-  const row = Math.floor(i / 4);
-  const col = i % 4;
-  const x = 20 + (row % 2 === 0 ? col : 3 - col) * 20;
-  const y = 25 + row * 22;
-  return { x, y };
-});
-
 // Difficulty/story order: лагуна → лава → риф → арктика → бездна.
-// worldPosition = % coords of each island on world-map.png (reef top-left, volcano
+// worldPosition = % coords of each island on world-map.webp (reef top-left, volcano
 // top-right, abyss centre, arctic bottom-left, lagoon bottom-right).
 export const CHAPTERS: CampaignChapter[] = [
-  { biome: 'lagoon',  skinId: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 77, y: 75 }, nodePositions: NODES },
-  { biome: 'volcano', skinId: 'sea.lava',    starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 78, y: 18 }, nodePositions: NODES },
-  { biome: 'reef',    skinId: 'sea.reef',    starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 }, nodePositions: NODES },
-  { biome: 'arctic',  skinId: 'sea.arctic',  starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 }, nodePositions: NODES },
-  { biome: 'abyss',   skinId: 'sea.abyss',   starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 }, nodePositions: NODES },
+  { biome: 'lagoon',  seaSkin: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 77, y: 75 } },
+  { biome: 'volcano', seaSkin: 'sea.lava',   starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 78, y: 18 } },
+  { biome: 'reef',    seaSkin: 'sea.reef',   starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 } },
+  { biome: 'arctic',  seaSkin: 'sea.arctic', starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 } },
+  { biome: 'abyss',   seaSkin: 'sea.abyss',  starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 } },
 ];
 
 /** Map a finished game to 0–3 stars: 1 for the win + 1 per met objective, capped at 3. */

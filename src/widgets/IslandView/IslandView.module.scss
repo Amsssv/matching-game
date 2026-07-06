@@ -73,8 +73,12 @@ $teal: #5fe3da;
   transition: 0.16s ease; color: $white;
 }
 .lockIcon { width: 22px; height: 22px; }
-.lvlstars { display: flex; gap: 2px; font-size: 11px; line-height: 1; color: $gold; height: 11px; }
-.lvlstars .empty { color: rgba(255, 255, 255, 0.24); }
+.lvlstars { display: flex; gap: 3px; align-items: center; height: 16px; }
+// Chunky SVG stars: dark outline (paint-order:stroke keeps it outside the gold fill)
+// + drop-shadow so earned stars read clearly on top of the busy island art.
+.star { width: 16px; height: 16px; display: block; paint-order: stroke; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6)); }
+.starOn { fill: $gold; stroke: #06203a; stroke-width: 1.6; }
+.starOff { fill: rgba(9, 22, 40, 0.5); stroke: rgba(255, 255, 255, 0.5); stroke-width: 1.4; }
 
 .node.passed .disc { border-color: $gold; }
 .node.current .disc {

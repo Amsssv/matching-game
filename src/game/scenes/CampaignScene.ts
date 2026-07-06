@@ -6,7 +6,7 @@ import { levelById } from '../../state/campaign';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 const MAP_KEY = 'campaign-map';
-const MAP_PATH = 'assets/campaign/world-map.png';
+const MAP_PATH = 'assets/campaign/world-map.webp';
 
 /**
  * Thin CampaignScene («Путешествие»): draws the world-map art as a full-screen
@@ -84,6 +84,7 @@ export class CampaignScene extends Phaser.Scene {
     this.game.registry.set('gameMode',      found.level.mode);
     this.game.registry.set('difficulty',    found.level.difficulty);
     this.game.registry.set('campaignLevel', levelId);
+    this.game.registry.set('campaignSeaSkin', found.chapter.seaSkin);   // biome background for the journey
     setTransition(false);   // opaque cover fades in over the canvas
     window.setTimeout(() => this.scene.start('GameScene'), UI.animation.fadeScene);
   }

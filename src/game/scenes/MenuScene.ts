@@ -198,6 +198,7 @@ export class MenuScene extends Phaser.Scene {
     this.game.registry.set('gameMode',     mode);
     this.game.registry.set('difficulty',   this.difficulty);
     this.game.registry.set('campaignLevel', campaignLevel);
+    this.game.registry.set('campaignSeaSkin', null);   // free play uses the equipped sea skin
     this.game.registry.set('soundEnabled', this.soundEnabled);
     this.game.registry.set('lang',         this.lang);
     setTransition(false);   // opaque cover fades in over the canvas

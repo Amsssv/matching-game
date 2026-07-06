@@ -32,6 +32,16 @@ function BackIcon() {
   );
 }
 
+const STAR_PATH = 'M12 2.4l2.85 6.02 6.55.62-4.95 4.4 1.45 6.46L12 16.9 6.1 20.3l1.45-6.46-4.95-4.4 6.55-.62z';
+/** Chunky star with a dark outline + drop-shadow so it reads on any island art. */
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg className={cx(styles.star, filled ? styles.starOn : styles.starOff)} viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path d={STAR_PATH} />
+    </svg>
+  );
+}
+
 type NodeState = 'passed' | 'current' | 'locked';
 
 /** Island / level-select modal: a dim scrim over the map with a centered dark panel
@@ -80,7 +90,7 @@ export function IslandView() {
                   <span className={styles.disc}>{state === 'locked' ? <LockIcon /> : lvl.index}</span>
                   <span className={styles.lvlstars}>
                     {[0, 1, 2].map((i) => (
-                      <span key={i} className={i < filled ? undefined : styles.empty}>★</span>
+                      <StarIcon key={i} filled={i < filled} />
                     ))}
                   </span>
                 </button>
