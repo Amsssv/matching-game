@@ -25,11 +25,15 @@ export function LevelStartSheet() {
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{L.levelWord} {level.index}</h2>
         <ul className={styles.goals}>
-          <li>⭐ {L.goalComplete}</li>
-          {level.goals.maxMoves !== undefined && <li>⭐ {L.goalMoves.replace('{n}', String(level.goals.maxMoves))}</li>}
-          {level.goals.maxSeconds !== undefined && <li>⭐ {L.goalTime.replace('{n}', String(level.goals.maxSeconds))}</li>}
+          <li className={styles.goal}><span className={styles.gstar} aria-hidden>★</span>{L.goalComplete}</li>
+          {level.goals.maxMoves !== undefined && (
+            <li className={styles.goal}><span className={styles.gstar} aria-hidden>★</span>{L.goalMoves.replace('{n}', String(level.goals.maxMoves))}</li>
+          )}
+          {level.goals.maxSeconds !== undefined && (
+            <li className={styles.goal}><span className={styles.gstar} aria-hidden>★</span>{L.goalTime.replace('{n}', String(level.goals.maxSeconds))}</li>
+          )}
         </ul>
-        <div className={styles.cost}>❤ −1</div>
+        <div className={styles.cost}><span className={styles.heart} aria-hidden>♥</span> −1</div>
         {canPlay ? (
           <Button testId="level-play" type="primary" size="large" onClick={() => startLevel(levelId, Date.now())}>
             {L.play}

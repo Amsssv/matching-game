@@ -18,7 +18,8 @@ export function LevelResultModal() {
         <h2 className={styles.title}>{res.won ? L.levelCleared : L.levelFailed}</h2>
         {res.won && (
           <div className={styles.stars} data-testid="level-result-stars">
-            {'★'.repeat(res.stars)}{'☆'.repeat(3 - res.stars)}
+            <span>{'★'.repeat(res.stars)}</span>
+            <span className={styles.starDim}>{'☆'.repeat(3 - res.stars)}</span>
           </div>
         )}
         {res.pearls > 0 && <div className={styles.reward}>+{res.pearls} 🦪</div>}
