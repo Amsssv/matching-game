@@ -70,9 +70,9 @@ const NODES: { x: number; y: number }[] = Array.from({ length: LEVELS_PER_CHAPTE
 export const CHAPTERS: CampaignChapter[] = [
   { biome: 'lagoon',  skinId: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 77, y: 75 }, nodePositions: NODES },
   { biome: 'volcano', skinId: 'sea.lava',    starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 78, y: 18 }, nodePositions: NODES },
-  { biome: 'reef',    skinId: 'sea.reef',    starsToUnlock: 18, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 }, nodePositions: NODES },
-  { biome: 'arctic',  skinId: 'sea.arctic',  starsToUnlock: 18, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 }, nodePositions: NODES },
-  { biome: 'abyss',   skinId: 'sea.abyss',   starsToUnlock: 18, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 }, nodePositions: NODES },
+  { biome: 'reef',    skinId: 'sea.reef',    starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 }, nodePositions: NODES },
+  { biome: 'arctic',  skinId: 'sea.arctic',  starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 }, nodePositions: NODES },
+  { biome: 'abyss',   skinId: 'sea.abyss',   starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 }, nodePositions: NODES },
 ];
 
 /** Map a finished game to 0–3 stars: 1 for the win + 1 per met objective, capped at 3. */
