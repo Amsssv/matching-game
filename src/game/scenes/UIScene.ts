@@ -10,6 +10,7 @@ import { uiStore, setHud, setModal } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { computePearls, awardPearls, recordGameStart, recordGameWin, recordGameLoss, winContext } from '../../state/progress';
+import { finishLevel } from '../../state/campaignController';
 import { createPlayClock } from '../playClock';
 
 /**
@@ -28,6 +29,7 @@ export class UIScene extends Phaser.Scene {
   private taCfg: TimeAttackCfg = TIME_ATTACK.easy;
   private pairsFound = 0;
   private settled = false;   // once-gate shared by win + loss: economy writes happen exactly once
+  private campaignLevelId: string | null = null;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -46,6 +48,7 @@ export class UIScene extends Phaser.Scene {
     const lang: Lang = this.game.registry.get('lang') ?? 'ru';
     this.locale = LOCALES[lang];
     this.mode = this.game.registry.get('gameMode') ?? 'classic';
+    this.campaignLevelId = this.game.registry.get('campaignLevel') ?? null;
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     const ov: ModeTestOverrides = this.game.registry.get('modeTestOverrides') ?? {};
     this.taCfg = {
@@ -83,6 +86,11 @@ export class UIScene extends Phaser.Scene {
       if (this.settled) return;
       this.settled = true;
       this.elapsedSeconds = this.clock?.stop() ?? this.elapsedSeconds;
+      if (this.campaignLevelId) {
+        finishLevel(this.campaignLevelId, { won: true, seconds: this.elapsedSeconds, moves: n, mistakes: 0 });
+        this.exitToMenu();
+        return;
+      }
       this.game.registry.set('lastScore', this.elapsedSeconds);
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
@@ -110,6 +118,11 @@ export class UIScene extends Phaser.Scene {
       if (this.settled) return;
       this.settled = true;
       this.elapsedSeconds = this.clock?.stop() ?? this.elapsedSeconds;
+      if (this.campaignLevelId) {
+        finishLevel(this.campaignLevelId, { won: false, seconds: this.elapsedSeconds, moves: 0, mistakes: 0 });
+        this.exitToMenu();
+        return;
+      }
       getYSDK()?.features.GameplayAPI?.stop();
       const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
       const loss = recordGameLoss({ mode: this.mode, difficulty, pairsFound, totalPairs: this.totalPairs });

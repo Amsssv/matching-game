@@ -10,6 +10,7 @@ import { setMenu, setModal, setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { progressStore, levelFromXp } from '../../state/progress';
+import { levelById } from '../../state/campaign';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 import { MODE_UNLOCK, type GameMode } from '../modes';
 import { skinFor } from '../seaSkins';
@@ -57,6 +58,7 @@ export class MenuScene extends Phaser.Scene {
       bus.on('cmd:toggle-sound', () => this.toggleSound()),
       bus.on('cmd:set-lang', ({ lang }) => this.setLang(lang)),
       bus.on('cmd:play', ({ mode, difficulty }) => this.play(mode, difficulty)),
+      bus.on('cmd:play-campaign-level', ({ levelId }) => this.playCampaignLevel(levelId)),
       bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') this.openLeaderboard(); }),
       bus.on('cmd:equip-changed', () => this.applySeaSkin()),
       bus.on('cmd:set-muted', (muted) => {
@@ -183,10 +185,22 @@ export class MenuScene extends Phaser.Scene {
     openLeaderboard('menu');
   }
 
-  private startGame(mode: GameMode) {
+  private playCampaignLevel(levelId: string) {
+    if (this.starting) return;   // double-tap during the cover fade must not double-start
+    const found = levelById(levelId);
+    if (!found) return;
+    this.starting = true;
+    this.difficulty = found.level.difficulty;
+    this.lastMode = found.level.mode;
+    this.publish();
+    this.startGame(found.level.mode, levelId);
+  }
+
+  private startGame(mode: GameMode, campaignLevel: string | null = null) {
     this.renderActivity?.disable();   // loop must run through the cover fade + scene swap
     this.game.registry.set('gameMode',     mode);
     this.game.registry.set('difficulty',   this.difficulty);
+    this.game.registry.set('campaignLevel', campaignLevel);
     this.game.registry.set('soundEnabled', this.soundEnabled);
     this.game.registry.set('lang',         this.lang);
     setTransition(false);   // opaque cover fades in over the canvas
