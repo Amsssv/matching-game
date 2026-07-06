@@ -49,7 +49,9 @@ export function MainMenu() {
 
       <footer className={styles.bottomBar} data-testid="menu-footer">
         <div className={styles.bottomActions}>
-          <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>🏆<span className={styles.btnLabel}> {L.leaderboard}</span></Button>
+          <Button testId="leaderboard-open" type="secondary" size="medium" className={styles.records} onClick={() => bus.emit('cmd:open-leaderboard', { source: 'menu' })}>
+            <span className={styles.iconLabel}>🏆<span className={styles.btnLabel}>{L.leaderboard}</span></span>
+          </Button>
           <Button testId="shop-open" type="secondary" size="medium" onClick={() => openShop()}>
             <span className={styles.iconLabel}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
