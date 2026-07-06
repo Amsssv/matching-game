@@ -9,7 +9,12 @@ $teal: #5fe3da;
 $hairline: rgba(233, 244, 248, 0.14);
 $panel: rgba(8, 23, 44, 0.72);
 
-.backdrop { pointer-events: auto; position: fixed; inset: 0; z-index: 30; }
+// No z-index: `position: fixed` already makes this a stacking context layered
+// over the canvas. Keeping it at z-index:auto lets shared modals opened from the
+// chrome bars (help/store/daily/tasks/leaderboard/profile — modal-backdrop z:20)
+// render ABOVE the map + island badges so they stay clickable/closable, exactly
+// like MainMenu. The bars/nodes below stay ordered WITHIN this context.
+.backdrop { pointer-events: auto; position: fixed; inset: 0; }
 
 // ── Chrome bars (top + bottom) ──────────────────────────────────────────────
 .bar {
