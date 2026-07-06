@@ -28,6 +28,7 @@ export interface Locale {
   soundOff: string;
   play: string;
   journeyTitle: string;
+  journeySubtitle: string;  // world-map screen: small tracked subtitle under the title
   menu: string;
   moves: (n: number) => string;
   pairs: (n: number, total: number) => string;
@@ -135,6 +136,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'ВЫКЛЮЧЕН',
     play:    'НАЧАТЬ ИГРУ',
     journeyTitle: 'Путешествие',
+    journeySubtitle: 'ВЫБЕРИТЕ МИР',
     menu:    'МЕНЮ',
     moves:   (n) => `Ходов: ${n}`,
     pairs:   (n, total) => `Пар: ${n} / ${total}`,
@@ -250,6 +252,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'OFF',
     play:    'START GAME',
     journeyTitle: 'Journey',
+    journeySubtitle: 'CHOOSE A WORLD',
     menu:    'MENU',
     moves:   (n) => `Moves: ${n}`,
     pairs:   (n, total) => `Pairs: ${n} / ${total}`,
@@ -365,6 +368,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'KAPALI',
     play:    'OYUNA BAŞLA',
     journeyTitle: 'Yolculuk',
+    journeySubtitle: 'BİR DÜNYA SEÇ',
     menu:    'MENÜ',
     moves:   (n) => `Hamle: ${n}`,
     pairs:   (n, total) => `Çift: ${n} / ${total}`,
@@ -480,6 +484,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'DESACTIVADO',
     play:    'INICIAR JUEGO',
     journeyTitle: 'Aventura',
+    journeySubtitle: 'ELIGE UN MUNDO',
     menu:    'MENÚ',
     moves:   (n) => `Movimientos: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -595,6 +600,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'DESLIGADO',
     play:    'INICIAR JOGO',
     journeyTitle: 'Aventura',
+    journeySubtitle: 'ESCOLHA UM MUNDO',
     menu:    'MENU',
     moves:   (n) => `Jogadas: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -713,6 +719,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOff: 'معطّل',
     play:    'ابدأ اللعبة',
     journeyTitle: 'رحلة',
+    journeySubtitle: 'اختر عالمًا',
     menu:    'القائمة',
     moves:   (n) => `الحركات: ${n}`,
     pairs:   (n, total) => `الأزواج: ${n} / ${total}`,
