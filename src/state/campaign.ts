@@ -31,24 +31,51 @@ export interface LevelResult { won: boolean; seconds: number; moves: number; mis
 
 export const LEVELS_PER_CHAPTER = 12;
 
-/** Difficulty ramps across the 12 levels of a chapter. */
-const RAMP: Difficulty[] = [
-  'easy', 'easy', 'easy', 'medium', 'medium', 'medium',
-  'hard', 'hard', 'hard', 'expert', 'expert', 'expert',
+/**
+ * (A) Per-area difficulty ramps — each area escalates over the previous one.
+ * Lagoon is the gentlest (caps at `hard`, no `expert`); Abyss is the hardest
+ * (starts at `medium`, mostly `expert`). Every ramp is LEVELS_PER_CHAPTER long.
+ */
+const AREA_RAMP: Record<BiomeId, Difficulty[]> = {
+  lagoon:  ['easy', 'easy', 'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard'],
+  volcano: ['easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'expert'],
+  reef:    ['easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert'],
+  arctic:  ['easy', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert', 'expert'],
+  abyss:   ['medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert', 'expert', 'expert', 'expert'],
+};
+
+/** (B) Per-area star-goal tightness — later areas grant proportionally less time/moves. */
+const AREA_TIGHTNESS: Record<BiomeId, number> = {
+  lagoon: 1, volcano: 0.94, reef: 0.90, arctic: 0.85, abyss: 0.80,
+};
+
+/** (C) The final area mixes game modes into a "boss" gauntlet; all other areas are classic. */
+const ABYSS_MODES: GameMode[] = [
+  'classic', 'timeAttack', 'classic', 'survival', 'timeAttack', 'noMistakes',
+  'survival', 'timeAttack', 'noMistakes', 'survival', 'timeAttack', 'noMistakes',
 ];
-/** Move/time budgets by difficulty for the ⭐2/⭐3 objectives (generous v1 defaults). */
+
+/** Move/time budgets by difficulty — the board-size baseline for the ⭐2/⭐3 objectives. */
 const MOVE_BUDGET: Record<Difficulty, number> = { easy: 16, medium: 28, hard: 34, expert: 40 };
 const TIME_BUDGET: Record<Difficulty, number> = { easy: 45, medium: 75, hard: 95, expert: 120 };
 
 function buildLevels(biome: BiomeId): CampaignLevel[] {
-  return RAMP.map((difficulty, i) => {
+  const ramp = AREA_RAMP[biome];
+  const tight = AREA_TIGHTNESS[biome];
+  const modes = biome === 'abyss' ? ABYSS_MODES : null;
+  return ramp.map((difficulty, i) => {
     const index = i + 1;
+    // Per-level progression: each level is a touch tighter than the previous one
+    // (−1 move, −2 s) on top of the difficulty baseline × area tightness — so the
+    // goals ramp level-by-level, not in flat tier blocks (levels 1..12 all differ).
+    const maxMoves = Math.max(6, Math.round(MOVE_BUDGET[difficulty] * tight) - i);
+    const maxSeconds = Math.max(20, Math.round(TIME_BUDGET[difficulty] * tight) - i * 2);
     return {
       id: `${biome}-${index}`,
       index,
       difficulty,
-      mode: 'classic' as GameMode,
-      goals: { maxMoves: MOVE_BUDGET[difficulty], maxSeconds: TIME_BUDGET[difficulty] },
+      mode: (modes ? modes[i] : 'classic') as GameMode,
+      goals: { maxMoves, maxSeconds },
       rewards: { firstClearPearls: 20 + i * 2, perStarPearls: 5, xp: 8 + i },
     };
   });

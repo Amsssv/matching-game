@@ -29,10 +29,9 @@ describe('recordCampaignResult', () => {
     expect(r.pearls).toBe(0);
     expect(progressStore.get().campaign.cleared).not.toContain('lagoon-1');
   });
-  it('completing a chapter grants its skin once + a +100 bonus in the returned pearls', () => {
+  it('completing a chapter grants a +100 bonus once and does NOT unlock the biome skin', () => {
     const win = { won: true, seconds: 1, moves: 1, mistakes: 0 };
-    // reef's skin (sea.reef) is NOT owned by default; record all 12 reef levels directly
-    // (recordCampaignResult does not enforce unlock gates).
+    // Record all 12 reef levels directly (recordCampaignResult does not enforce unlock gates).
     for (let i = 1; i <= 11; i++) {
       const r = recordCampaignResult(`reef-${i}`, win);
       expect(r.chapterCompleted).toBe(false);
@@ -40,13 +39,14 @@ describe('recordCampaignResult', () => {
     }
     const r12 = recordCampaignResult('reef-12', win);
     expect(r12.chapterCompleted).toBe(true);
-    expect(r12.skinUnlocked).toBe('sea.reef');
-    expect(r12.pearls).toBeGreaterThanOrEqual(100); // includes the +100 chapter bonus
-    expect(progressStore.get().unlocked).toContain('sea.reef');
-    // Re-clearing the final level: chapter still complete, but the skin is already granted,
-    // so grantItem returns false → no second unlock and no second +100.
+    expect(r12.skinUnlocked).toBeNull();              // sea skins stay purchase-only (donate)
+    expect(r12.pearls).toBeGreaterThanOrEqual(100);   // includes the +100 chapter bonus
+    expect(progressStore.get().unlocked).not.toContain('sea.reef');
+    // Re-clearing the final level after completion: no second bonus (firstClear guard).
+    const before = progressStore.get().pearls;
     const again = recordCampaignResult('reef-12', win);
-    expect(again.chapterCompleted).toBe(true);
-    expect(again.skinUnlocked).toBeNull();
+    expect(again.chapterCompleted).toBe(false);
+    expect(again.pearls).toBe(0);
+    expect(progressStore.get().pearls).toBe(before);
   });
 });

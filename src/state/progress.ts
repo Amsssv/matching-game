@@ -444,23 +444,22 @@ export function recordCampaignResult(id: string, result: LevelResult): {
     stats: { ...c.stats, xp: c.stats.xp + xp, pearlsEarnedTotal: c.stats.pearlsEarnedTotal + pearls },
   });
 
-  // Chapter completion → grant biome skin once + bonus pearls.
+  // Chapter completion → bonus pearls only. The biome skin is NOT granted here:
+  // sea skins stay purchase-only (donate) so they can be equipped in every mode.
   let chapterCompleted = false;
-  let skinUnlocked: string | null = null;
   let bonusPearls = 0;
-  if (isChapterComplete(chapter.biome, progressStore.get().campaign)) {
+  // `firstClear` guard: the bonus fires once, on the clear that actually completes
+  // the chapter — re-playing the last level afterwards can't farm it.
+  if (firstClear && isChapterComplete(chapter.biome, progressStore.get().campaign)) {
     chapterCompleted = true;
-    if (grantItem(chapter.skinId)) { // grantItem persists + returns false if already owned
-      skinUnlocked = chapter.skinId;
-      bonusPearls = 100;
-      const cc = progressStore.get();
-      progressStore.set({ pearls: cc.pearls + bonusPearls, stats: { ...cc.stats, pearlsEarnedTotal: cc.stats.pearlsEarnedTotal + bonusPearls } });
-    }
+    bonusPearls = 100;
+    const cc = progressStore.get();
+    progressStore.set({ pearls: cc.pearls + bonusPearls, stats: { ...cc.stats, pearlsEarnedTotal: cc.stats.pearlsEarnedTotal + bonusPearls } });
   }
   saveLocal(progressStore.get());
   saveCloud(progressStore.get());
   // Returned pearls must equal what was actually credited (result modal shows this).
-  return { stars, pearls: pearls + bonusPearls, xp, chapterCompleted, skinUnlocked };
+  return { stars, pearls: pearls + bonusPearls, xp, chapterCompleted, skinUnlocked: null };
 }
 
 /** Equip an unlocked item on its axis. Returns false (no-op) if the id is unknown, the wrong axis, or not unlocked. */
