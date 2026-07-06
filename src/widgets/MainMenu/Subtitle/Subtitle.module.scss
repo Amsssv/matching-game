@@ -4,7 +4,9 @@
   pointer-events: none;
   width: 100%; text-align: center;
   white-space: nowrap; // never wrap — Subtitle.tsx shrinks the font to fit one line
-  font-family: #{$font-display}; color: #01286a;
+  // Palette-driven so the subtitle recolours with the equipped UI palette; the
+  // fallback (1 40 106 = #01286a) keeps the default ocean look unchanged.
+  font-family: #{$font-display}; color: rgb(var(--color-navy-rgb, 1 40 106));
   font-size: clamp(14px, 5vh, 28px); margin-top: clamp(2px, 1vh, 8px);
 }
 

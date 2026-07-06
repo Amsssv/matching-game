@@ -70,6 +70,7 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   width: 100%;
   display: flex; flex-direction: column; align-items: stretch; gap: 8px;
   pointer-events: auto;
+  padding-top: 8px;
 }
 .bottomActions { display: flex; align-items: center; gap: 8px; width: 100%; }
 // Records + Collection hug their content (icon [+ label on desktop]); the "?" help
