@@ -1,0 +1,8 @@
+@use '../../styles/modal' as *; @use '../../styles/tokens' as *;
+@include modal-keyframes;
+.backdrop { @include modal-backdrop; z-index: 35; }
+.panel { @include modal-panel; width: min(88vw, 340px); }
+.title { @include modal-title; }
+.stars { font-size: 40px; color: $gold; letter-spacing: 4px; }
+.reward { color: $text-muted; font-weight: 700; }
+.unlock { color: $gold; margin: 6px 0; }

@@ -1,0 +1,7 @@
+@use '../../styles/modal' as *; @use '../../styles/tokens' as *;
+@include modal-keyframes;
+.backdrop { @include modal-backdrop; z-index: 34; }
+.sheet { @include modal-panel; width: min(88vw, 340px); }
+.title { @include modal-title; }
+.goals { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 6px; color: $text-muted; }
+.cost { color: $coral; font-weight: 700; margin-bottom: 8px; }

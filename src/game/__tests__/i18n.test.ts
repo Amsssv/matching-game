@@ -10,6 +10,8 @@ const STRING_KEYS: (keyof Locale)[] = [
   'title', 'subtitle', 'difficulty', 'sound', 'soundOn', 'soundOff',
   'play', 'menu', 'victory', 'allPairsFound', 'restart', 'toMenu',
   'modesTitle', 'modeRecommended', 'modeBeginner', 'playCta', 'memorize', 'defeatTimeout', 'defeatMistake',
+  'levelWord', 'goalComplete', 'goalMoves', 'goalTime', 'refillFor',
+  'levelCleared', 'levelFailed', 'skinUnlocked', 'continue',
 ];
 
 describe('LOCALES', () => {
