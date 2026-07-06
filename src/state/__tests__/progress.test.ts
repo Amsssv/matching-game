@@ -155,14 +155,14 @@ describe('shop economy (progress v2)', () => {
   });
   it('buyItem deducts pearls and unlocks; fails when too poor or already owned', () => {
     expect(buyItem('sea.reef')).toBe(false);          // 0 pearls
-    awardPearls(200);
-    expect(buyItem('sea.reef')).toBe(true);            // costs 80
-    expect(progressStore.get().pearls).toBe(120);
+    awardPearls(5000);
+    expect(buyItem('sea.reef')).toBe(true);            // costs 4000
+    expect(progressStore.get().pearls).toBe(1000);
     expect(isUnlocked('sea.reef')).toBe(true);
     expect(buyItem('sea.reef')).toBe(false);           // already owned
   });
   it('equipItem only equips unlocked items of the right axis', () => {
-    awardPearls(200); buyItem('sea.reef');
+    awardPearls(5000); buyItem('sea.reef');
     equipItem('seaTheme', 'sea.reef');
     expect(progressStore.get().equipped.seaTheme).toBe('sea.reef');
     equipItem('seaTheme', 'sea.abyss');                // not unlocked → ignored
@@ -200,9 +200,9 @@ describe('shop economy (progress v2)', () => {
     expect(p.equipped.uiPalette).toBe('ui.ocean');    // valid default → unchanged
   });
   it('B6: new cosmetics buy + equip across every axis', () => {
-    awardPearls(1000);
-    expect(buyItem('sea.tropic')).toBe(true); equipItem('seaTheme', 'sea.tropic');
-    expect(progressStore.get().equipped.seaTheme).toBe('sea.tropic');
+    awardPearls(10000);
+    expect(buyItem('sea.reef')).toBe(true); equipItem('seaTheme', 'sea.reef');
+    expect(progressStore.get().equipped.seaTheme).toBe('sea.reef');
     expect(buyItem('back.silver')).toBe(true); equipItem('cardBack', 'back.silver');
     expect(progressStore.get().equipped.cardBack).toBe('back.silver');
     expect(buyItem('ui.crimson')).toBe(true); equipItem('uiPalette', 'ui.crimson');

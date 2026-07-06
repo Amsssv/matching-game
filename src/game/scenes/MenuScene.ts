@@ -10,9 +10,9 @@ import { setMenu, setModal, setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { progressStore, levelFromXp } from '../../state/progress';
-import { tintOf } from '../../state/catalog';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 import { MODE_UNLOCK, type GameMode } from '../modes';
+import { skinFor } from '../seaSkins';
 
 /**
  * Thin MenuScene: owns menu *state* + imperative actions, draws only the
@@ -58,7 +58,7 @@ export class MenuScene extends Phaser.Scene {
       bus.on('cmd:set-lang', ({ lang }) => this.setLang(lang)),
       bus.on('cmd:play', ({ mode, difficulty }) => this.play(mode, difficulty)),
       bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') this.openLeaderboard(); }),
-      bus.on('cmd:equip-changed', () => this.applySeaTint()),
+      bus.on('cmd:equip-changed', () => this.applySeaSkin()),
       bus.on('cmd:set-muted', (muted) => {
         const am: import('../AudioManager').AudioManager | undefined = this.game.registry.get('audioManager');
         am?.setMuted(muted);
@@ -122,13 +122,16 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private drawBackground(canvasWidth: number, canvasHeight: number) {
-    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight);
-    this.applySeaTint();
+    const skin = skinFor(progressStore.get().equipped.seaTheme);
+    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.bgKey).setDisplaySize(canvasWidth, canvasHeight);
   }
 
-  private applySeaTint() {
-    this.bgObj?.setTint(tintOf(progressStore.get().equipped.seaTheme));
-    this.renderActivity?.wake();          // render the new tint, then settle back to sleep
+  private applySeaSkin() {
+    // Real art is already colored — swap the texture, no tint.
+    this.bgObj?.setTexture(skinFor(progressStore.get().equipped.seaTheme).bgKey)
+      .clearTint()
+      .setDisplaySize(this.scale.width, this.scale.height);
+    this.renderActivity?.wake();          // render the new skin, then settle back to sleep
     this.renderActivity?.scheduleSleep();
   }
 

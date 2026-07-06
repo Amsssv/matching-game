@@ -12,14 +12,12 @@ export interface ShopItem {
 }
 
 export const CATALOG: ShopItem[] = [
-  // sea (tint bg + island)
-  { id: 'sea.lagoon', axis: 'seaTheme', nameKey: 'seaLagoon', price: 0,   tint: 0xffffff },
-  { id: 'sea.reef',   axis: 'seaTheme', nameKey: 'seaReef',   price: 80,  tint: 0xffd9b0 },
-  { id: 'sea.abyss',  axis: 'seaTheme', nameKey: 'seaAbyss',  price: 300, tint: 0x6878a8 },
-  { id: 'sea.arctic', axis: 'seaTheme', nameKey: 'seaArctic', price: 200, tint: 0xbfe8ff },
-  { id: 'sea.tropic', axis: 'seaTheme', nameKey: 'seaTropic', price: 150, tint: 0xaef0d0 },
-  { id: 'sea.dusk',   axis: 'seaTheme', nameKey: 'seaDusk',   price: 450, tint: 0x9a86c8 },
-  { id: 'sea.ember',  axis: 'seaTheme', nameKey: 'seaEmber',  price: 600, tint: 0xffb38a, productId: 'sea_ember' },
+  // sea (real background + island art per theme; no tint — art is already colored)
+  { id: 'sea.lagoon', axis: 'seaTheme', nameKey: 'seaLagoon', price: 0 },
+  { id: 'sea.lava',   axis: 'seaTheme', nameKey: 'seaLava',   price: 3000, productId: 'sea_lava' },
+  { id: 'sea.reef',   axis: 'seaTheme', nameKey: 'seaReef',   price: 4000, productId: 'sea_reef' },
+  { id: 'sea.arctic', axis: 'seaTheme', nameKey: 'seaArctic', price: 5500, productId: 'sea_arctic' },
+  { id: 'sea.abyss',  axis: 'seaTheme', nameKey: 'seaAbyss',  price: 7000, productId: 'sea_abyss' },
   // card-back (tint card-back image)
   { id: 'back.classic', axis: 'cardBack', nameKey: 'backClassic', price: 0,   tint: 0xffffff },
   { id: 'back.gold',    axis: 'cardBack', nameKey: 'backGold',    price: 150, tint: 0xf7d077 },
@@ -57,7 +55,7 @@ export const AXES = Object.keys(DEFAULT_EQUIPPED) as CustomAxis[];
 // Temporarily disabled collections — the shop shows a "coming soon" placeholder for
 // these (no items, no buying). Remove an axis to re-enable it. Equipped/owned items
 // are unaffected; this only gates browsing/purchasing in the Collection shop.
-export const COMING_SOON_AXES: ReadonlySet<CustomAxis> = new Set<CustomAxis>(['seaTheme']);
+export const COMING_SOON_AXES: ReadonlySet<CustomAxis> = new Set<CustomAxis>();
 export const isComingSoon = (axis: CustomAxis): boolean => COMING_SOON_AXES.has(axis);
 
 // Temporarily hide the Store's exclusives section. Items stay in the catalog (so the

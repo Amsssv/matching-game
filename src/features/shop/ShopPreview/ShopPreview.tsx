@@ -1,5 +1,6 @@
 import type { ShopItem } from '@state/catalog';
 import { cx } from '@ui/cx';
+import { skinFor } from '../../../game/seaSkins';
 import styles from './ShopPreview.module.scss';
 
 const asset = (p: string) => `${import.meta.env.BASE_URL}${p}`;
@@ -20,14 +21,22 @@ function PalettePreview({ item }: { item: ShopItem }) {
   );
 }
 
-// Sea / card-back preview: the real game asset, tinted via multiply (== Phaser setTint).
+// Sea = real per-theme background + island art. Card-back = the card asset tinted
+// via multiply (== Phaser setTint). UI-palette = a styled mock (see PalettePreview).
 export function ShopPreview({ item }: { item: ShopItem }) {
   if (item.axis === 'uiPalette') return <PalettePreview item={item} />;
-  const isSea = item.axis === 'seaTheme';
+  if (item.axis === 'seaTheme') {
+    const skin = skinFor(item.id);
+    return (
+      <div className={styles.thumb} aria-hidden>
+        <img className={styles.base} src={asset(skin.bgPath)} alt="" loading="lazy" />
+        <img className={styles.island} src={asset(skin.islandPath)} alt="" loading="lazy" />
+      </div>
+    );
+  }
   return (
-    <div className={cx(styles.thumb, isSea ? styles.sea : styles.card)} aria-hidden>
-      <img className={styles.base} src={asset(isSea ? 'assets/bg.webp' : 'assets/cards/back.webp')} alt="" loading="lazy" />
-      {isSea && <img className={styles.island} src={asset('assets/iland.webp')} alt="" loading="lazy" />}
+    <div className={cx(styles.thumb, styles.card)} aria-hidden>
+      <img className={styles.base} src={asset('assets/cards/back.webp')} alt="" loading="lazy" />
       <span className={styles.tint} style={{ background: hex(item.tint) }} />
     </div>
   );

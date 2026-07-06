@@ -34,10 +34,9 @@ test.describe('Shop (Collection)', () => {
     await expect(page.getByTestId('shop')).toBeVisible();
     await expect(page.getByTestId('shop-tabs')).toBeVisible();
 
-    // Sea collection is temporarily disabled — its tab shows "coming soon", no items.
+    // Sea collection is open — each theme is a real skin (Reef is a priced item).
     await page.getByTestId('shop-tab-seaTheme').click();
-    await expect(page.getByTestId('shop-coming-soon')).toBeVisible();
-    await expect(page.getByTestId('shop-item-sea.reef')).toHaveCount(0);
+    await expect(page.getByTestId('shop-item-sea.reef')).toBeVisible();
 
     // Switch to the palette tab.
     await page.getByTestId('shop-tab-uiPalette').click();
@@ -72,7 +71,8 @@ test.describe('Shop (Collection)', () => {
     await waitForCanvas(page);
 
     await page.getByTestId('shop-open').click();
-    // back.gold (default Card-back tab) costs 100; with 0 pearls its buy button is disabled.
+    // back.gold (Card-back tab) costs 100; with 0 pearls its buy button is disabled.
+    await page.getByTestId('shop-tab-cardBack').click();
     await expect(page.getByTestId('shop-item-back.gold').getByRole('button')).toBeDisabled();
   });
 
@@ -93,7 +93,7 @@ test.describe('Shop (Collection)', () => {
     await waitForCanvas(page);
     await page.getByTestId('shop-open').click();
 
-    // Card-back tab (the default now that Sea is disabled): real card-back asset.
+    // Card-back tab: real card-back asset.
     await page.getByTestId('shop-tab-cardBack').click();
     const backImg = page.getByTestId('shop-item-back.gold').locator('img').first();
     await expect(backImg).toBeVisible();
@@ -105,9 +105,10 @@ test.describe('Shop (Collection)', () => {
     await expect(page.getByTestId('shop-item-ui.sunset')).toBeVisible();
     expect(await page.getByTestId('shop-item-ui.sunset').locator('img').count()).toBe(0);
 
-    // Sea tab: temporarily disabled — shows "coming soon", no items.
+    // Sea tab: open — each theme shows its own real background art.
     await page.getByTestId('shop-tab-seaTheme').click();
-    await expect(page.getByTestId('shop-coming-soon')).toBeVisible();
-    await expect(page.getByTestId('shop-item-sea.reef')).toHaveCount(0);
+    const seaImg = page.getByTestId('shop-item-sea.reef').locator('img').first();
+    await expect(seaImg).toBeVisible();
+    expect(await seaImg.getAttribute('src')).toContain('assets/skins/Reef/Reef-bg.webp');
   });
 });

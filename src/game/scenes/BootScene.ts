@@ -4,6 +4,7 @@ import { AudioManager } from '../AudioManager';
 import { resolveLang, readSoundEnabled } from '../settings';
 import { isMobileDevice } from '../device';
 import { getYSDK } from '../../ysdk';
+import { SEA_SKINS } from '../seaSkins';
 
 export class BootScene extends Phaser.Scene {
   private failedKeys = new Set<string>();
@@ -26,10 +27,14 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('sfx-win',   'assets/sfx/win.wav');     // победа
     // ─────────────────────────────────────────────────────────────────────────
 
-    this.load.image('bg', 'assets/bg.webp');
-    this.load.image('island', 'assets/iland.webp');
-    // Phones/tablets get a portrait, full-screen island; only fetch it where it's used.
-    if (isMobileDevice()) this.load.image('island-mobile', 'assets/iland-mobile.webp');
+    // Every sea skin's background + desktop island. Portrait mobile islands are only
+    // fetched on phones/tablets, where they're used (matches the legacy single-asset rule).
+    const onMobile = isMobileDevice();
+    for (const skin of Object.values(SEA_SKINS)) {
+      this.load.image(skin.bgKey, skin.bgPath);
+      this.load.image(skin.islandKey, skin.islandPath);
+      if (onMobile) this.load.image(skin.islandMobileKey, skin.islandMobilePath);
+    }
     this.load.image('card-back', 'assets/cards/back.webp');
     SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));
   }

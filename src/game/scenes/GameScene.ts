@@ -8,6 +8,7 @@ import { setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { progressStore } from '../../state/progress';
 import { tintOf } from '../../state/catalog';
+import { skinFor } from '../seaSkins';
 import { bakeCardTextures } from '../cardTextures';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 import { PREVIEW_SEC, type GameMode } from '../modes';
@@ -174,13 +175,14 @@ export class GameScene extends Phaser.Scene {
   // ── Background ───────────────────────────────────────────────────────────────
   private drawBackground(canvasWidth: number, canvasHeight: number) {
     // The sea fills the canvas and shows through the island's transparent rounded edges.
-    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, 'bg').setDisplaySize(canvasWidth, canvasHeight).setDepth(-1);
+    const skin = skinFor(progressStore.get().equipped.seaTheme);
+    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.bgKey).setDisplaySize(canvasWidth, canvasHeight).setDepth(-1);
     this.buildIsland(canvasWidth, canvasHeight);
   }
 
   /** True when the board should use the portrait full-screen island instead of the NineSlice. */
   private useMobileIsland(): boolean {
-    return this.portraitMobile && this.textures.exists('island-mobile');
+    return this.portraitMobile && this.textures.exists(skinFor(progressStore.get().equipped.seaTheme).islandMobileKey);
   }
 
   /** (Re)create the island for the current layout mode, destroying any previous one. */
@@ -188,13 +190,14 @@ export class GameScene extends Phaser.Scene {
     this.islandObj?.destroy(); this.islandObj = undefined;
     this.islandImg?.destroy(); this.islandImg = undefined;
 
+    const skin = skinFor(progressStore.get().equipped.seaTheme);
     if (this.useMobileIsland()) {
-      this.islandImg = this.add.image(canvasWidth / 2, canvasHeight / 2, 'island-mobile').setDepth(0);
+      this.islandImg = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.islandMobileKey).setDepth(0);
       this.fitIslandFill(canvasWidth, canvasHeight);
     } else {
       const { x, y, w, h } = this.calcIslandBounds(canvasWidth, canvasHeight);
       const s = GameScene.ISLAND_SLICE;
-      this.islandObj = this.add.nineslice(x, y, 'island', undefined, w, h, s.left, s.right, s.top, s.bottom).setDepth(0);
+      this.islandObj = this.add.nineslice(x, y, skin.islandKey, undefined, w, h, s.left, s.right, s.top, s.bottom).setDepth(0);
     }
   }
 
@@ -208,11 +211,12 @@ export class GameScene extends Phaser.Scene {
 
   private applyEquippedTints() {
     const eq = progressStore.get().equipped;
-    const seaTint  = tintOf(eq.seaTheme);
+    // Sea axis = real art: swap textures, no tint. Card-back axis keeps its tint.
+    const skin = skinFor(eq.seaTheme);
+    this.bgObj?.setTexture(skin.bgKey).clearTint().setDisplaySize(this.scale.width, this.scale.height);
+    this.islandObj?.setTexture(skin.islandKey).clearTint();
+    this.islandImg?.setTexture(skin.islandMobileKey).clearTint();
     const backTint = tintOf(eq.cardBack);
-    this.bgObj?.setTint(seaTint);
-    this.islandObj?.setTint(seaTint);
-    this.islandImg?.setTint(seaTint);
     this.cards.forEach((card) => card.back.setTint(backTint));
   }
 

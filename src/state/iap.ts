@@ -17,7 +17,7 @@ export const BUNDLES: Bundle[] = [
   // Was the exclusives (ui.aurora + back.prism); those are hidden now, so the Founder
   // pack grants available cosmetics instead (a card-back + a palette, no sea/exclusive).
   { id: 'bundle_founder', nameKey: 'bundleFounder', items: ['back.jade', 'ui.crimson'], pearls: 1500 },
-  // sea.ember dropped while the Sea collection is "coming soon" — no sea skins in bundles.
+  // No sea skins in bundles — sea themes are sold individually (pearls or money).
   { id: 'bundle_premium', nameKey: 'bundlePremium', items: ['back.onyx', 'ui.amethyst', 'ui.sand'], pearls: 1000 },
 ];
 
