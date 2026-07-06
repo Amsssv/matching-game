@@ -55,7 +55,8 @@
   background: $gradient-button-idle;
   border: 1.5px solid rgb(var(--color-gold-border-rgb, 212 168 83) / .42);
   box-shadow: 0 14px 28px -18px rgba(0, 0, 0, .6);
-  .ico { color: #8fd6e6; }
+  // Gold like the recommended card, so it recolours with the UI palette.
+  .ico { color: $gold; }
 }
 // ── State: locked (Выживание / Без ошибок) ──
 .locked {
@@ -107,7 +108,7 @@
   .ico { width: 44px; height: 44px; flex: none; border-radius: 12px; }
   .ico svg { width: 58%; height: 58%; }
   .rec .ico { background: rgb(var(--color-gold-rgb, 247 208 119) / .14); }
-  .normal .ico { background: rgba(95, 176, 196, .16); }
+  .normal .ico { background: rgb(var(--color-gold-rgb, 247 208 119) / .14); }
   .locked .ico { background: rgba(255, 255, 255, .06); }
   .body { flex: 1; align-items: flex-start; gap: 7px; }
   .name { font-size: 16px; letter-spacing: .07em; }
