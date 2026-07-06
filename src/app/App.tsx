@@ -14,6 +14,7 @@ import { ProfileModal } from '@widgets/ProfileModal';
 import { HelpModal } from '@widgets/HelpModal';
 import { StoreModal } from '@widgets/StoreModal';
 import { ModeStartModal } from '@widgets/ModeStartModal';
+import { LevelUpModal } from '@widgets/LevelUpModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
@@ -28,6 +29,7 @@ export function App() {
   const help = useUi(s => s.modal.help);
   const store = useUi(s => s.modal.store);
   const modeStart = useUi(s => s.modal.modeStart);
+  const levelUp = useUi(s => s.modal.levelUp);
   const visible = useUi(s => s.transition.visible);
 
   // Click feedback for every overlay button (menu, HUD, all modals) via one
@@ -79,6 +81,7 @@ export function App() {
         {help && <HelpModal />}
         {store && <StoreModal />}
         {modeStart && <ModeStartModal />}
+        {levelUp && <LevelUpModal />}
       </div>
 
       {/* Scene-transition cover. Replaces the per-frame Phaser camera fade (which

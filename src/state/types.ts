@@ -78,6 +78,7 @@ export interface ModalState {
   profile: boolean;   // player profile / level modal (B8)
   help: boolean;      // "how to play" modal
   store: boolean;     // premium store modal — packs + bundles + exclusives (B7 + exclusives)
+  levelUp: { level: number; reward: number } | null;   // level-up celebration (shown in menu)
 }
 
 export interface TransitionState {

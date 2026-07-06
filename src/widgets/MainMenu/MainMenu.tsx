@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useUi } from '@hooks/useUiStore';
 import { bus } from '@state/eventBus';
 import { openShop } from '@state/shopController';
+import { maybeShowLevelUp } from '@state/levelUpController';
 import { LOCALES } from '../../game/i18n';
 import { Title } from './Title';
 import { Subtitle } from './Subtitle';
@@ -22,6 +24,8 @@ export function MainMenu() {
   const { soundEnabled, lang } = useUi(s => s.menu);
   const xp = useProgress((s) => s.stats.xp);
   const L = LOCALES[lang];
+  // Entering the menu = MainMenu mounts. Celebrate any unacknowledged level-up.
+  useEffect(() => { maybeShowLevelUp(); }, []);
   return (
     <div className={styles.root} data-testid="menu">
       <header className={styles.topBar}>

@@ -41,7 +41,7 @@ export function computePearls(difficulty: Difficulty, seconds: number, moves: nu
 
 // ── Player level / XP (B8) ──
 const XP_PER_WIN: Record<Difficulty, number> = { easy: 5, medium: 10, hard: 18, expert: 25 };
-const LEVEL_UP_REWARD = 50;   // pearls granted per level gained
+export const LEVEL_UP_REWARD = 50;   // pearls granted per level gained
 
 /** Level (1-based) + progress within it from cumulative XP. Level L→L+1 costs 100 + 50·(L-1). */
 export function levelFromXp(xp: number): { level: number; into: number; span: number } {
@@ -78,6 +78,7 @@ export interface ProgressStats {
   lastWinDate: string | null;   // local date of the last win (first-win-of-day ×2)
   winsToday: number;            // wins on lastWinDate (anti-farm diminishing returns)
   xp: number;                   // cumulative XP (player level, B8)
+  seenLevel: number;            // last level the player has acknowledged (level-up modal)
   modeBests: ModeBests;          // best seconds per (new mode, difficulty); classic keeps bestSeconds
   lastLossDate: string | null;   // local date of the last consolation-paid loss
   lossesToday: number;           // losses on lastLossDate (anti-farm for consolation)
@@ -106,7 +107,7 @@ export const INITIAL_PROGRESS: ProgressState = {
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
     perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
-    lastWinDate: null, winsToday: 0, xp: 0,
+    lastWinDate: null, winsToday: 0, xp: 0, seenLevel: 1,
     modeBests: {
       timeAttack: { easy: null, medium: null, hard: null, expert: null },
       survival:   { easy: null, medium: null, hard: null, expert: null },
@@ -203,6 +204,8 @@ function mergeProgress(raw: unknown): ProgressState {
       lastWinDate: typeof s.lastWinDate === 'string' ? s.lastWinDate : null,
       winsToday:   num(s.winsToday),
       xp:          num(s.xp),
+      // Existing saves without seenLevel adopt their current level → no false popup.
+      seenLevel:   typeof s.seenLevel === 'number' ? num(s.seenLevel) : levelFromXp(num(s.xp)).level,
       modeBests: validModeBests(s.modeBests),
       lastLossDate: typeof s.lastLossDate === 'string' ? s.lastLossDate : null,
       lossesToday: num(s.lossesToday),
@@ -320,6 +323,13 @@ export function achSignals(): AchSignals {
 }
 
 export function awardPearls(amount: number): void { addPearls(amount); persist(); }
+
+/** Mark the player's current level as acknowledged (called when the level-up modal closes). */
+export function markLevelSeen(): void {
+  const s = progressStore.get().stats;
+  progressStore.set({ stats: { ...s, seenLevel: levelFromXp(s.xp).level } });
+  persist();
+}
 
 /** Claim today's streak reward. Returns {day, reward} or null if already claimed today. */
 export function claimDaily(today: string): { day: number; reward: number } | null {
