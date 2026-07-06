@@ -1,5 +1,6 @@
 import type { Difficulty } from '../game/layout';
 import type { GameMode } from '../game/modes';
+import type { CampaignProgress } from './progress';
 
 export type BiomeId = 'lagoon' | 'reef' | 'arctic' | 'volcano' | 'abyss';
 
@@ -79,4 +80,45 @@ export function computeStars(r: LevelResult, goals: LevelGoals): 0 | 1 | 2 | 3 {
   if (goals.maxSeconds !== undefined && r.seconds <= goals.maxSeconds) stars++;
   if (goals.noMistakes && r.mistakes === 0) stars++;
   return Math.min(3, stars) as 0 | 1 | 2 | 3;
+}
+
+export function levelById(id: string): { chapter: CampaignChapter; level: CampaignLevel } | null {
+  for (const chapter of CHAPTERS) {
+    const level = chapter.levels.find((l) => l.id === id);
+    if (level) return { chapter, level };
+  }
+  return null;
+}
+
+export function chapterStars(biome: BiomeId, cp: CampaignProgress): number {
+  const ch = CHAPTERS.find((c) => c.biome === biome);
+  if (!ch) return 0;
+  return ch.levels.reduce((sum, l) => sum + (cp.stars[l.id] ?? 0), 0);
+}
+
+export function totalStars(cp: CampaignProgress): number {
+  return CHAPTERS.reduce((sum, c) => sum + chapterStars(c.biome, cp), 0);
+}
+
+export function isChapterUnlocked(biome: BiomeId, cp: CampaignProgress): boolean {
+  const idx = CHAPTERS.findIndex((c) => c.biome === biome);
+  if (idx <= 0) return true; // chapter 1 always open
+  const prev = CHAPTERS[idx - 1];
+  return chapterStars(prev.biome, cp) >= CHAPTERS[idx].starsToUnlock;
+}
+
+export function isLevelUnlocked(id: string, cp: CampaignProgress): boolean {
+  const found = levelById(id);
+  if (!found) return false;
+  const { chapter, level } = found;
+  if (!isChapterUnlocked(chapter.biome, cp)) return false;
+  if (level.index === 1) return true; // first level of an unlocked chapter
+  const prev = chapter.levels[level.index - 2];
+  return cp.cleared.includes(prev.id);
+}
+
+export function isChapterComplete(biome: BiomeId, cp: CampaignProgress): boolean {
+  const ch = CHAPTERS.find((c) => c.biome === biome);
+  if (!ch) return false;
+  return ch.levels.every((l) => cp.cleared.includes(l.id));
 }
