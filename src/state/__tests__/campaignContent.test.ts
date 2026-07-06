@@ -3,7 +3,7 @@ import { CHAPTERS, LEVELS_PER_CHAPTER, computeStars } from '../campaign';
 
 describe('campaign content', () => {
   it('has 5 chapters in ramp order, each with 12 levels and unique ids', () => {
-    expect(CHAPTERS.map(c => c.biome)).toEqual(['lagoon', 'reef', 'arctic', 'volcano', 'abyss']);
+    expect(CHAPTERS.map(c => c.biome)).toEqual(['lagoon', 'volcano', 'reef', 'arctic', 'abyss']);
     const ids = CHAPTERS.flatMap(c => c.levels.map(l => l.id));
     expect(ids.length).toBe(5 * LEVELS_PER_CHAPTER);
     expect(new Set(ids).size).toBe(ids.length);

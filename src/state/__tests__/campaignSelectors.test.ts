@@ -13,14 +13,14 @@ describe('campaign selectors', () => {
     const cp: CampaignProgress = { stars: { 'lagoon-1': 1 }, cleared: ['lagoon-1'] };
     expect(isLevelUnlocked('lagoon-2', cp)).toBe(true);
   });
-  it('chapter 2 stays locked until chapter 1 has enough stars', () => {
-    expect(isChapterUnlocked('reef', empty)).toBe(false);
+  it('chapter 2 (volcano) stays locked until chapter 1 has enough stars', () => {
+    expect(isChapterUnlocked('volcano', empty)).toBe(false);
     const stars: Record<string, 3> = {};
     for (let i = 1; i <= 6; i++) stars[`lagoon-${i}`] = 3; // 18 stars
     const cp: CampaignProgress = { stars, cleared: Object.keys(stars) };
     expect(chapterStars('lagoon', cp)).toBe(18);
-    expect(isChapterUnlocked('reef', cp)).toBe(true);
-    expect(isLevelUnlocked('reef-1', cp)).toBe(true); // first level of an unlocked chapter
+    expect(isChapterUnlocked('volcano', cp)).toBe(true);
+    expect(isLevelUnlocked('volcano-1', cp)).toBe(true); // first level of an unlocked chapter
   });
   it('totalStars sums across chapters; isChapterComplete needs all levels cleared', () => {
     const cp: CampaignProgress = { stars: { 'lagoon-1': 2, 'reef-1': 1 }, cleared: ['lagoon-1', 'reef-1'] };
