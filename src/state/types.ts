@@ -3,6 +3,7 @@ import type { Lang } from '../game/i18n';
 import type { LeaderboardData } from '../game/leaderboard';
 import type { CustomAxis } from './catalog';
 import type { GameMode } from '../game/modes';
+import type { BiomeId } from './campaign';
 
 export interface MenuState {
   active: boolean;
@@ -67,6 +68,16 @@ export interface DefeatView {
 
 export type TasksTab = 'quests' | 'achievements';
 
+export interface LevelResultView {
+  levelId: string;
+  stars: number;
+  pearls: number;
+  xp: number;
+  chapterCompleted: boolean;
+  skinUnlocked: string | null;
+  won: boolean;
+}
+
 export interface ModalState {
   victory: VictoryView | null;
   defeat: DefeatView | null;
@@ -79,6 +90,10 @@ export interface ModalState {
   help: boolean;      // "how to play" modal
   store: boolean;     // premium store modal — packs + bundles + exclusives (B7 + exclusives)
   levelUp: { level: number; reward: number } | null;   // level-up celebration (shown in menu)
+  campaignMap: boolean;
+  island: BiomeId | null;
+  levelStart: string | null;
+  levelResult: LevelResultView | null;
 }
 
 export interface TransitionState {

@@ -22,6 +22,7 @@ export type BusEvents = {
   'cmd:equip-changed': undefined;
   'cmd:set-muted': boolean;
   'cmd:ui-click': undefined;
+  'cmd:play-campaign-level': { levelId: string };
 };
 
 type Handler<T> = (payload: T) => void;
