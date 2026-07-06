@@ -6,8 +6,14 @@ import type { BiomeId, LevelResult } from './campaign';
 
 export const ENERGY_REFILL_COST = 60;
 
-export const openCampaignMap = () => setModal({ campaignMap: true });
-export const closeCampaignMap = () => setModal({ campaignMap: false });
+/** Enter the journey (CampaignScene). Fresh energy + map view, then transition. */
+export function openCampaign(): void {
+  syncEnergy(Date.now());
+  setModal({ island: null, levelStart: null, levelResult: null });   // start on the world map
+  bus.emit('cmd:open-campaign');
+}
+/** Leave the journey back to the main menu. */
+export const exitCampaign = () => bus.emit('cmd:exit-campaign');
 export const openIsland = (biome: BiomeId) => setModal({ island: biome });
 export const closeIsland = () => setModal({ island: null });
 export const openLevelStart = (levelId: string) => setModal({ levelStart: levelId });
@@ -25,7 +31,8 @@ export function startLevel(levelId: string, nowTs: number): boolean {
   const e = regenEnergy(progressStore.get().energy, nowTs);
   if (e.current <= 0) { progressStore.set({ energy: e }); return false; }
   progressStore.set({ energy: spendEnergy(e, nowTs) });
-  setModal({ levelStart: null, island: null, campaignMap: false });
+  // Close the start sheet; keep `island` so we return to the island view after the level.
+  setModal({ levelStart: null, levelResult: null });
   bus.emit('cmd:play-campaign-level', { levelId });
   return true;
 }

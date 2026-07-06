@@ -90,10 +90,15 @@ export interface ModalState {
   help: boolean;      // "how to play" modal
   store: boolean;     // premium store modal — packs + bundles + exclusives (B7 + exclusives)
   levelUp: { level: number; reward: number } | null;   // level-up celebration (shown in menu)
-  campaignMap: boolean;
   island: BiomeId | null;
   levelStart: string | null;
   levelResult: LevelResultView | null;
+}
+
+/** Campaign («Путешествие») is its own Phaser scene (CampaignScene), mirroring
+ * MenuScene↔MainMenu. `active` gates the React map/island overlay. */
+export interface CampaignSceneState {
+  active: boolean;
 }
 
 export interface TransitionState {
@@ -114,5 +119,6 @@ export interface UiState {
   menu: MenuState;
   hud: HudState;
   modal: ModalState;
+  campaign: CampaignSceneState;
   transition: TransitionState;
 }

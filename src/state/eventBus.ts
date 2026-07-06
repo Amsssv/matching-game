@@ -22,6 +22,8 @@ export type BusEvents = {
   'cmd:equip-changed': undefined;
   'cmd:set-muted': boolean;
   'cmd:ui-click': undefined;
+  'cmd:open-campaign': undefined;
+  'cmd:exit-campaign': undefined;
   'cmd:play-campaign-level': { levelId: string };
 };
 

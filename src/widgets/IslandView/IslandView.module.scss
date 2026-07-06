@@ -1,5 +1,7 @@
 @use '../../styles/tokens' as *;
-.backdrop { pointer-events: auto; position: fixed; inset: 0; z-index: 32; display: grid; place-items: center; background: rgba(0,10,25,0.85); }
+// In-scene zoom over the CampaignScene canvas map: a soft veil (not a black modal)
+// dims the busy map so the island + level nodes read clearly.
+.backdrop { pointer-events: auto; position: fixed; inset: 0; z-index: 32; display: grid; place-items: center; background: rgba(3,21,40,0.45); }
 .islandWrap { position: relative; width: min(92vw, 720px); aspect-ratio: 1.1 / 1; }
 .islandImg { width: 100%; height: 100%; object-fit: contain; }
 .node { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center;

@@ -1,5 +1,5 @@
 import { Button } from '@ui/Button';
-import { openCampaignMap, syncEnergy } from '@state/campaignController';
+import { openCampaign } from '@state/campaignController';
 import { useUi } from '@hooks/useUiStore';
 import { LOCALES } from '../../game/i18n';
 
@@ -12,7 +12,7 @@ export function JourneyButton() {
       type="primary"
       size="large"
       block
-      onClick={() => { syncEnergy(Date.now()); openCampaignMap(); }}
+      onClick={openCampaign}
     >
       🗺 {L.journeyTitle}
     </Button>

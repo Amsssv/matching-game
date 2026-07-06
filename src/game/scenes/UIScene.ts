@@ -88,7 +88,7 @@ export class UIScene extends Phaser.Scene {
       this.elapsedSeconds = this.clock?.stop() ?? this.elapsedSeconds;
       if (this.campaignLevelId) {
         finishLevel(this.campaignLevelId, { won: true, seconds: this.elapsedSeconds, moves: n, mistakes: 0 });
-        this.exitToMenu();
+        this.exitToCampaign();
         return;
       }
       this.game.registry.set('lastScore', this.elapsedSeconds);
@@ -120,7 +120,7 @@ export class UIScene extends Phaser.Scene {
       this.elapsedSeconds = this.clock?.stop() ?? this.elapsedSeconds;
       if (this.campaignLevelId) {
         finishLevel(this.campaignLevelId, { won: false, seconds: this.elapsedSeconds, moves: 0, mistakes: 0 });
-        this.exitToMenu();
+        this.exitToCampaign();
         return;
       }
       getYSDK()?.features.GameplayAPI?.stop();
@@ -219,6 +219,12 @@ export class UIScene extends Phaser.Scene {
   exitToMenu() {
     this.scene.stop();
     this.gameScene.goToMenu();
+  }
+
+  /** Return from a campaign level to the journey map (CampaignScene). */
+  exitToCampaign() {
+    this.scene.stop();
+    this.gameScene.goToCampaign();
   }
 
   victoryRestart() {

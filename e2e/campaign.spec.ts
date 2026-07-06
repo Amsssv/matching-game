@@ -63,8 +63,9 @@ test.describe('Campaign', () => {
       await waitForGameUnlocked(page); // let the match settle before the next pair
     }
 
-    // Auto-retrying assertions absorb the win → finishLevel → exitToMenu scene
-    // transition (cover fade + scene.start('MenuScene')).
+    // Auto-retrying assertions absorb the win → finishLevel → exitToCampaign scene
+    // transition (cover fade + scene.start('CampaignScene')). The level-result
+    // modal is store-driven, so it stays visible across the scene swap.
     await expect(page.getByTestId('level-result')).toBeVisible();
     await expect(page.getByTestId('level-result-stars')).toBeVisible();
     await page.getByTestId('level-result-close').click();
@@ -73,10 +74,9 @@ test.describe('Campaign', () => {
     await expect(page.getByTestId('island-lagoon')).toBeVisible();
     await expect(page.getByTestId('level-lagoon-2')).toBeEnabled();
 
-    // The energy meter lives in the menu's top-left cluster, underneath the
-    // island overlay. Back out of the island to expose it, then confirm one
-    // life was spent at level start (5/5 -> 4/5); the 25-min regen window
-    // can't tick within the test.
+    // The energy meter lives on the campaign map (top-left), behind the island
+    // overlay. Back out of the island to the map, then confirm one life was
+    // spent at level start (5/5 -> 4/5); the 25-min regen can't tick in-test.
     await page.getByTestId('island-back').click();
     await expect(page.getByTestId('energy-meter')).toContainText('4/5');
   });

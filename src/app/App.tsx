@@ -34,7 +34,7 @@ export function App() {
   const store = useUi(s => s.modal.store);
   const modeStart = useUi(s => s.modal.modeStart);
   const levelUp = useUi(s => s.modal.levelUp);
-  const campaignMap = useUi(s => s.modal.campaignMap);
+  const campaignActive = useUi(s => s.campaign.active);
   const island = useUi(s => s.modal.island);
   const levelStart = useUi(s => s.modal.levelStart);
   const levelResult = useUi(s => s.modal.levelResult);
@@ -90,8 +90,8 @@ export function App() {
         {store && <StoreModal />}
         {modeStart && <ModeStartModal />}
         {levelUp && <LevelUpModal />}
-        {campaignMap && <CampaignMap />}
-        {island && <IslandView />}
+        {campaignActive && !island && <CampaignMap />}
+        {campaignActive && island && <IslandView />}
         {levelStart && <LevelStartSheet />}
         {levelResult && <LevelResultModal />}
       </div>

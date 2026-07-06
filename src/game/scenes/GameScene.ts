@@ -647,4 +647,14 @@ export class GameScene extends Phaser.Scene {
       window.setTimeout(() => this.scene.start('MenuScene'), UI.animation.fadeScene);
     });
   }
+
+  /** Return to the journey map (CampaignScene) after a campaign level. */
+  goToCampaign() {
+    this.renderActivity?.disable();
+    getYSDK()?.features.GameplayAPI?.stop();
+    this.showAdThenProceed(() => {
+      setTransition(false);
+      window.setTimeout(() => this.scene.start('CampaignScene'), UI.animation.fadeScene);
+    });
+  }
 }
