@@ -482,3 +482,18 @@ describe('recordGameLoss (consolation)', () => {
     expect(progressStore.get().pearls).toBe(before + r.pearls + 50);
   });
 });
+
+describe('winsByMode', () => {
+  beforeEach(() => { localStorage.clear(); resetProgress(); });
+
+  it('recordGameWin increments the played mode, default classic', () => {
+    recordGameWin({ difficulty: 'easy', seconds: 40, pairs: 6, moves: 9 }); // no mode → classic
+    recordGameWin({ difficulty: 'easy', seconds: 40, pairs: 6, moves: 9, mode: 'survival' });
+    recordGameWin({ difficulty: 'easy', seconds: 40, pairs: 6, moves: 9, mode: 'survival' });
+    const w = progressStore.get().stats.winsByMode;
+    expect(w.classic).toBe(1);
+    expect(w.survival).toBe(2);
+    expect(w.timeAttack).toBe(0);
+    expect(w.noMistakes).toBe(0);
+  });
+});

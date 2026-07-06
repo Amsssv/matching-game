@@ -72,6 +72,7 @@ export interface ProgressStats {
   pairsMatched: number;
   bestSeconds: Record<Difficulty, number | null>;
   winsByDifficulty: Record<Difficulty, number>;
+  winsByMode: Record<GameMode, number>;   // wins per game mode (achievements)
   perfectWins: number;
   fastWins: number;
   pearlsEarnedTotal: number;
@@ -106,6 +107,7 @@ export const INITIAL_PROGRESS: ProgressState = {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
     bestSeconds:      { easy: null, medium: null, hard: null, expert: null },
     winsByDifficulty: { easy: 0,    medium: 0,    hard: 0,    expert: 0 },
+    winsByMode: { classic: 0, timeAttack: 0, survival: 0, noMistakes: 0 },
     perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0,
     lastWinDate: null, winsToday: 0, xp: 0, seenLevel: 1,
     modeBests: {
@@ -178,7 +180,7 @@ function mergeProgress(raw: unknown): ProgressState {
     return {
       version: 4,
       pearls: 0,
-      stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, modeBests: validModeBests(null) },
+      stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, winsByMode: { ...d.stats.winsByMode }, modeBests: validModeBests(null) },
       unlocked: [],
       equipped: { ...DEFAULT_EQUIPPED },
       streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
@@ -198,6 +200,7 @@ function mergeProgress(raw: unknown): ProgressState {
       pairsMatched: num(s.pairsMatched),
       bestSeconds:      { ...d.stats.bestSeconds,      ...(s.bestSeconds ?? {}) },
       winsByDifficulty: { ...d.stats.winsByDifficulty, ...(s.winsByDifficulty ?? {}) },
+      winsByMode: { ...d.stats.winsByMode, ...(s.winsByMode ?? {}) },
       perfectWins:       num(s.perfectWins),
       fastWins:          num(s.fastWins),
       pearlsEarnedTotal: num(s.pearlsEarnedTotal),
@@ -453,6 +456,7 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
       modeBests: mode === 'classic' ? s.modeBests
         : { ...s.modeBests, [mode]: { ...s.modeBests[mode], [r.difficulty]: newBest } },
       winsByDifficulty: { ...s.winsByDifficulty, [r.difficulty]: s.winsByDifficulty[r.difficulty] + 1 },
+      winsByMode: { ...s.winsByMode, [mode]: s.winsByMode[mode] + 1 },
       perfectWins: s.perfectWins + (perfect ? 1 : 0),
       fastWins:    s.fastWins + (fast ? 1 : 0),
       lastWinDate: today,
