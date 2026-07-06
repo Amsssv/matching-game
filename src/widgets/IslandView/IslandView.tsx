@@ -1,7 +1,9 @@
 import { useUi } from '@hooks/useUiStore';
 import { useProgress } from '@hooks/useProgress';
-import { CHAPTERS, isLevelUnlocked, type BiomeId } from '@state/campaign';
+import { CHAPTERS, chapterStars, isLevelUnlocked, type BiomeId } from '@state/campaign';
 import { openLevelStart, closeIsland } from '@state/campaignController';
+import { cx } from '@ui/cx';
+import { LOCALES } from '../../game/i18n';
 import styles from './IslandView.module.scss';
 
 const ART: Record<BiomeId, string> = {
@@ -12,34 +14,80 @@ const ART: Record<BiomeId, string> = {
   abyss: '/assets/skins/Abyss/Abyss-iland.webp',
 };
 
+/** Inline lock glyph shown on a locked level node's disc (mirrors CampaignMap's badge icon). */
+function LockIcon() {
+  return (
+    <svg className={styles.lockIcon} viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
+      <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
+type NodeState = 'passed' | 'current' | 'locked';
+
+/** Island / level-select modal: a dim scrim over the map with a centered dark panel
+ * showing the biome's island art and a 4x3 grid of level nodes, styled to match
+ * the approved journey prototype (Screen 2, `#levels` / `.island-modal`). */
 export function IslandView() {
   const biome = useUi((s) => s.modal.island);
   const campaign = useProgress((p) => p.campaign);
+  const lang = useUi((s) => s.menu.lang);
   if (!biome) return null;
+  const L = LOCALES[lang];
   const ch = CHAPTERS.find((c) => c.biome === biome)!;
+  const stars = chapterStars(biome, campaign);
+  const max = ch.levels.length * 3;
+
   return (
     <div className={styles.backdrop} data-testid={`island-${biome}`}>
-      <button className={styles.back} onClick={closeIsland} data-testid="island-back">‹ карта</button>
-      <div className={styles.islandWrap}>
-        <img className={styles.islandImg} src={ART[biome]} alt={biome} draggable={false} />
-        {ch.levels.map((lvl, i) => {
-          const unlocked = isLevelUnlocked(lvl.id, campaign);
-          const stars = campaign.stars[lvl.id] ?? 0;
-          const pos = ch.nodePositions[i];
-          return (
-            <button
-              key={lvl.id}
-              className={`${styles.node} ${unlocked ? '' : styles.locked}`}
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-              disabled={!unlocked}
-              data-testid={`level-${lvl.id}`}
-              onClick={() => unlocked && openLevelStart(lvl.id)}
-            >
-              <span className={styles.idx}>{unlocked ? lvl.index : '🔒'}</span>
-              {unlocked && <span className={styles.stars}>{'★'.repeat(stars)}{'☆'.repeat(3 - stars)}</span>}
-            </button>
-          );
-        })}
+      <div className={styles.scrim} onClick={closeIsland} />
+      <div className={styles.modal}>
+        <div className={styles.head}>
+          <button type="button" className={styles.back} onClick={closeIsland} data-testid="island-back">
+            <BackIcon /> {L.mapBack}
+          </button>
+          <div className={styles.titles}>
+            <div className={styles.worldTitle}>{L.biomeNames[biome]}</div>
+            <div className={styles.progBadge}><span>★</span><span>{stars}/{max}</span></div>
+          </div>
+          <span />
+        </div>
+        <div className={styles.stage} style={{ backgroundImage: `url(${ART[biome]})` }}>
+          <div className={styles.grid}>
+            {ch.levels.map((lvl) => {
+              const cleared = campaign.cleared.includes(lvl.id);
+              const unlocked = isLevelUnlocked(lvl.id, campaign);
+              const state: NodeState = cleared ? 'passed' : unlocked ? 'current' : 'locked';
+              const filled = cleared ? (campaign.stars[lvl.id] ?? 0) : 0;
+              return (
+                <button
+                  key={lvl.id}
+                  type="button"
+                  className={cx(styles.node, styles[state])}
+                  disabled={state === 'locked'}
+                  data-testid={`level-${lvl.id}`}
+                  onClick={() => state !== 'locked' && openLevelStart(lvl.id)}
+                >
+                  <span className={styles.disc}>{state === 'locked' ? <LockIcon /> : lvl.index}</span>
+                  <span className={styles.lvlstars}>
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className={i < filled ? undefined : styles.empty}>★</span>
+                    ))}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
