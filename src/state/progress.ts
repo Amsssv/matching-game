@@ -6,6 +6,7 @@ import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
 import { computeClaim, rewardForDay, todayStr } from './daily';
 import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './quests';
 import { ACH_BY_ID, type AchSignals } from './achievements';
+import { computeStars, levelById, isChapterComplete, type LevelResult } from './campaign';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -412,6 +413,54 @@ export function grantItem(id: string): boolean {
   saveLocal(progressStore.get());
   saveCloud(progressStore.get());
   return true;
+}
+
+/** Score a finished campaign level, record stars/clears, grant pearls/XP, and unlock the
+ * chapter's biome skin once every level in the chapter is cleared. Replays only pay the
+ * STAR DELTA (never re-pay firstClearPearls/xp) and never lower a previously-recorded star count. */
+export function recordCampaignResult(id: string, result: LevelResult): {
+  stars: number; pearls: number; xp: number; chapterCompleted: boolean; skinUnlocked: string | null;
+} {
+  const found = levelById(id);
+  if (!found) return { stars: 0, pearls: 0, xp: 0, chapterCompleted: false, skinUnlocked: null };
+  const { chapter, level } = found;
+  const stars = computeStars(result, level.goals);
+  if (stars === 0) return { stars: 0, pearls: 0, xp: 0, chapterCompleted: false, skinUnlocked: null };
+
+  const c = progressStore.get();
+  const prevStars = c.campaign.stars[id] ?? 0;
+  const firstClear = !c.campaign.cleared.includes(id);
+  const starDelta = Math.max(0, stars - prevStars);
+
+  let pearls = starDelta * level.rewards.perStarPearls;
+  let xp = 0;
+  if (firstClear) { pearls += level.rewards.firstClearPearls; xp += level.rewards.xp; }
+
+  const newStars = Math.max(prevStars, stars);
+  const cleared = firstClear ? [...c.campaign.cleared, id] : c.campaign.cleared;
+  progressStore.set({
+    campaign: { stars: { ...c.campaign.stars, [id]: newStars as 0 | 1 | 2 | 3 }, cleared },
+    pearls: c.pearls + pearls,
+    stats: { ...c.stats, xp: c.stats.xp + xp, pearlsEarnedTotal: c.stats.pearlsEarnedTotal + pearls },
+  });
+
+  // Chapter completion → grant biome skin once + bonus pearls.
+  let chapterCompleted = false;
+  let skinUnlocked: string | null = null;
+  let bonusPearls = 0;
+  if (isChapterComplete(chapter.biome, progressStore.get().campaign)) {
+    chapterCompleted = true;
+    if (grantItem(chapter.skinId)) { // grantItem persists + returns false if already owned
+      skinUnlocked = chapter.skinId;
+      bonusPearls = 100;
+      const cc = progressStore.get();
+      progressStore.set({ pearls: cc.pearls + bonusPearls, stats: { ...cc.stats, pearlsEarnedTotal: cc.stats.pearlsEarnedTotal + bonusPearls } });
+    }
+  }
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  // Returned pearls must equal what was actually credited (result modal shows this).
+  return { stars, pearls: pearls + bonusPearls, xp, chapterCompleted, skinUnlocked };
 }
 
 /** Equip an unlocked item on its axis. Returns false (no-op) if the id is unknown, the wrong axis, or not unlocked. */
