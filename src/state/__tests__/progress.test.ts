@@ -111,7 +111,7 @@ describe('resolveProgress', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const { resolveProgress } = await import('../progress');
     const p = await resolveProgress();
-    expect(p.pearls).toBe(0); expect(p.version).toBe(4);
+    expect(p.pearls).toBe(0); expect(p.version).toBe(5);
   });
   it('loads from localStorage', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 42, stats: {} }));
@@ -173,7 +173,7 @@ describe('shop economy (progress v2)', () => {
     const saved = JSON.parse(localStorage.getItem('sea-pairs-progress')!);
     expect(saved.unlocked).toContain('back.gold');
     expect(saved.equipped.cardBack).toBe('back.gold');
-    expect(saved.version).toBe(4);
+    expect(saved.version).toBe(5);
   });
   it('mergeProgress upgrades a v1 blob to current defaults', async () => {
     localStorage.setItem('sea-pairs-progress', JSON.stringify({ version: 1, pearls: 50, stats: {} }));
@@ -181,7 +181,7 @@ describe('shop economy (progress v2)', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const m = await import('../progress');
     const p = await m.resolveProgress();
-    expect(p.version).toBe(4);
+    expect(p.version).toBe(5);
     expect(p.pearls).toBe(50);
     expect(p.unlocked).toEqual([]);
     expect(p.equipped.seaTheme).toBe('sea.lagoon');
@@ -289,7 +289,7 @@ describe('daily streak (progress v3)', () => {
     vi.doMock('../../ysdk', () => ({ getYSDK: () => null }));
     const m = await import('../progress');
     const p = await m.resolveProgress();
-    expect(p.version).toBe(4);
+    expect(p.version).toBe(5);
     expect(p.streak).toEqual({ current: 0, lastClaimDate: null, best: 0, doubledDate: null });
     expect(p.pearls).toBe(5);
   });

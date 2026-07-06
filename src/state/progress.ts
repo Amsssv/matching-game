@@ -87,8 +87,10 @@ export interface StreakState { current: number; lastClaimDate: string | null; be
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
 export interface QuestsState { date: string | null; active: QuestSlot[]; rerolls: number; }
 export interface AchievementsState { claimed: string[]; }
+export interface CampaignProgress { stars: Record<string, 0 | 1 | 2 | 3>; cleared: string[] }
+export interface EnergyState { current: number; max: number; lastRegenTs: number }
 export interface ProgressState {
-  version: 4;
+  version: 5;
   pearls: number;
   stats: ProgressStats;
   unlocked: string[];
@@ -97,10 +99,12 @@ export interface ProgressState {
   quests: QuestsState;
   achievements: AchievementsState;
   processedPurchases: string[];   // consumable purchase tokens already credited (IAP idempotency)
+  campaign: CampaignProgress;
+  energy: EnergyState;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
-  version: 4,
+  version: 5,
   pearls: 0,
   stats: {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
@@ -121,6 +125,8 @@ export const INITIAL_PROGRESS: ProgressState = {
   quests: { date: null, active: [], rerolls: 0 },
   achievements: { claimed: [] },
   processedPurchases: [],
+  campaign: { stars: {}, cleared: [] },
+  energy: { current: 5, max: 5, lastRegenTs: 0 },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -160,6 +166,24 @@ function validModeBests(m: unknown): ModeBests {
   return out;
 }
 
+function validCampaign(c: unknown): CampaignProgress {
+  const o = (c && typeof c === 'object') ? c as Record<string, unknown> : {};
+  const rawStars = (o.stars && typeof o.stars === 'object') ? o.stars as Record<string, unknown> : {};
+  const stars: Record<string, 0 | 1 | 2 | 3> = {};
+  for (const [k, v] of Object.entries(rawStars)) {
+    if (v === 0 || v === 1 || v === 2 || v === 3) stars[k] = v;
+  }
+  const cleared = Array.isArray(o.cleared) ? o.cleared.filter((x): x is string => typeof x === 'string') : [];
+  return { stars, cleared };
+}
+function validEnergy(e: unknown): EnergyState {
+  const o = (e && typeof e === 'object') ? e as Record<string, unknown> : {};
+  const max = typeof o.max === 'number' && o.max > 0 ? Math.floor(o.max) : 5;
+  const current = typeof o.current === 'number' && o.current >= 0 ? Math.min(Math.floor(o.current), max) : max;
+  const lastRegenTs = typeof o.lastRegenTs === 'number' && o.lastRegenTs >= 0 ? o.lastRegenTs : 0;
+  return { current, max, lastRegenTs };
+}
+
 function validQuests(q: unknown): QuestsState {
   const o = (q && typeof q === 'object') ? q as Record<string, unknown> : {};
   const date = typeof o.date === 'string' ? o.date : null;
@@ -172,11 +196,11 @@ function validQuests(q: unknown): QuestsState {
   return { date, active, rerolls };
 }
 
-function mergeProgress(raw: unknown): ProgressState {
+export function mergeProgress(raw: unknown): ProgressState {
   const d = INITIAL_PROGRESS;
   if (!raw || typeof raw !== 'object') {
     return {
-      version: 4,
+      version: 5,
       pearls: 0,
       stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, modeBests: validModeBests(null) },
       unlocked: [],
@@ -185,12 +209,14 @@ function mergeProgress(raw: unknown): ProgressState {
       quests: { date: null, active: [], rerolls: 0 },
       achievements: { claimed: [] },
       processedPurchases: [],
+      campaign: validCampaign(null),
+      energy: validEnergy(null),
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown; campaign?: unknown; energy?: unknown };
   const s = r.stats ?? {};
   return {
-    version: 4,
+    version: 5,
     pearls: num(r.pearls),
     stats: {
       gamesPlayed:  num(s.gamesPlayed),
@@ -224,6 +250,8 @@ function mergeProgress(raw: unknown): ProgressState {
     processedPurchases: Array.isArray(r.processedPurchases)
       ? r.processedPurchases.filter((x): x is string => typeof x === 'string')
       : [],
+    campaign: validCampaign(r.campaign),
+    energy: validEnergy(r.energy),
   };
 }
 
