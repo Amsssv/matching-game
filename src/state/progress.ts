@@ -311,18 +311,24 @@ export function ensureTodayQuests(today: string): void {
 
 /** Build the achievement signal bag from progress slices. Single source of truth shared by
  * achSignals() (imperative) and the reactive TasksButton/TasksModal components. */
-export function buildAchSignals(stats: ProgressStats, streakBest: number, unlockedCount: number): AchSignals {
+export function buildAchSignals(stats: ProgressStats, streakBest: number, unlocked: string[]): AchSignals {
+  const ownedByAxis: Record<CustomAxis, number> = { seaTheme: 0, cardBack: 0, uiPalette: 0 };
+  for (const id of unlocked) {
+    const item = ITEM_BY_ID[id];
+    if (item) ownedByAxis[item.axis] += 1;
+  }
   return {
     gamesWon: stats.gamesWon, pairsMatched: stats.pairsMatched, winsByDifficulty: stats.winsByDifficulty,
     perfectWins: stats.perfectWins, fastWins: stats.fastWins, pearlsEarnedTotal: stats.pearlsEarnedTotal,
-    streakBest, unlockedCount,
+    streakBest, unlockedCount: unlocked.length,
     gamesPlayed: stats.gamesPlayed, level: levelFromXp(stats.xp).level,
+    winsByMode: stats.winsByMode, ownedByAxis,
   };
 }
 
 export function achSignals(): AchSignals {
   const p = progressStore.get();
-  return buildAchSignals(p.stats, p.streak.best, p.unlocked.length);
+  return buildAchSignals(p.stats, p.streak.best, p.unlocked);
 }
 
 export function awardPearls(amount: number): void { addPearls(amount); persist(); }

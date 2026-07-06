@@ -1,4 +1,6 @@
 import type { Difficulty } from '../game/layout';
+import type { GameMode } from '../game/modes';
+import { CATALOG, type CustomAxis } from './catalog';
 
 /** The derived signals an achievement condition can read. */
 export interface AchSignals {
@@ -12,6 +14,8 @@ export interface AchSignals {
   unlockedCount: number;
   gamesPlayed: number;
   level: number;
+  winsByMode: Record<GameMode, number>;
+  ownedByAxis: Record<CustomAxis, number>;
 }
 
 export interface AchievementDef {
@@ -26,6 +30,14 @@ export interface AchievementDef {
 const allDiffsWon = (s: AchSignals): number =>
   (s.winsByDifficulty.easy >= 1 ? 1 : 0) + (s.winsByDifficulty.medium >= 1 ? 1 : 0)
   + (s.winsByDifficulty.hard >= 1 ? 1 : 0) + (s.winsByDifficulty.expert >= 1 ? 1 : 0);
+
+const MODES: GameMode[] = ['classic', 'timeAttack', 'survival', 'noMistakes'];
+const modesWon = (s: AchSignals): number => MODES.filter((m) => s.winsByMode[m] >= 1).length;
+const ownTotal = (axis: CustomAxis): number =>
+  CATALOG.filter((i) => i.axis === axis && i.price > 0 && !i.exclusive).length;
+const SEA_TOTAL = ownTotal('seaTheme');
+const BACKS_TOTAL = ownTotal('cardBack');
+const PALETTES_TOTAL = ownTotal('uiPalette');
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'firstWin',        nameKey: 'aFirstWin',        reward: 20,  target: 1,    progress: (s) => s.gamesWon,                done: (s) => s.gamesWon >= 1 },
@@ -51,5 +63,25 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'collector15',     nameKey: 'aCollector15',     reward: 200, target: 15,   progress: (s) => s.unlockedCount,           done: (s) => s.unlockedCount >= 15 },
   { id: 'level5',          nameKey: 'aLevel5',          reward: 100, target: 5,    progress: (s) => s.level,                   done: (s) => s.level >= 5 },
   { id: 'level10',         nameKey: 'aLevel10',         reward: 250, target: 10,   progress: (s) => s.level,                   done: (s) => s.level >= 10 },
+  // Modes (winsByMode)
+  { id: 'taWin',       nameKey: 'aTaWin',       reward: 40,  target: 1,  progress: (s) => s.winsByMode.timeAttack, done: (s) => s.winsByMode.timeAttack >= 1 },
+  { id: 'taWin10',     nameKey: 'aTaWin10',     reward: 120, target: 10, progress: (s) => s.winsByMode.timeAttack, done: (s) => s.winsByMode.timeAttack >= 10 },
+  { id: 'survWin',     nameKey: 'aSurvWin',     reward: 40,  target: 1,  progress: (s) => s.winsByMode.survival,   done: (s) => s.winsByMode.survival >= 1 },
+  { id: 'survWin10',   nameKey: 'aSurvWin10',   reward: 120, target: 10, progress: (s) => s.winsByMode.survival,   done: (s) => s.winsByMode.survival >= 10 },
+  { id: 'nmWin',       nameKey: 'aNmWin',       reward: 40,  target: 1,  progress: (s) => s.winsByMode.noMistakes, done: (s) => s.winsByMode.noMistakes >= 1 },
+  { id: 'nmWin10',     nameKey: 'aNmWin10',     reward: 120, target: 10, progress: (s) => s.winsByMode.noMistakes, done: (s) => s.winsByMode.noMistakes >= 10 },
+  { id: 'allModes',    nameKey: 'aAllModes',    reward: 150, target: 4,  progress: modesWon,                       done: (s) => modesWon(s) >= 4 },
+  // Deeper tiers (existing axes)
+  { id: 'win100',      nameKey: 'aWin100',      reward: 400, target: 100,  progress: (s) => s.gamesWon,           done: (s) => s.gamesWon >= 100 },
+  { id: 'play250',     nameKey: 'aPlay250',     reward: 400, target: 250,  progress: (s) => s.gamesPlayed,        done: (s) => s.gamesPlayed >= 250 },
+  { id: 'pairs2500',   nameKey: 'aPairs2500',   reward: 500, target: 2500, progress: (s) => s.pairsMatched,       done: (s) => s.pairsMatched >= 2500 },
+  { id: 'perfect25',   nameKey: 'aPerfect25',   reward: 150, target: 25,   progress: (s) => s.perfectWins,        done: (s) => s.perfectWins >= 25 },
+  { id: 'fast25',      nameKey: 'aFast25',      reward: 150, target: 25,   progress: (s) => s.fastWins,           done: (s) => s.fastWins >= 25 },
+  { id: 'streak14',    nameKey: 'aStreak14',    reward: 200, target: 14,   progress: (s) => s.streakBest,         done: (s) => s.streakBest >= 14 },
+  { id: 'rich5000',    nameKey: 'aRich5000',    reward: 400, target: 5000, progress: (s) => s.pearlsEarnedTotal,  done: (s) => s.pearlsEarnedTotal >= 5000 },
+  // Collection completion (targets from CATALOG)
+  { id: 'seaAll',      nameKey: 'aSeaAll',      reward: 300, target: SEA_TOTAL,      progress: (s) => s.ownedByAxis.seaTheme,  done: (s) => s.ownedByAxis.seaTheme >= SEA_TOTAL },
+  { id: 'backsAll',    nameKey: 'aBacksAll',    reward: 300, target: BACKS_TOTAL,    progress: (s) => s.ownedByAxis.cardBack,  done: (s) => s.ownedByAxis.cardBack >= BACKS_TOTAL },
+  { id: 'palettesAll', nameKey: 'aPalettesAll', reward: 350, target: PALETTES_TOTAL, progress: (s) => s.ownedByAxis.uiPalette, done: (s) => s.ownedByAxis.uiPalette >= PALETTES_TOTAL },
 ];
 export const ACH_BY_ID: Record<string, AchievementDef> = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));

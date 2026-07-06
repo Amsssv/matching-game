@@ -3,7 +3,10 @@ import { ACHIEVEMENTS, ACH_BY_ID } from '../achievements';
 const sig = (o: Partial<import('../achievements').AchSignals> = {}) => ({
   gamesWon: 0, pairsMatched: 0, winsByDifficulty: { easy: 0, medium: 0, hard: 0, expert: 0 },
   perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0, streakBest: 0, unlockedCount: 0,
-  gamesPlayed: 0, level: 1, ...o,
+  gamesPlayed: 0, level: 1,
+  winsByMode: { classic: 0, timeAttack: 0, survival: 0, noMistakes: 0 },
+  ownedByAxis: { seaTheme: 0, cardBack: 0, uiPalette: 0 },
+  ...o,
 });
 describe('achievement conditions', () => {
   it('firstWin needs 1 win; win10 needs 10', () => {
@@ -32,5 +35,28 @@ describe('achievement conditions', () => {
   it('every achievement has a unique id + i18n key + positive reward', () => {
     expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(ACHIEVEMENTS.length);
     ACHIEVEMENTS.forEach((a) => { expect(a.nameKey).toBeTruthy(); expect(a.reward).toBeGreaterThan(0); });
+  });
+});
+
+describe('mode + collection achievements', () => {
+  it('mode wins gate on winsByMode', () => {
+    expect(ACH_BY_ID.taWin.done(sig({ winsByMode: { classic: 0, timeAttack: 1, survival: 0, noMistakes: 0 } }))).toBe(true);
+    expect(ACH_BY_ID.survWin10.done(sig({ winsByMode: { classic: 0, timeAttack: 0, survival: 9, noMistakes: 0 } }))).toBe(false);
+    expect(ACH_BY_ID.survWin10.done(sig({ winsByMode: { classic: 0, timeAttack: 0, survival: 10, noMistakes: 0 } }))).toBe(true);
+  });
+  it('allModes needs every mode won', () => {
+    expect(ACH_BY_ID.allModes.done(sig({ winsByMode: { classic: 1, timeAttack: 1, survival: 1, noMistakes: 0 } }))).toBe(false);
+    const all = { classic: 1, timeAttack: 1, survival: 1, noMistakes: 1 };
+    expect(ACH_BY_ID.allModes.done(sig({ winsByMode: all }))).toBe(true);
+    expect(ACH_BY_ID.allModes.progress(sig({ winsByMode: { classic: 1, timeAttack: 1, survival: 0, noMistakes: 0 } }))).toBe(2);
+  });
+  it('deeper tiers gate correctly', () => {
+    expect(ACH_BY_ID.win100.done(sig({ gamesWon: 100 }))).toBe(true);
+    expect(ACH_BY_ID.pairs2500.done(sig({ pairsMatched: 2499 }))).toBe(false);
+    expect(ACH_BY_ID.rich5000.done(sig({ pearlsEarnedTotal: 5000 }))).toBe(true);
+  });
+  it('collection completion uses ownedByAxis against catalog totals', () => {
+    expect(ACH_BY_ID.seaAll.done(sig({ ownedByAxis: { seaTheme: ACH_BY_ID.seaAll.target, cardBack: 0, uiPalette: 0 } }))).toBe(true);
+    expect(ACH_BY_ID.seaAll.done(sig({ ownedByAxis: { seaTheme: ACH_BY_ID.seaAll.target - 1, cardBack: 0, uiPalette: 0 } }))).toBe(false);
   });
 });

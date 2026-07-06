@@ -15,8 +15,8 @@ export function TasksButton() {
   const claimed = useProgress((s) => s.achievements.claimed);
   const stats = useProgress((s) => s.stats);
   const streakBest = useProgress((s) => s.streak.best);
-  const unlockedCount = useProgress((s) => s.unlocked.length);
-  const signals = buildAchSignals(stats, streakBest, unlockedCount);
+  const unlocked = useProgress((s) => s.unlocked);
+  const signals = buildAchSignals(stats, streakBest, unlocked);
   // Count of everything ready to collect (quests done-unclaimed + achievements done-unclaimed).
   const claimable =
     quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length
