@@ -14,6 +14,7 @@ import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
 import { LanguageSelect } from '@features/LanguageSelect';
 import { PearlBalance } from '@features/PearlBalance';
+import { EnergyMeter } from '@features/EnergyMeter';
 import { StoreButton } from '@features/StoreButton';
 import { DailyButton } from '@features/DailyButton';
 import { TasksButton } from '@features/TasksButton';
@@ -32,6 +33,7 @@ export function MainMenu() {
       <header className={styles.topBar}>
         <div className={styles.topLeft}>
           <PearlBalance />
+          <EnergyMeter />
           <StoreButton />
           <DailyButton />
           <TasksButton />
