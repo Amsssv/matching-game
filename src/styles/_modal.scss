@@ -16,7 +16,9 @@
   padding:
     env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
     env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.78);
+  // Fixed classic-ocean dim — deliberately NOT palette-driven, so the modal
+  // scrim reads the same regardless of the equipped UI palette (matches #001428).
+  background: rgb(0 20 40 / 0.78);
   animation: modal-fade $duration-fade ease-out;
   z-index: 20;
 }
