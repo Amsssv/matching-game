@@ -27,6 +27,7 @@ export interface Locale {
   soundOn: string;
   soundOff: string;
   play: string;
+  journeyTitle: string;
   menu: string;
   moves: (n: number) => string;
   pairs: (n: number, total: number) => string;
@@ -124,6 +125,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ВКЛЮЧЁН',
     soundOff: 'ВЫКЛЮЧЕН',
     play:    'НАЧАТЬ ИГРУ',
+    journeyTitle: 'Путешествие',
     menu:    'МЕНЮ',
     moves:   (n) => `Ходов: ${n}`,
     pairs:   (n, total) => `Пар: ${n} / ${total}`,
@@ -235,6 +237,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ON',
     soundOff: 'OFF',
     play:    'START GAME',
+    journeyTitle: 'Journey',
     menu:    'MENU',
     moves:   (n) => `Moves: ${n}`,
     pairs:   (n, total) => `Pairs: ${n} / ${total}`,
@@ -346,6 +349,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'AÇIK',
     soundOff: 'KAPALI',
     play:    'OYUNA BAŞLA',
+    journeyTitle: 'Yolculuk',
     menu:    'MENÜ',
     moves:   (n) => `Hamle: ${n}`,
     pairs:   (n, total) => `Çift: ${n} / ${total}`,
@@ -457,6 +461,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ACTIVADO',
     soundOff: 'DESACTIVADO',
     play:    'INICIAR JUEGO',
+    journeyTitle: 'Aventura',
     menu:    'MENÚ',
     moves:   (n) => `Movimientos: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -568,6 +573,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'LIGADO',
     soundOff: 'DESLIGADO',
     play:    'INICIAR JOGO',
+    journeyTitle: 'Aventura',
     menu:    'MENU',
     moves:   (n) => `Jogadas: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -682,6 +688,7 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'مفعّل',
     soundOff: 'معطّل',
     play:    'ابدأ اللعبة',
+    journeyTitle: 'رحلة',
     menu:    'القائمة',
     moves:   (n) => `الحركات: ${n}`,
     pairs:   (n, total) => `الأزواج: ${n} / ${total}`,

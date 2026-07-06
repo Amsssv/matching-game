@@ -7,6 +7,7 @@ import { LOCALES } from '../../game/i18n';
 import { Title } from './Title';
 import { Subtitle } from './Subtitle';
 import { ModePicker } from '@features/ModePicker';
+import { JourneyButton } from '@features/JourneyButton';
 import { openModeStart } from '@state/modeStartController';
 import { useProgress } from '@hooks/useProgress';
 import { SoundToggle } from '@features/SoundToggle';
@@ -44,6 +45,7 @@ export function MainMenu() {
           <Title text={L.title} />
           <Subtitle text={L.subtitle} />
           <ModePicker L={L} xp={xp} onPick={openModeStart} />
+          <JourneyButton />
         </div>
       </main>
 
