@@ -12,6 +12,12 @@ describe('campaign content', () => {
     expect(CHAPTERS[0].starsToUnlock).toBe(0);
     expect(CHAPTERS[1].starsToUnlock).toBeGreaterThan(0);
   });
+  it('every chapter has a mobile map position', () => {
+    for (const c of CHAPTERS) {
+      expect(typeof c.mobilePosition.x).toBe('number');
+      expect(typeof c.mobilePosition.y).toBe('number');
+    }
+  });
 });
 
 describe('computeStars', () => {

@@ -97,4 +97,17 @@ test.describe('Campaign', () => {
     ).toBe(true);
     await expect(page.getByTestId('menu')).toHaveCount(0);
   });
+
+  test('mobile: journey map scrolls and a chapter opens', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'mobile layout only');
+    await page.getByTestId('journey').click();
+    await expect(page.getByTestId('campaign-map')).toBeVisible();
+    const scrolls = await page.evaluate(() => {
+      const el = document.querySelector('[data-testid="campaign-map"] img')?.parentElement?.parentElement as HTMLElement | null;
+      return el ? el.scrollHeight > el.clientHeight : false;
+    });
+    expect(scrolls).toBe(true);
+    await page.getByTestId('chapter-lagoon').click();
+    await expect(page.getByTestId('island-lagoon')).toBeVisible();
+  });
 });

@@ -90,7 +90,52 @@ $teal: #5fe3da;
 .node:not(.locked):hover .disc { transform: translateY(-3px) scale(1.05); border-color: $gold; }
 .node:focus-visible .disc { outline: 2px solid $teal; outline-offset: 3px; }
 
+// ── Mobile (≤700px) serpentine trail layout ─────────────────────────────────
+// Rendered only by IslandView's isMobile branch; desktop keeps `.grid`.
+// Portrait island board: tall stage matching the `-mobile` art aspect
+// (1209×1767) so the modal stretches vertically and the trail gets room.
+.mStage {
+  aspect-ratio: 1209 / 1767;
+  background-position: center;
+}
+.mOverlay {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(6, 16, 30, 0.30), rgba(6, 16, 30, 0.42));
+}
+.pebble {
+  position: absolute; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%; background: rgba(244, 209, 138, 0.5);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); pointer-events: none; z-index: 1;
+}
+.mNode {
+  position: absolute; transform: translate(-50%, -50%); z-index: 2; width: auto;
+}
+.mNode .disc { width: 50px; height: 50px; font-size: 18px; }
+// Star row on a dark rounded plaque so earned stars read on the busy art.
+.plaque {
+  padding: 2px 7px; border-radius: 9px; height: auto;
+  background: rgba(6, 16, 30, 0.72); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+// Pulsing cyan glow on the current node — mobile only, box-shadow (not transform)
+// so the button stays click-stable.
+.mNode.current .disc { animation: island-node-pulse 1.9s ease-in-out infinite; }
+@keyframes island-node-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(95, 227, 218, 0.18), 0 0 18px 3px rgba(95, 227, 218, 0.45); }
+  50%      { box-shadow: 0 0 0 5px rgba(95, 227, 218, 0.10), 0 0 26px 6px rgba(95, 227, 218, 0.65); }
+}
+// Hint line under the stage.
+.mHint {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 12px; padding: 0 8px;
+  color: $text-muted; font-size: 12.5px; text-align: center; line-height: 1.3;
+}
+.hintDot {
+  flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: $teal; box-shadow: 0 0 8px 1px rgba(95, 227, 218, 0.6);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .scrim, .modal { animation: none; }
   .node .disc { transition: none; }
+  .mNode.current .disc { animation: none; }
 }

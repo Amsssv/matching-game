@@ -14,6 +14,7 @@ const STRING_KEYS: (keyof Locale)[] = [
   'journeyTitle', 'journeySubtitle', 'mapBack',
   'levelWord', 'goalComplete', 'goalMoves', 'goalTime', 'refillFor',
   'levelCleared', 'levelFailed', 'skinUnlocked', 'continue',
+  'levelHint', 'levelHintDone',
 ];
 
 describe('LOCALES', () => {
@@ -90,6 +91,10 @@ describe('LOCALES', () => {
         expect(L.taParams(10, 3)).toContain('10');
         expect(L.taParams(10, 3)).toContain('3');
         expect(L.previewParams(5)).toContain('5');
+      });
+
+      it('levelHint carries the {n} placeholder', () => {
+        expect(L.levelHint).toContain('{n}');
       });
     });
   }

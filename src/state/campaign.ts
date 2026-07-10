@@ -24,7 +24,8 @@ export interface CampaignChapter {
                               // biome (NOT granted; sea skins stay purchase-only)
   starsToUnlock: number;      // stars needed in the PREVIOUS chapter to unlock this one
   levels: CampaignLevel[];
-  worldPosition: { x: number; y: number };        // % of the island on world-map.webp
+  worldPosition: { x: number; y: number };        // % of the island on world-map.webp (desktop)
+  mobilePosition: { x: number; y: number };        // % of the island on world-map-mobile.webp
 }
 
 export interface LevelResult { won: boolean; seconds: number; moves: number; mistakes: number }
@@ -85,11 +86,11 @@ function buildLevels(biome: BiomeId): CampaignLevel[] {
 // worldPosition = % coords of each island on world-map.webp (reef top-left, volcano
 // top-right, abyss centre, arctic bottom-left, lagoon bottom-right).
 export const CHAPTERS: CampaignChapter[] = [
-  { biome: 'lagoon',  seaSkin: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 77, y: 75 } },
-  { biome: 'volcano', seaSkin: 'sea.lava',   starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 78, y: 18 } },
-  { biome: 'reef',    seaSkin: 'sea.reef',   starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 } },
-  { biome: 'arctic',  seaSkin: 'sea.arctic', starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 } },
-  { biome: 'abyss',   seaSkin: 'sea.abyss',  starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 } },
+  { biome: 'lagoon',  seaSkin: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 77, y: 75 }, mobilePosition: { x: 49, y: 9 } },
+  { biome: 'volcano', seaSkin: 'sea.lava',   starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 78, y: 18 }, mobilePosition: { x: 49, y: 26 } },
+  { biome: 'reef',    seaSkin: 'sea.reef',   starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 22, y: 18 }, mobilePosition: { x: 49, y: 44 } },
+  { biome: 'arctic',  seaSkin: 'sea.arctic', starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 23, y: 73 }, mobilePosition: { x: 48, y: 63 } },
+  { biome: 'abyss',   seaSkin: 'sea.abyss',  starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 50, y: 47 }, mobilePosition: { x: 49, y: 83 } },
 ];
 
 /** Map a finished game to 0–3 stars: 1 for the win + 1 per met objective, capped at 3. */
