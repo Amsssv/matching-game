@@ -1,0 +1,35 @@
+@use '../../styles/modal' as *;
+@use '../../styles/tokens' as *;
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; z-index: 35; }
+
+.panel {
+  @include modal-panel;
+  width: min(88vw, 340px);
+  // Screen-3 card look: dark gradient card w/ a soft hairline, not the
+  // shared navy panel — kept local so other modals are unaffected.
+  background: linear-gradient(180deg, rgba(12, 28, 52, 0.94), rgba(7, 18, 36, 0.96));
+  border: 1px solid rgba(233, 244, 248, 0.26);
+  border-radius: 20px;
+}
+
+.title { @include modal-title; margin: 0; }
+
+.stars {
+  font-size: 40px;
+  letter-spacing: 4px;
+  color: $gold;
+}
+
+.starDim { opacity: 0.35; }
+
+.reward {
+  color: $text-muted;
+  font-weight: 700;
+}
+
+.unlock {
+  color: $gold;
+  margin: 6px 0;
+}

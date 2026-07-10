@@ -15,6 +15,10 @@ import { HelpModal } from '@widgets/HelpModal';
 import { StoreModal } from '@widgets/StoreModal';
 import { ModeStartModal } from '@widgets/ModeStartModal';
 import { LevelUpModal } from '@widgets/LevelUpModal';
+import { CampaignMap } from '@widgets/CampaignMap';
+import { IslandView } from '@widgets/IslandView';
+import { LevelStartSheet } from '@widgets/LevelStartSheet';
+import { LevelResultModal } from '@widgets/LevelResultModal';
 
 export function App() {
   const menuActive = useUi(s => s.menu.active);
@@ -30,6 +34,10 @@ export function App() {
   const store = useUi(s => s.modal.store);
   const modeStart = useUi(s => s.modal.modeStart);
   const levelUp = useUi(s => s.modal.levelUp);
+  const campaignActive = useUi(s => s.campaign.active);
+  const island = useUi(s => s.modal.island);
+  const levelStart = useUi(s => s.modal.levelStart);
+  const levelResult = useUi(s => s.modal.levelResult);
   const visible = useUi(s => s.transition.visible);
 
   // Click feedback for every overlay button (menu, HUD, all modals) via one
@@ -82,6 +90,10 @@ export function App() {
         {store && <StoreModal />}
         {modeStart && <ModeStartModal />}
         {levelUp && <LevelUpModal />}
+        {campaignActive && !island && <CampaignMap />}
+        {campaignActive && island && <IslandView />}
+        {levelStart && <LevelStartSheet />}
+        {levelResult && <LevelResultModal />}
       </div>
 
       {/* Scene-transition cover. Replaces the per-frame Phaser camera fade (which

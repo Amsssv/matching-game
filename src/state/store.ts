@@ -1,10 +1,11 @@
 import { createStore } from './createStore';
-import type { UiState, MenuState, HudState, ModalState } from './types';
+import type { UiState, MenuState, HudState, ModalState, CampaignSceneState } from './types';
 
 const INITIAL: UiState = {
   menu: { active: false, difficulty: 'medium', mode: 'classic', soundEnabled: true, lang: 'ru' },
   hud: { active: false, timer: '0:00', moves: '', pairs: '', movesCount: 0, pairsFound: 0, pairsTotal: 0, mode: 'classic', timerWarning: false, preview: null },
-  modal: { victory: null, defeat: null, modeStart: null, leaderboard: null, shop: null, daily: null, tasks: null, profile: false, help: false, store: false, levelUp: null },
+  modal: { victory: null, defeat: null, modeStart: null, leaderboard: null, shop: null, daily: null, tasks: null, profile: false, help: false, store: false, levelUp: null, island: null, levelStart: null, levelResult: null },
+  campaign: { active: false },
   transition: { visible: true },
 };
 
@@ -24,6 +25,9 @@ export const setHud = (patch: Partial<HudState>) =>
 
 export const setModal = (patch: Partial<ModalState>) =>
   uiStore.set({ modal: { ...uiStore.get().modal, ...patch } });
+
+export const setCampaign = (patch: Partial<CampaignSceneState>) =>
+  uiStore.set({ campaign: { ...uiStore.get().campaign, ...patch } });
 
 export const setTransition = (visible: boolean) =>
   uiStore.set({ transition: { visible } });

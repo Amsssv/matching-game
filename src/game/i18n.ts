@@ -1,4 +1,5 @@
 import type { GameMode } from './modes';
+import type { BiomeId } from '../state/campaign';
 
 export type Lang = 'ru' | 'en' | 'tr' | 'es' | 'pt' | 'ar';
 
@@ -27,6 +28,8 @@ export interface Locale {
   soundOn: string;
   soundOff: string;
   play: string;
+  journeyTitle: string;
+  journeySubtitle: string;  // world-map screen: small tracked subtitle under the title
   menu: string;
   moves: (n: number) => string;
   pairs: (n: number, total: number) => string;
@@ -82,6 +85,19 @@ export interface Locale {
   shopTabExclusive: string;   // store section header: exclusives
   bundleIncludes: string;     // "Includes:" prefix on a bundle card
   bundleOwned: string;        // bundle fully-owned state label
+  levelWord: string;       // "Level" label (campaign level-start sheet title, e.g. "Level 3")
+  goalComplete: string;    // campaign level goal: complete the level
+  goalMoves: string;       // campaign level goal: within {n} moves
+  goalTime: string;        // campaign level goal: within {n} seconds
+  refillFor: string;       // energy refill button label, e.g. "Refill for {n}"
+  levelCleared: string;    // level-result modal title (win)
+  levelFailed: string;     // level-result modal title (loss)
+  skinUnlocked: string;    // level-result modal: new skin unlocked line
+  continue: string;        // level-result modal continue button
+  mapBack: string;         // island-view header back button label, e.g. "Map"
+  biomeNames: Record<BiomeId, string>;   // island-view header gold title per chapter
+  levelHint: string;       // island-view mobile hint; "{n}" → current level index
+  levelHintDone: string;   // island-view mobile hint when all levels cleared
 }
 
 export const LOCALES: Record<Lang, Locale> = {
@@ -124,6 +140,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ВКЛЮЧЁН',
     soundOff: 'ВЫКЛЮЧЕН',
     play:    'НАЧАТЬ ИГРУ',
+    journeyTitle: 'Путешествие',
+    journeySubtitle: 'ВЫБЕРИТЕ МИР',
     menu:    'МЕНЮ',
     moves:   (n) => `Ходов: ${n}`,
     pairs:   (n, total) => `Пар: ${n} / ${total}`,
@@ -152,6 +170,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'Ежедневная награда', dailyClaim: 'Забрать', dailyDouble: 'Удвоить за рекламу', dailyComeBack: 'Возвращайтесь завтра!',
     storeTitle: 'Магазин', iapBuy: 'Купить', storePacks: 'Жемчуг', storeBundles: 'Наборы',
     shopTabExclusive: 'Эксклюзив', bundleIncludes: 'В наборе:', bundleOwned: 'Получено',
+    levelWord: 'Уровень', goalComplete: 'Пройти уровень', goalMoves: 'За {n} ходов', goalTime: 'За {n} сек',
+    refillFor: 'Пополнить за {n}', levelCleared: 'Уровень пройден!', levelFailed: 'Не пройден',
+    skinUnlocked: 'Открыт новый скин!', continue: 'Продолжить',
+    mapBack: 'Карта',
+    biomeNames: { lagoon: 'ПЕСЧАНАЯ БУХТА', volcano: 'ОГНЕННЫЙ КРАТЕР', reef: 'КОРАЛЛОВЫЙ РИФ', arctic: 'ЛЕДЯНОЙ БЕРЕГ', abyss: 'КРИСТАЛЬНЫЙ ГРОТ' },
+    levelHint: 'Ваш ход — уровень {n}. Тропа показывает путь.',
+    levelHintDone: 'Мир пройден!',
     tasks:'Задания', tasksTabQuests:'Квесты', tasksTabAch:'Достижения', taskClaim:'Забрать', taskClaimed:'Получено', taskReroll:'Обновить',
     quests: { qWinGames:'Выиграй 3 игры', qMatchPairs:'Собери 20 пар', qPlayGames:'Сыграй 5 игр', qWinHard:'Победа на сложном', qPerfectWin:'Идеальная игра', qFastWin:'Быстрая победа', qWinMedium:'2 победы на среднем', qMatchPairsBig:'Собери 40 пар' },
     achievements: { aFirstWin:'Первая победа', aWin10:'10 побед', aWin50:'50 побед', aPairs100:'100 пар', aPairs500:'500 пар', aExpertWin:'Победа на эксперте', aAllDifficulties:'Все сложности', aStreak7:'Стрик 7 дней', aCollector:'5 предметов в коллекции', aRich:'1000 жемчуга всего', aPerfectionist:'10 идеальных игр', aSpeedrunner:'10 быстрых побед', aWin25:'25 побед', aPlay25:'Сыграй 25 игр', aPlay100:'Сыграй 100 игр', aPairs1000:'1000 пар', aHardMaster:'10 побед на сложном', aExpertMaster:'10 побед на эксперте', aStreak30:'Стрик 30 дней', aCollector15:'15 предметов в коллекции', aLevel5:'Уровень 5', aLevel10:'Уровень 10', aTaWin:'Победа в режиме "На время"', aTaWin10:'10 побед в режиме "На время"', aSurvWin:'Победа в режиме "Выживание"', aSurvWin10:'10 побед в режиме "Выживание"', aNmWin:'Победа в режиме "Без ошибок"', aNmWin10:'10 побед в режиме "Без ошибок"', aAllModes:'Победа во всех режимах', aWin100:'100 побед', aPlay250:'Сыграй 250 игр', aPairs2500:'2500 пар', aPerfect25:'25 идеальных игр', aFast25:'25 быстрых побед', aStreak14:'Стрик 14 дней', aRich5000:'5000 жемчуга всего', aSeaAll:'Все морские темы', aBacksAll:'Все рубашки карт', aPalettesAll:'Все палитры интерфейса' },
@@ -172,6 +197,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'На время (со 2 уровня) — успей до конца таймера; каждая пара добавляет секунды.',
           'Выживание (с 3 уровня) — ошибка закрывает все найденные пары.',
           'Без ошибок (с 5 уровня) — запомни карты за время показа; одна ошибка — поражение.',
+        ] },
+        { h: 'Путешествие', lines: [
+          'Карта из островов-глав, в каждой 12 уровней со своими целями.',
+          'Звёзды: 1 за победу и по звезде за цели (мало ходов, быстрое время, без ошибок) — до 3 за уровень.',
+          'Энергия: запуск уровня тратит 1 жизнь (макс 5); жизнь восстанавливается за 25 минут или пополни за жемчуг.',
+          'Новые острова открываются, когда наберёшь достаточно звёзд.',
         ] },
         { h: 'Что есть в игре', lines: [
           'Коллекция — открывай оформление моря, рубашки и палитры за жемчуг.',
@@ -235,6 +266,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ON',
     soundOff: 'OFF',
     play:    'START GAME',
+    journeyTitle: 'Journey',
+    journeySubtitle: 'CHOOSE A WORLD',
     menu:    'MENU',
     moves:   (n) => `Moves: ${n}`,
     pairs:   (n, total) => `Pairs: ${n} / ${total}`,
@@ -263,6 +296,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'Daily reward', dailyClaim: 'Claim', dailyDouble: 'Double via ad', dailyComeBack: 'Come back tomorrow!',
     storeTitle: 'Store', iapBuy: 'Buy', storePacks: 'Pearls', storeBundles: 'Bundles',
     shopTabExclusive: 'Exclusive', bundleIncludes: 'Includes:', bundleOwned: 'Owned',
+    levelWord: 'Level', goalComplete: 'Complete the level', goalMoves: 'Within {n} moves', goalTime: 'Within {n}s',
+    refillFor: 'Refill for {n}', levelCleared: 'Level cleared!', levelFailed: 'Level failed',
+    skinUnlocked: 'New skin unlocked!', continue: 'Continue',
+    mapBack: 'Map',
+    biomeNames: { lagoon: 'SANDY BAY', volcano: 'FIRE CRATER', reef: 'CORAL REEF', arctic: 'ICY SHORE', abyss: 'CRYSTAL GROTTO' },
+    levelHint: 'Your turn — level {n}. The trail shows the way.',
+    levelHintDone: 'World complete!',
     tasks:'Tasks', tasksTabQuests:'Quests', tasksTabAch:'Achievements', taskClaim:'Claim', taskClaimed:'Claimed', taskReroll:'Reroll',
     quests: { qWinGames:'Win 3 games', qMatchPairs:'Match 20 pairs', qPlayGames:'Play 5 games', qWinHard:'Win on hard', qPerfectWin:'A perfect game', qFastWin:'A fast win', qWinMedium:'Win 2 on medium', qMatchPairsBig:'Match 40 pairs' },
     achievements: { aFirstWin:'First win', aWin10:'10 wins', aWin50:'50 wins', aPairs100:'100 pairs', aPairs500:'500 pairs', aExpertWin:'Win on expert', aAllDifficulties:'All difficulties', aStreak7:'7-day streak', aCollector:'5 cosmetics owned', aRich:'1000 pearls earned', aPerfectionist:'10 perfect games', aSpeedrunner:'10 fast wins', aWin25:'25 wins', aPlay25:'Play 25 games', aPlay100:'Play 100 games', aPairs1000:'1000 pairs', aHardMaster:'10 wins on hard', aExpertMaster:'10 wins on expert', aStreak30:'30-day streak', aCollector15:'15 cosmetics owned', aLevel5:'Level 5', aLevel10:'Level 10', aTaWin:'Win in Time Attack', aTaWin10:'10 wins in Time Attack', aSurvWin:'Win in Survival', aSurvWin10:'10 wins in Survival', aNmWin:'Win in No Mistakes', aNmWin10:'10 wins in No Mistakes', aAllModes:'Win in every mode', aWin100:'100 wins', aPlay250:'Play 250 games', aPairs2500:'2500 pairs', aPerfect25:'25 perfect games', aFast25:'25 fast wins', aStreak14:'14-day streak', aRich5000:'5000 pearls earned', aSeaAll:'All sea themes', aBacksAll:'All card backs', aPalettesAll:'All UI palettes' },
@@ -290,6 +330,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Tasks — quests and achievements with rewards.',
           'Records — the leaderboard of best results.',
           'Store — pearl packs, bundles and exclusive items for real money.',
+        ] },
+        { h: 'Journey', lines: [
+          'A map of island chapters, each with 12 levels and their own goals.',
+          'Stars: 1 for winning plus a star per goal met (few moves, fast time, no mistakes) — up to 3 per level.',
+          'Energy: starting a level costs 1 life (max 5); a life refills every 25 minutes, or top up with pearls.',
+          'New islands unlock once you earn enough stars.',
         ] },
         { h: 'How to earn pearls', lines: [
           'A base reward for every win.',
@@ -346,6 +392,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'AÇIK',
     soundOff: 'KAPALI',
     play:    'OYUNA BAŞLA',
+    journeyTitle: 'Yolculuk',
+    journeySubtitle: 'BİR DÜNYA SEÇ',
     menu:    'MENÜ',
     moves:   (n) => `Hamle: ${n}`,
     pairs:   (n, total) => `Çift: ${n} / ${total}`,
@@ -374,6 +422,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'Günlük ödül', dailyClaim: 'AL', dailyDouble: 'REKLAMLA İKİYE KATLA', dailyComeBack: 'Yarın tekrar gel!',
     storeTitle: 'Mağaza', iapBuy: 'Satın al', storePacks: 'İnci', storeBundles: 'Paketler',
     shopTabExclusive: 'Özel', bundleIncludes: 'İçindekiler:', bundleOwned: 'Alındı',
+    levelWord: 'Seviye', goalComplete: 'Seviyeyi tamamla', goalMoves: '{n} hamlede', goalTime: '{n} sn içinde',
+    refillFor: '{n} karşılığında doldur', levelCleared: 'Seviye geçildi!', levelFailed: 'Başarısız',
+    skinUnlocked: 'Yeni görünüm açıldı!', continue: 'Devam',
+    mapBack: 'Harita',
+    biomeNames: { lagoon: 'KUMSAL KOYU', volcano: 'ATEŞ KRATERİ', reef: 'MERCAN RESİFİ', arctic: 'BUZLU KIYI', abyss: 'KRİSTAL MAĞARA' },
+    levelHint: 'Sıra sende — bölüm {n}. İz yolu gösterir.',
+    levelHintDone: 'Dünya tamamlandı!',
     tasks:'Görevler', tasksTabQuests:'Görevler', tasksTabAch:'Başarılar', taskClaim:'AL', taskClaimed:'ALINDI', taskReroll:'YENİLE',
     quests: { qWinGames:'3 oyun kazan', qMatchPairs:'20 çift eşleştir', qPlayGames:'5 oyun oyna', qWinHard:'Zorda kazan', qPerfectWin:'Kusursuz oyun', qFastWin:'Hızlı zafer', qWinMedium:'Ortada 2 kez kazan', qMatchPairsBig:'40 çift eşleştir' },
     achievements: { aFirstWin:'İlk zafer', aWin10:'10 zafer', aWin50:'50 zafer', aPairs100:'100 çift', aPairs500:'500 çift', aExpertWin:'Uzmanda kazan', aAllDifficulties:'Tüm zorluklar', aStreak7:'7 günlük seri', aCollector:'5 kozmetik sahibi', aRich:'Toplam 1000 inci', aPerfectionist:'10 kusursuz oyun', aSpeedrunner:'10 hızlı zafer', aWin25:'25 zafer', aPlay25:'25 oyun oyna', aPlay100:'100 oyun oyna', aPairs1000:'1000 çift', aHardMaster:'Zorda 10 zafer', aExpertMaster:'Uzmanda 10 zafer', aStreak30:'30 günlük seri', aCollector15:'15 kozmetik sahibi', aLevel5:'5. seviye', aLevel10:'10. seviye', aTaWin:"Zamana Karşı'da kazan", aTaWin10:"Zamana Karşı'da 10 zafer", aSurvWin:"Hayatta Kalma'da kazan", aSurvWin10:"Hayatta Kalma'da 10 zafer", aNmWin:'Hatasız modunda kazan', aNmWin10:'Hatasız modunda 10 zafer', aAllModes:'Her modda kazan', aWin100:'100 zafer', aPlay250:'250 oyun oyna', aPairs2500:'2500 çift', aPerfect25:'25 kusursuz oyun', aFast25:'25 hızlı zafer', aStreak14:'14 günlük seri', aRich5000:'Toplam 5000 inci', aSeaAll:'Tüm deniz temaları', aBacksAll:'Tüm kart arkaları', aPalettesAll:'Tüm paletler' },
@@ -394,6 +449,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Zamana karşı (2. seviyeden) — süre dolmadan bitir; her çift saniye ekler.',
           'Hayatta kalma (3. seviyeden) — bir hata bulunan tüm çiftleri kapatır.',
           'Hatasız (5. seviyeden) — gösterimde kartları ezberle; tek hata kaybettirir.',
+        ] },
+        { h: 'Yolculuk', lines: [
+          'Ada-bölümlerden oluşan bir harita; her birinde kendi hedefli 12 seviye.',
+          'Yıldızlar: galibiyet için 1, her hedef için birer yıldız (az hamle, hızlı süre, hatasız) — seviye başına 3’e kadar.',
+          'Enerji: bir seviyeyi başlatmak 1 can harcar (en fazla 5); bir can 25 dakikada dolar veya inciyle doldur.',
+          'Yeterince yıldız topladıkça yeni adalar açılır.',
         ] },
         { h: 'Oyunda neler var', lines: [
           'Koleksiyon — inci ile deniz temaları, kart arkaları ve paletler aç.',
@@ -457,6 +518,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'ACTIVADO',
     soundOff: 'DESACTIVADO',
     play:    'INICIAR JUEGO',
+    journeyTitle: 'Aventura',
+    journeySubtitle: 'ELIGE UN MUNDO',
     menu:    'MENÚ',
     moves:   (n) => `Movimientos: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -485,6 +548,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'Recompensa diaria', dailyClaim: 'RECLAMAR', dailyDouble: 'DUPLICAR CON ANUNCIO', dailyComeBack: '¡Vuelve mañana!',
     storeTitle: 'Tienda', iapBuy: 'Comprar', storePacks: 'Perlas', storeBundles: 'Packs',
     shopTabExclusive: 'Exclusivo', bundleIncludes: 'Incluye:', bundleOwned: 'Obtenido',
+    levelWord: 'Nivel', goalComplete: 'Completa el nivel', goalMoves: 'En {n} movimientos', goalTime: 'En {n}s',
+    refillFor: 'Rellenar por {n}', levelCleared: '¡Nivel superado!', levelFailed: 'Nivel fallido',
+    skinUnlocked: '¡Nuevo aspecto desbloqueado!', continue: 'Continuar',
+    mapBack: 'Mapa',
+    biomeNames: { lagoon: 'BAHÍA DE ARENA', volcano: 'CRÁTER DE FUEGO', reef: 'ARRECIFE DE CORAL', arctic: 'COSTA HELADA', abyss: 'GRUTA DE CRISTAL' },
+    levelHint: 'Tu turno — nivel {n}. El sendero muestra el camino.',
+    levelHintDone: '¡Mundo completado!',
     tasks:'Tareas', tasksTabQuests:'Misiones', tasksTabAch:'Logros', taskClaim:'RECLAMAR', taskClaimed:'OBTENIDO', taskReroll:'CAMBIAR',
     quests: { qWinGames:'Gana 3 partidas', qMatchPairs:'Empareja 20 pares', qPlayGames:'Juega 5 partidas', qWinHard:'Gana en difícil', qPerfectWin:'Partida perfecta', qFastWin:'Victoria rápida', qWinMedium:'Gana 2 en medio', qMatchPairsBig:'Empareja 40 pares' },
     achievements: { aFirstWin:'Primera victoria', aWin10:'10 victorias', aWin50:'50 victorias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Gana en experto', aAllDifficulties:'Todas las dificultades', aStreak7:'Racha de 7 días', aCollector:'5 cosméticos', aRich:'1000 perlas en total', aPerfectionist:'10 partidas perfectas', aSpeedrunner:'10 victorias rápidas', aWin25:'25 victorias', aPlay25:'Juega 25 partidas', aPlay100:'Juega 100 partidas', aPairs1000:'1000 pares', aHardMaster:'10 victorias en difícil', aExpertMaster:'10 victorias en experto', aStreak30:'Racha de 30 días', aCollector15:'15 cosméticos', aLevel5:'Nivel 5', aLevel10:'Nivel 10', aTaWin:'Gana en Contrarreloj', aTaWin10:'10 victorias en Contrarreloj', aSurvWin:'Gana en Supervivencia', aSurvWin10:'10 victorias en Supervivencia', aNmWin:'Gana en Sin Errores', aNmWin10:'10 victorias en Sin Errores', aAllModes:'Gana en todos los modos', aWin100:'100 victorias', aPlay250:'Juega 250 partidas', aPairs2500:'2500 pares', aPerfect25:'25 partidas perfectas', aFast25:'25 victorias rápidas', aStreak14:'Racha de 14 días', aRich5000:'5000 perlas en total', aSeaAll:'Todos los temas de mar', aBacksAll:'Todos los reversos', aPalettesAll:'Todas las paletas' },
@@ -505,6 +575,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Contrarreloj (desde nivel 2) — gana al temporizador; cada par añade segundos.',
           'Supervivencia (desde nivel 3) — un fallo cierra todos los pares encontrados.',
           'Sin errores (desde nivel 5) — memoriza la vista previa; un error pierde la partida.',
+        ] },
+        { h: 'Aventura', lines: [
+          'Un mapa de islas-capítulos, cada una con 12 niveles y sus propios objetivos.',
+          'Estrellas: 1 por ganar y una estrella por cada objetivo (pocos movimientos, tiempo rápido, sin errores) — hasta 3 por nivel.',
+          'Energía: iniciar un nivel cuesta 1 vida (máx. 5); una vida se recupera cada 25 minutos o recárgala con perlas.',
+          'Se desbloquean nuevas islas cuando consigues suficientes estrellas.',
         ] },
         { h: 'Qué hay en el juego', lines: [
           'Colección — desbloquea mares, reversos y paletas con perlas.',
@@ -568,6 +644,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'LIGADO',
     soundOff: 'DESLIGADO',
     play:    'INICIAR JOGO',
+    journeyTitle: 'Aventura',
+    journeySubtitle: 'ESCOLHA UM MUNDO',
     menu:    'MENU',
     moves:   (n) => `Jogadas: ${n}`,
     pairs:   (n, total) => `Pares: ${n} / ${total}`,
@@ -596,6 +674,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'Recompensa diária', dailyClaim: 'RESGATAR', dailyDouble: 'DOBRAR COM ANÚNCIO', dailyComeBack: 'Volte amanhã!',
     storeTitle: 'Loja', iapBuy: 'Comprar', storePacks: 'Pérolas', storeBundles: 'Pacotes',
     shopTabExclusive: 'Exclusivo', bundleIncludes: 'Inclui:', bundleOwned: 'Obtido',
+    levelWord: 'Nível', goalComplete: 'Complete o nível', goalMoves: 'Em {n} jogadas', goalTime: 'Em {n}s',
+    refillFor: 'Recarregar por {n}', levelCleared: 'Nível concluído!', levelFailed: 'Nível falhou',
+    skinUnlocked: 'Novo visual desbloqueado!', continue: 'Continuar',
+    mapBack: 'Mapa',
+    biomeNames: { lagoon: 'BAÍA DE AREIA', volcano: 'CRATERA DE FOGO', reef: 'RECIFE DE CORAL', arctic: 'COSTA GELADA', abyss: 'GRUTA DE CRISTAL' },
+    levelHint: 'Sua vez — nível {n}. A trilha mostra o caminho.',
+    levelHintDone: 'Mundo concluído!',
     tasks:'Tarefas', tasksTabQuests:'Missões', tasksTabAch:'Conquistas', taskClaim:'RESGATAR', taskClaimed:'RESGATADO', taskReroll:'TROCAR',
     quests: { qWinGames:'Vença 3 jogos', qMatchPairs:'Combine 20 pares', qPlayGames:'Jogue 5 jogos', qWinHard:'Vença no difícil', qPerfectWin:'Jogo perfeito', qFastWin:'Vitória rápida', qWinMedium:'Vença 2 no médio', qMatchPairsBig:'Combine 40 pares' },
     achievements: { aFirstWin:'Primeira vitória', aWin10:'10 vitórias', aWin50:'50 vitórias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Vença no especialista', aAllDifficulties:'Todas as dificuldades', aStreak7:'Sequência de 7 dias', aCollector:'5 cosméticos', aRich:'1000 pérolas no total', aPerfectionist:'10 jogos perfeitos', aSpeedrunner:'10 vitórias rápidas', aWin25:'25 vitórias', aPlay25:'Jogue 25 jogos', aPlay100:'Jogue 100 jogos', aPairs1000:'1000 pares', aHardMaster:'10 vitórias no difícil', aExpertMaster:'10 vitórias no especialista', aStreak30:'Sequência de 30 dias', aCollector15:'15 cosméticos', aLevel5:'Nível 5', aLevel10:'Nível 10', aTaWin:'Vença em Contra o Tempo', aTaWin10:'10 vitórias em Contra o Tempo', aSurvWin:'Vença em Sobrevivência', aSurvWin10:'10 vitórias em Sobrevivência', aNmWin:'Vença em Sem Erros', aNmWin10:'10 vitórias em Sem Erros', aAllModes:'Vença em todos os modos', aWin100:'100 vitórias', aPlay250:'Jogue 250 jogos', aPairs2500:'2500 pares', aPerfect25:'25 jogos perfeitos', aFast25:'25 vitórias rápidas', aStreak14:'Sequência de 14 dias', aRich5000:'5000 pérolas no total', aSeaAll:'Todos os temas de mar', aBacksAll:'Todos os versos', aPalettesAll:'Todas as paletas' },
@@ -616,6 +701,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'Contra o tempo (do nível 2) — vença o cronômetro; cada par adiciona segundos.',
           'Sobrevivência (do nível 3) — um erro fecha todos os pares encontrados.',
           'Sem erros (do nível 5) — memorize a prévia; um erro perde o jogo.',
+        ] },
+        { h: 'Aventura', lines: [
+          'Um mapa de ilhas-capítulos, cada uma com 12 níveis e objetivos próprios.',
+          'Estrelas: 1 por vencer e uma estrela por objetivo (poucos movimentos, tempo rápido, sem erros) — até 3 por nível.',
+          'Energia: iniciar um nível custa 1 vida (máx. 5); uma vida recupera a cada 25 minutos, ou reabasteça com pérolas.',
+          'Novas ilhas são desbloqueadas quando você ganha estrelas suficientes.',
         ] },
         { h: 'O que há no jogo', lines: [
           'Coleção — desbloqueie mares, versos e paletas com pérolas.',
@@ -682,6 +773,8 @@ export const LOCALES: Record<Lang, Locale> = {
     soundOn: 'مفعّل',
     soundOff: 'معطّل',
     play:    'ابدأ اللعبة',
+    journeyTitle: 'رحلة',
+    journeySubtitle: 'اختر عالمًا',
     menu:    'القائمة',
     moves:   (n) => `الحركات: ${n}`,
     pairs:   (n, total) => `الأزواج: ${n} / ${total}`,
@@ -710,6 +803,13 @@ export const LOCALES: Record<Lang, Locale> = {
     dailyTitle: 'المكافأة اليومية', dailyClaim: 'استلام', dailyDouble: 'مضاعفة عبر إعلان', dailyComeBack: 'عُد غداً!',
     storeTitle: 'المتجر', iapBuy: 'شراء', storePacks: 'اللؤلؤ', storeBundles: 'الحزم',
     shopTabExclusive: 'حصري', bundleIncludes: 'يشمل:', bundleOwned: 'تم الحصول',
+    levelWord: 'المستوى', goalComplete: 'أكمل المستوى', goalMoves: 'خلال {n} حركة', goalTime: 'خلال {n} ثانية',
+    refillFor: 'أعد الملء مقابل {n}', levelCleared: 'اكتمل المستوى!', levelFailed: 'فشل المستوى',
+    skinUnlocked: 'تم فتح مظهر جديد!', continue: 'متابعة',
+    mapBack: 'الخريطة',
+    biomeNames: { lagoon: 'الخليج الرملي', volcano: 'فوهة النار', reef: 'الشعاب المرجانية', arctic: 'الشاطئ الجليدي', abyss: 'كهف الكريستال' },
+    levelHint: 'دورك — المستوى {n}. يوضح المسار الطريق.',
+    levelHintDone: 'اكتمل العالم!',
     tasks:'المهام', tasksTabQuests:'المهام', tasksTabAch:'الإنجازات', taskClaim:'استلام', taskClaimed:'تم الاستلام', taskReroll:'تبديل',
     quests: { qWinGames:'افز بـ ٣ مباريات', qMatchPairs:'طابق ٢٠ زوجاً', qPlayGames:'العب ٥ مباريات', qWinHard:'فز في الصعب', qPerfectWin:'مباراة مثالية', qFastWin:'فوز سريع', qWinMedium:'افز مرتين في المتوسط', qMatchPairsBig:'طابق ٤٠ زوجاً' },
     achievements: { aFirstWin:'الفوز الأول', aWin10:'١٠ انتصارات', aWin50:'٥٠ انتصاراً', aPairs100:'١٠٠ زوج', aPairs500:'٥٠٠ زوج', aExpertWin:'فز في الخبير', aAllDifficulties:'جميع الصعوبات', aStreak7:'سلسلة ٧ أيام', aCollector:'٥ عناصر تجميلية', aRich:'١٠٠٠ لؤلؤة إجمالاً', aPerfectionist:'١٠ مباريات مثالية', aSpeedrunner:'١٠ انتصارات سريعة', aWin25:'٢٥ انتصاراً', aPlay25:'العب ٢٥ مباراة', aPlay100:'العب ١٠٠ مباراة', aPairs1000:'١٠٠٠ زوج', aHardMaster:'١٠ انتصارات في الصعب', aExpertMaster:'١٠ انتصارات في الخبير', aStreak30:'سلسلة ٣٠ يوماً', aCollector15:'١٥ عنصراً تجميلياً', aLevel5:'المستوى ٥', aLevel10:'المستوى ١٠', aTaWin:'فز في وضع ضد الوقت', aTaWin10:'١٠ انتصارات في وضع ضد الوقت', aSurvWin:'فز في وضع البقاء', aSurvWin10:'١٠ انتصارات في وضع البقاء', aNmWin:'فز في وضع بدون أخطاء', aNmWin10:'١٠ انتصارات في وضع بدون أخطاء', aAllModes:'فز في كل الأوضاع', aWin100:'١٠٠ انتصار', aPlay250:'العب ٢٥٠ مباراة', aPairs2500:'٢٥٠٠ زوج', aPerfect25:'٢٥ مباراة مثالية', aFast25:'٢٥ انتصاراً سريعاً', aStreak14:'سلسلة ١٤ يوماً', aRich5000:'٥٠٠٠ لؤلؤة إجمالاً', aSeaAll:'كل ثيمات البحر', aBacksAll:'كل ظهور البطاقات', aPalettesAll:'كل الألوان' },
@@ -730,6 +830,12 @@ export const LOCALES: Record<Lang, Locale> = {
           'ضد الوقت (من المستوى 2) — اسبق المؤقت؛ كل زوج يضيف ثواني.',
           'البقاء (من المستوى 3) — خطأ واحد يغلق كل الأزواج المكشوفة.',
           'بدون أخطاء (من المستوى 5) — احفظ البطاقات أثناء العرض؛ خطأ واحد يخسر اللعبة.',
+        ] },
+        { h: 'رحلة', lines: [
+          'خريطة من الجزر-الفصول، في كل منها 12 مستوى بأهدافها الخاصة.',
+          'النجوم: نجمة للفوز ونجمة لكل هدف (نقلات قليلة، وقت سريع، بلا أخطاء) — حتى 3 لكل مستوى.',
+          'الطاقة: بدء المستوى يكلّف حياة واحدة (بحد أقصى 5)؛ تُستعاد حياة كل 25 دقيقة أو املأها باللؤلؤ.',
+          'تُفتح جزر جديدة عندما تجمع نجومًا كافية.',
         ] },
         { h: 'ماذا في اللعبة', lines: [
           'المجموعة — افتح أشكال البحر وظهور البطاقات والألوان مقابل اللؤلؤ.',

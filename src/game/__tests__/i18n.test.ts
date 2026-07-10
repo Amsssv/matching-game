@@ -5,11 +5,16 @@ import type { Lang, Locale } from '../i18n';
 const LANGS: Lang[] = ['ru', 'en', 'tr', 'es', 'pt', 'ar'];
 const DIFFS = ['easy', 'medium', 'hard', 'expert'] as const;
 const MODES = ['classic', 'timeAttack', 'survival', 'noMistakes'] as const;
+const BIOMES = ['lagoon', 'volcano', 'reef', 'arctic', 'abyss'] as const;
 
 const STRING_KEYS: (keyof Locale)[] = [
   'title', 'subtitle', 'difficulty', 'sound', 'soundOn', 'soundOff',
   'play', 'menu', 'victory', 'allPairsFound', 'restart', 'toMenu',
   'modesTitle', 'modeRecommended', 'modeBeginner', 'playCta', 'memorize', 'defeatTimeout', 'defeatMistake',
+  'journeyTitle', 'journeySubtitle', 'mapBack',
+  'levelWord', 'goalComplete', 'goalMoves', 'goalTime', 'refillFor',
+  'levelCleared', 'levelFailed', 'skinUnlocked', 'continue',
+  'levelHint', 'levelHintDone',
 ];
 
 describe('LOCALES', () => {
@@ -65,6 +70,13 @@ describe('LOCALES', () => {
         expect(L.timeResult('02:45')).toContain('02:45');
       });
 
+      it('biomeNames defined for all campaign biomes', () => {
+        for (const b of BIOMES) {
+          expect(typeof L.biomeNames[b], `biomeNames.${b}`).toBe('string');
+          expect(L.biomeNames[b].length, `biomeNames.${b} empty`).toBeGreaterThan(0);
+        }
+      });
+
       it('modeLabels + modeDesc defined for all modes', () => {
         for (const m of MODES) {
           expect(L.modeLabels[m].length, `modeLabels.${m}`).toBeGreaterThan(0);
@@ -79,6 +91,10 @@ describe('LOCALES', () => {
         expect(L.taParams(10, 3)).toContain('10');
         expect(L.taParams(10, 3)).toContain('3');
         expect(L.previewParams(5)).toContain('5');
+      });
+
+      it('levelHint carries the {n} placeholder', () => {
+        expect(L.levelHint).toContain('{n}');
       });
     });
   }

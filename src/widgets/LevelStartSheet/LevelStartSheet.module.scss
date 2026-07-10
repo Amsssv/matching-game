@@ -1,0 +1,54 @@
+@use '../../styles/modal' as *;
+@use '../../styles/tokens' as *;
+@include modal-keyframes;
+
+.backdrop { @include modal-backdrop; z-index: 34; }
+
+.sheet {
+  @include modal-panel;
+  width: min(88vw, 340px);
+  // Screen-3 card look: dark gradient card w/ a soft hairline, not the
+  // shared navy panel — kept local so other modals are unaffected.
+  background: linear-gradient(180deg, rgba(12, 28, 52, 0.94), rgba(7, 18, 36, 0.96));
+  border: 1px solid rgba(233, 244, 248, 0.26);
+  border-radius: 20px;
+}
+
+.title { @include modal-title; margin: 0; }
+
+.goals {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 15px;
+  color: $white;
+  text-align: left;
+}
+
+.gstar { color: $gold; font-size: 16px; flex: 0 0 auto; }
+
+.cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: #ffc6c6;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.heart { color: $coral; }

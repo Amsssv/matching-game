@@ -1,0 +1,224 @@
+@use '../../styles/tokens' as *;
+
+// Transparent full-bleed overlay: the world map is drawn on the CampaignScene
+// canvas behind it. Nodes are positioned as % of the viewport, matching the
+// canvas map (stretched to fill), so they stay aligned. NOT a modal (no scrim) —
+// only the two chrome bars + island badges are visible, mirroring the approved
+// journey prototype (translucent dark bars, gold serif title, gold/teal accents).
+$teal: #5fe3da;
+$hairline: rgba(233, 244, 248, 0.14);
+$panel: rgba(8, 23, 44, 0.72);
+
+// No z-index: `position: fixed` already makes this a stacking context layered
+// over the canvas. Keeping it at z-index:auto lets shared modals opened from the
+// chrome bars (help/store/daily/tasks/leaderboard/profile — modal-backdrop z:20)
+// render ABOVE the map + island badges so they stay clickable/closable, exactly
+// like MainMenu. The bars/nodes below stay ordered WITHIN this context.
+.backdrop { pointer-events: auto; position: fixed; inset: 0; }
+
+// ── Chrome bars (top + bottom) ──────────────────────────────────────────────
+.bar {
+  position: fixed; left: 0; right: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: clamp(8px, 2vw, 16px);
+  padding: 10px clamp(10px, 3vw, 18px);
+  background: $panel;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+
+  &[data-bar='top'] {
+    top: 0;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid $hairline;
+  }
+  &[data-bar='bottom'] {
+    bottom: 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid $hairline;
+  }
+}
+// (Mobile chrome is a separate layout — see `.mTop`/`.mFeatureRail`/`.mBottom` below.)
+.cluster {
+  display: flex; align-items: center; gap: clamp(4px, 1.4vw, 10px);
+  pointer-events: auto;
+  min-width: 0;
+}
+// PearlBalance renders itself absolutely-positioned (designed for the main menu
+// corner); reset it back into flow here, same fix as MainMenu's `.topLeft > *`.
+.cluster > * { position: relative; top: auto; left: auto; right: auto; }
+
+.titleWrap {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  line-height: 1; text-align: center; flex: none; min-width: 0;
+}
+.title {
+  font-family: #{$font-display};
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: clamp(14px, 3.4vw, 21px);
+  white-space: nowrap;
+  background: linear-gradient(180deg, #fdfacd 0%, $gold 45%, #e8a13c 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+.subtitle {
+  font-family: $font-body;
+  font-size: 9.5px; letter-spacing: 0.36em; text-transform: uppercase;
+  color: $text-muted; padding-left: 0.36em; white-space: nowrap;
+}
+
+// Bespoke close button (not a shared feature) — matches the other round icon
+// buttons the top-bar features already bring (gold border on dark navy).
+.iconBtn {
+  flex: none; pointer-events: auto; cursor: pointer;
+  width: 38px; height: 38px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid $gold-border;
+  background: rgb(var(--color-navy-rgb, 0 20 40) / 0.6);
+  color: $white;
+  transition: background $duration-hover ease-out, color $duration-hover ease-out, border-color $duration-hover ease-out;
+  &:hover { background: $blue; border-color: $teal; color: $teal; }
+  &:focus-visible { outline: 2px solid $teal; outline-offset: 2px; }
+}
+@media (max-width: 380px) { .iconBtn { width: 32px; height: 32px; } }
+
+// ── Island (chapter) nodes ──────────────────────────────────────────────────
+// The button itself covers a circular hit-area roughly the size of the island
+// art (bigger tap target + a home for the current-chapter pulse ring); the
+// small pill badge (.badge) is centred inside it, matching the prototype's
+// big invisible `.island` button + small `.ibadge` pill.
+.node {
+  position: absolute; transform: translate(-50%, -50%); z-index: 20;
+  width: clamp(84px, 15vw, 160px); height: clamp(84px, 15vw, 160px);
+  display: grid; place-items: center;
+  padding: 0; border: none; background: transparent; border-radius: 50%; cursor: pointer;
+  transition: filter 0.18s ease;
+  &:hover:not(:disabled), &:focus-visible:not(:disabled) {
+    outline: none;
+    filter: drop-shadow(0 0 10px rgba(247, 208, 119, 0.55));
+  }
+  &:disabled { cursor: not-allowed; }
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: rgba(6, 18, 36, 0.8);
+  border: 1px solid $hairline;
+  backdrop-filter: blur(5px);
+  font-family: $font-body; font-weight: 800; font-size: 13px; letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: $white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+.badgeOpen { color: $gold; border-color: rgba(247, 208, 119, 0.5); }
+.badgeLocked { color: $text-muted; }
+.req { color: $gold; }
+.lockIcon { flex: none; }
+
+// Pulsing ring on the player's current (in-progress) chapter — subtle hint,
+// disabled under reduced-motion.
+.current::after {
+  content: ''; position: absolute; inset: 6%; border-radius: 50%;
+  border: 2px solid rgba($teal, 0.9);
+  box-shadow: 0 0 22px 4px rgba($teal, 0.45);
+  animation: campaign-pulse 1.9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes campaign-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.12); opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .current::after { animation: none; }
+}
+
+// ── Mobile (≤700px): vertical map inside a scroll region between the fixed bars ──
+// The vertical art (852×1846) fills the width; being slightly taller than the
+// bar-to-bar area, it scrolls. Nodes are positioned as % of .mapWrap (the image).
+.scroll {
+  position: fixed; inset: 0; z-index: 10;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 74px; padding-bottom: 66px;
+  scroll-padding-top: 74px; scroll-padding-bottom: 66px;
+  // Opaque ocean fill (sampled from the map's top/bottom edges) so the
+  // CampaignScene canvas (the DESKTOP world-map) never shows through the
+  // top/bottom padding gaps behind the portrait map.
+  background: linear-gradient(180deg, rgb(45, 130, 177), rgb(31, 106, 166));
+}
+.mapWrap { position: relative; width: 100%; }
+.mapImg { display: block; width: 100%; height: auto; }
+
+// ── Mobile chrome (≤700px): resources+close top, centered title, right feature rail, bottom bar ──
+// Transparent shell: only `.mBar` carries the dark panel, so the centered
+// title below it floats over the map (no background beyond the resource bar).
+.mTop {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 40;
+  pointer-events: none;
+}
+.mBar {
+  pointer-events: auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) clamp(10px, 3vw, 16px) 8px;
+  background: $panel; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid $hairline;
+}
+.mResources { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mResources > * { position: relative; top: auto; left: auto; right: auto; }
+// Title floats below the bar as a centered, blurred, rounded pill (not a
+// full-width slab) so its background stays within the header chrome.
+.mTop .titleWrap {
+  pointer-events: none;
+  width: fit-content; margin: 8px auto 0;
+  padding: 5px 18px 7px; border-radius: 14px;
+  background: $panel; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid $hairline;
+}
+.mFeatureRail {
+  position: fixed; right: clamp(6px, 2vw, 10px); top: 50%; transform: translateY(-50%);
+  z-index: 41; display: flex; flex-direction: column; gap: 10px; pointer-events: auto;
+}
+.mFeatureRail > * { position: relative; top: auto; left: auto; right: auto; }
+.mBottom {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 8px clamp(10px, 3vw, 16px) calc(8px + env(safe-area-inset-bottom, 0px));
+  background: $panel; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-top: 1px solid $hairline;
+}
+.mUtil { display: flex; align-items: center; gap: 8px; }
+.mUtil > * { position: relative; top: auto; left: auto; right: auto; }
+
+// Island name label — hidden on desktop, shown stacked above the badge on mobile.
+// The float animates .nodeInner (NOT the .node button) so the button's own box
+// stays stable — a moving button never settles for hit-testing / Playwright clicks.
+.mName { display: none; }
+.nodeInner { display: contents; }
+@media (max-width: 700px) {
+  // Center the name+badge group on the node's point (the node box is only
+  // ~84px wide, so an overflowing name must be absolutely centered — a grid
+  // cell would push it right). The float keyframe preserves the centering.
+  .mapWrap .nodeInner {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    animation: mp-float 4s ease-in-out infinite;
+  }
+  .mapWrap .node:nth-child(3) .nodeInner { animation-delay: 0.5s; }
+  .mapWrap .node:nth-child(4) .nodeInner { animation-delay: 1s; }
+  .mapWrap .node:nth-child(5) .nodeInner { animation-delay: 1.5s; }
+  .mapWrap .node:nth-child(6) .nodeInner { animation-delay: 2s; }
+  .mName {
+    display: block;
+    font-family: #{$font-display}; color: $gold;
+    font-size: clamp(12px, 3.3vw, 15px); line-height: 1; letter-spacing: 0;
+    text-shadow: 0 2px 6px rgba(3, 12, 24, 0.85), 0 0 2px rgba(3, 12, 24, 0.9);
+    white-space: nowrap; pointer-events: none;
+  }
+}
+@keyframes mp-float {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 5px)); }
+}
+@media (prefers-reduced-motion: reduce) { .mapWrap .nodeInner { animation: none; } }

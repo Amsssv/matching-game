@@ -6,6 +6,7 @@ import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
 import { computeClaim, rewardForDay, todayStr } from './daily';
 import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './quests';
 import { ACH_BY_ID, type AchSignals } from './achievements';
+import { computeStars, levelById, isChapterComplete, type LevelResult } from './campaign';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -88,8 +89,10 @@ export interface StreakState { current: number; lastClaimDate: string | null; be
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
 export interface QuestsState { date: string | null; active: QuestSlot[]; rerolls: number; }
 export interface AchievementsState { claimed: string[]; }
+export interface CampaignProgress { stars: Record<string, 0 | 1 | 2 | 3>; cleared: string[] }
+export interface EnergyState { current: number; max: number; lastRegenTs: number }
 export interface ProgressState {
-  version: 4;
+  version: 5;
   pearls: number;
   stats: ProgressStats;
   unlocked: string[];
@@ -98,10 +101,12 @@ export interface ProgressState {
   quests: QuestsState;
   achievements: AchievementsState;
   processedPurchases: string[];   // consumable purchase tokens already credited (IAP idempotency)
+  campaign: CampaignProgress;
+  energy: EnergyState;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
-  version: 4,
+  version: 5,
   pearls: 0,
   stats: {
     gamesPlayed: 0, gamesWon: 0, pairsMatched: 0,
@@ -123,6 +128,8 @@ export const INITIAL_PROGRESS: ProgressState = {
   quests: { date: null, active: [], rerolls: 0 },
   achievements: { claimed: [] },
   processedPurchases: [],
+  campaign: { stars: {}, cleared: [] },
+  energy: { current: 5, max: 5, lastRegenTs: 0 },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -162,6 +169,24 @@ function validModeBests(m: unknown): ModeBests {
   return out;
 }
 
+function validCampaign(c: unknown): CampaignProgress {
+  const o = (c && typeof c === 'object') ? c as Record<string, unknown> : {};
+  const rawStars = (o.stars && typeof o.stars === 'object') ? o.stars as Record<string, unknown> : {};
+  const stars: Record<string, 0 | 1 | 2 | 3> = {};
+  for (const [k, v] of Object.entries(rawStars)) {
+    if (v === 0 || v === 1 || v === 2 || v === 3) stars[k] = v;
+  }
+  const cleared = Array.isArray(o.cleared) ? o.cleared.filter((x): x is string => typeof x === 'string') : [];
+  return { stars, cleared };
+}
+function validEnergy(e: unknown): EnergyState {
+  const o = (e && typeof e === 'object') ? e as Record<string, unknown> : {};
+  const max = typeof o.max === 'number' && o.max > 0 ? Math.floor(o.max) : 5;
+  const current = typeof o.current === 'number' && o.current >= 0 ? Math.min(Math.floor(o.current), max) : max;
+  const lastRegenTs = typeof o.lastRegenTs === 'number' && o.lastRegenTs >= 0 ? o.lastRegenTs : 0;
+  return { current, max, lastRegenTs };
+}
+
 function validQuests(q: unknown): QuestsState {
   const o = (q && typeof q === 'object') ? q as Record<string, unknown> : {};
   const date = typeof o.date === 'string' ? o.date : null;
@@ -174,11 +199,11 @@ function validQuests(q: unknown): QuestsState {
   return { date, active, rerolls };
 }
 
-function mergeProgress(raw: unknown): ProgressState {
+export function mergeProgress(raw: unknown): ProgressState {
   const d = INITIAL_PROGRESS;
   if (!raw || typeof raw !== 'object') {
     return {
-      version: 4,
+      version: 5,
       pearls: 0,
       stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, winsByMode: { ...d.stats.winsByMode }, modeBests: validModeBests(null) },
       unlocked: [],
@@ -187,12 +212,14 @@ function mergeProgress(raw: unknown): ProgressState {
       quests: { date: null, active: [], rerolls: 0 },
       achievements: { claimed: [] },
       processedPurchases: [],
+      campaign: validCampaign(null),
+      energy: validEnergy(null),
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown; campaign?: unknown; energy?: unknown };
   const s = r.stats ?? {};
   return {
-    version: 4,
+    version: 5,
     pearls: num(r.pearls),
     stats: {
       gamesPlayed:  num(s.gamesPlayed),
@@ -227,6 +254,8 @@ function mergeProgress(raw: unknown): ProgressState {
     processedPurchases: Array.isArray(r.processedPurchases)
       ? r.processedPurchases.filter((x): x is string => typeof x === 'string')
       : [],
+    campaign: validCampaign(r.campaign),
+    energy: validEnergy(r.energy),
   };
 }
 
@@ -393,6 +422,53 @@ export function grantItem(id: string): boolean {
   saveLocal(progressStore.get());
   saveCloud(progressStore.get());
   return true;
+}
+
+/** Score a finished campaign level, record stars/clears, grant pearls/XP, and unlock the
+ * chapter's biome skin once every level in the chapter is cleared. Replays only pay the
+ * STAR DELTA (never re-pay firstClearPearls/xp) and never lower a previously-recorded star count. */
+export function recordCampaignResult(id: string, result: LevelResult): {
+  stars: number; pearls: number; xp: number; chapterCompleted: boolean; skinUnlocked: string | null;
+} {
+  const found = levelById(id);
+  if (!found) return { stars: 0, pearls: 0, xp: 0, chapterCompleted: false, skinUnlocked: null };
+  const { chapter, level } = found;
+  const stars = computeStars(result, level.goals);
+  if (stars === 0) return { stars: 0, pearls: 0, xp: 0, chapterCompleted: false, skinUnlocked: null };
+
+  const c = progressStore.get();
+  const prevStars = c.campaign.stars[id] ?? 0;
+  const firstClear = !c.campaign.cleared.includes(id);
+  const starDelta = Math.max(0, stars - prevStars);
+
+  let pearls = starDelta * level.rewards.perStarPearls;
+  let xp = 0;
+  if (firstClear) { pearls += level.rewards.firstClearPearls; xp += level.rewards.xp; }
+
+  const newStars = Math.max(prevStars, stars);
+  const cleared = firstClear ? [...c.campaign.cleared, id] : c.campaign.cleared;
+  progressStore.set({
+    campaign: { stars: { ...c.campaign.stars, [id]: newStars as 0 | 1 | 2 | 3 }, cleared },
+    pearls: c.pearls + pearls,
+    stats: { ...c.stats, xp: c.stats.xp + xp, pearlsEarnedTotal: c.stats.pearlsEarnedTotal + pearls },
+  });
+
+  // Chapter completion → bonus pearls only. The biome skin is NOT granted here:
+  // sea skins stay purchase-only (donate) so they can be equipped in every mode.
+  let chapterCompleted = false;
+  let bonusPearls = 0;
+  // `firstClear` guard: the bonus fires once, on the clear that actually completes
+  // the chapter — re-playing the last level afterwards can't farm it.
+  if (firstClear && isChapterComplete(chapter.biome, progressStore.get().campaign)) {
+    chapterCompleted = true;
+    bonusPearls = 100;
+    const cc = progressStore.get();
+    progressStore.set({ pearls: cc.pearls + bonusPearls, stats: { ...cc.stats, pearlsEarnedTotal: cc.stats.pearlsEarnedTotal + bonusPearls } });
+  }
+  saveLocal(progressStore.get());
+  saveCloud(progressStore.get());
+  // Returned pearls must equal what was actually credited (result modal shows this).
+  return { stars, pearls: pearls + bonusPearls, xp, chapterCompleted, skinUnlocked: null };
 }
 
 /** Equip an unlocked item on its axis. Returns false (no-op) if the id is unknown, the wrong axis, or not unlocked. */

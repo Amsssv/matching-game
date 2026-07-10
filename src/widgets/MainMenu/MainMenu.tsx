@@ -7,12 +7,14 @@ import { LOCALES } from '../../game/i18n';
 import { Title } from './Title';
 import { Subtitle } from './Subtitle';
 import { ModePicker } from '@features/ModePicker';
+import { JourneyButton } from '@features/JourneyButton';
 import { openModeStart } from '@state/modeStartController';
 import { useProgress } from '@hooks/useProgress';
 import { SoundToggle } from '@features/SoundToggle';
 import { Button } from '@ui/Button';
 import { LanguageSelect } from '@features/LanguageSelect';
 import { PearlBalance } from '@features/PearlBalance';
+import { EnergyMeter } from '@features/EnergyMeter';
 import { StoreButton } from '@features/StoreButton';
 import { DailyButton } from '@features/DailyButton';
 import { TasksButton } from '@features/TasksButton';
@@ -31,6 +33,7 @@ export function MainMenu() {
       <header className={styles.topBar}>
         <div className={styles.topLeft}>
           <PearlBalance />
+          <EnergyMeter />
           <StoreButton />
           <DailyButton />
           <TasksButton />
@@ -44,6 +47,7 @@ export function MainMenu() {
           <Title text={L.title} />
           <Subtitle text={L.subtitle} />
           <ModePicker L={L} xp={xp} onPick={openModeStart} />
+          <JourneyButton />
         </div>
       </main>
 
