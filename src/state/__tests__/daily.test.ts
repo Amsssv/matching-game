@@ -5,11 +5,12 @@ import type { StreakState } from '../progress';
 const streak = (current: number, lastClaimDate: string | null, best = current): StreakState => ({ current, lastClaimDate, best, doubledDate: null });
 
 describe('daily logic', () => {
-  it('rewardForDay cycles every 7 days', () => {
+  it('rewardForDay cycles every 14 days', () => {
     expect(rewardForDay(1)).toBe(10);
     expect(rewardForDay(7)).toBe(60);
-    expect(rewardForDay(8)).toBe(10);
-    expect(rewardForDay(14)).toBe(60);
+    expect(rewardForDay(8)).toBe(20);
+    expect(rewardForDay(14)).toBe(90);
+    expect(rewardForDay(15)).toBe(10);
   });
   it('dayBefore handles month/year boundaries', () => {
     expect(dayBefore('2026-06-09')).toBe('2026-06-08');

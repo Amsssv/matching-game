@@ -1,8 +1,8 @@
 import type { StreakState } from './progress';
 
-export const DAILY_REWARDS = [10, 15, 20, 25, 30, 40, 60] as const;
+export const DAILY_REWARDS = [10, 15, 20, 25, 30, 40, 60, 20, 25, 30, 40, 50, 65, 90] as const;
 
-/** Pearls for streak day N (1-based), cycling every 7 days. */
+/** Pearls for streak day N (1-based), cycling every 14 days. */
 export function rewardForDay(day: number): number {
   const d = Math.max(1, Math.floor(day));
   return DAILY_REWARDS[(d - 1) % DAILY_REWARDS.length];
