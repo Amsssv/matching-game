@@ -38,7 +38,7 @@ const allDiffsWon = (s: AchSignals): number =>
 const MODES: GameMode[] = ['classic', 'timeAttack', 'survival', 'noMistakes'];
 const modesWon = (s: AchSignals): number => MODES.filter((m) => s.winsByMode[m] >= 1).length;
 const ownTotal = (axis: CustomAxis): number =>
-  CATALOG.filter((i) => i.axis === axis && i.price > 0 && !i.exclusive).length;
+  CATALOG.filter((i) => i.axis === axis && i.price > 0).length;
 const SEA_TOTAL = ownTotal('seaTheme');
 const BACKS_TOTAL = ownTotal('cardBack');
 const PALETTES_TOTAL = ownTotal('uiPalette');

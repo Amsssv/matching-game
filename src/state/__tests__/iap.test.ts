@@ -15,9 +15,6 @@ describe('iap', () => {
   it('planPurchase: a single product unlocks one item and is NOT consumed', () => {
     expect(planPurchase('ui_sand')).toEqual({ unlockItems: ['ui.sand'], consume: false });
   });
-  it('planPurchase: an exclusive item unlocks itself, not consumed', () => {
-    expect(planPurchase('ui_aurora')).toEqual({ unlockItems: ['ui.aurora'], consume: false });
-  });
   it('planPurchase: a bundle grants its items + bonus pearls and IS consumed', () => {
     expect(planPurchase('bundle_founder')).toEqual({ grantPearls: 1500, unlockItems: ['back.jade', 'ui.crimson'], consume: true });
   });

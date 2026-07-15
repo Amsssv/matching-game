@@ -88,7 +88,7 @@ export interface ModalState {
   tasks: { tab: TasksTab } | null;
   profile: boolean;   // player profile / level modal (B8)
   help: boolean;      // "how to play" modal
-  store: boolean;     // premium store modal — packs + bundles + exclusives (B7 + exclusives)
+  store: boolean;     // premium store modal — pearl packs + bundles
   levelUp: { level: number; reward: number } | null;   // level-up celebration (shown in menu)
   island: BiomeId | null;
   levelStart: string | null;

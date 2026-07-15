@@ -2,9 +2,7 @@
 @use '../../styles/tokens' as *;
 @use '../../styles/mixins' as *;
 
-// ── Header: title (left) · balance pill · close × ──
-.head { width: 100%; display: flex; align-items: center; gap: 10px; }
-.title { @include modal-title; font-size: clamp(20px, 6vw, 28px); text-align: left; flex: 1; min-width: 0; }
+// ── Balance pill (right-slot in the shared ModalHeader) ──
 .balance {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 12px; border-radius: 999px;
@@ -12,17 +10,6 @@
   border: 2px solid $gold-border;
   color: $gold; font-family: $font-body; font-weight: 700; font-size: 14px;
 }
-.close {
-  flex: none; pointer-events: auto; cursor: pointer;
-  width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; line-height: 1;
-  color: $text-muted; background: transparent; border: none; border-radius: 8px;
-  transition: color $duration-hover ease-out, background $duration-hover ease-out;
-  &:hover { color: $white; background: rgb(var(--color-white-rgb, 255 255 255) / 0.08); }
-  @include focus-ring;
-}
-
 // ── Per-tab "collected X/Y" progress ──
 .progress { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .progressLabel { color: $text-muted; font-family: $font-body; font-size: 12px; }

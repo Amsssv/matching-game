@@ -5,7 +5,7 @@ import { CATALOG, isComingSoon } from '@state/catalog';
 import { closeShop, switchShopTab } from '@state/shopController';
 import { ShopTabs } from '@features/shop/ShopTabs';
 import { ShopItemCard } from '@features/shop/ShopItemCard';
-import { Modal } from '@ui/Modal';
+import { Modal, ModalHeader } from '@ui/Modal';
 import styles from './ShopModal.module.scss';
 
 export function ShopModal() {
@@ -16,16 +16,14 @@ export function ShopModal() {
   if (!shop) return null;
   const L = LOCALES[lang];
   const comingSoon = isComingSoon(shop.tab);   // collection temporarily disabled
-  const items = comingSoon ? [] : CATALOG.filter((i) => i.axis === shop.tab && !i.exclusive);   // exclusives live in the Store modal
+  const items = comingSoon ? [] : CATALOG.filter((i) => i.axis === shop.tab);
   const owned = items.filter((i) => i.price === 0 || unlocked.includes(i.id)).length;
   const pct = items.length ? Math.round((owned / items.length) * 100) : 0;
   return (
     <Modal testId="shop" onClose={closeShop} width="min(92vw, 460px)">
-      <header className={styles.head}>
-        <h2 className={styles.title}>{L.shop}</h2>
+      <ModalHeader title={L.shop} onClose={closeShop} closeTestId="shop-close" closeLabel={L.lbClose}>
         <span className={styles.balance}><span aria-hidden>🦪</span>{pearls}</span>
-        <button type="button" data-testid="shop-close" className={styles.close} aria-label={L.lbClose} onClick={closeShop}>×</button>
-      </header>
+      </ModalHeader>
 
       <ShopTabs L={L} current={shop.tab} onPick={switchShopTab} />
 

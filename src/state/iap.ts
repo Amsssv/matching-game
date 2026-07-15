@@ -14,8 +14,7 @@ export interface Bundle { id: string; nameKey: string; items: string[]; pearls: 
 
 /** Money-only bundles. `id` = console product id (consumable, since they grant pearls). */
 export const BUNDLES: Bundle[] = [
-  // Was the exclusives (ui.aurora + back.prism); those are hidden now, so the Founder
-  // pack grants available cosmetics instead (a card-back + a palette, no sea/exclusive).
+  // Founder pack: a card-back + a UI palette + bonus pearls.
   { id: 'bundle_founder', nameKey: 'bundleFounder', items: ['back.jade', 'ui.crimson'], pearls: 1500 },
   // No sea skins in bundles — sea themes are sold individually (pearls or money).
   { id: 'bundle_premium', nameKey: 'bundlePremium', items: ['back.onyx', 'ui.amethyst', 'ui.sand'], pearls: 1000 },

@@ -2,15 +2,11 @@ import { useUi } from '@hooks/useUiStore';
 import { useProductPrices } from '@hooks/useProductPrices';
 import { LOCALES } from '../../game/i18n';
 import { PEARL_PACKS, BUNDLES } from '@state/iap';
-import { CATALOG, EXCLUSIVES_HIDDEN } from '@state/catalog';
 import { buyProduct, closeStore } from '@state/purchasesController';
 import { Button } from '@ui/Button';
-import { Modal } from '@ui/Modal';
-import { ShopItemCard } from '@features/shop/ShopItemCard';
+import { Modal, ModalHeader } from '@ui/Modal';
 import { BundleCard } from '@features/shop/BundleCard';
 import styles from './StoreModal.module.scss';
-
-const EXCLUSIVES = EXCLUSIVES_HIDDEN ? [] : CATALOG.filter((i) => i.exclusive);
 
 export function StoreModal() {
   const open = useUi((s) => s.modal.store);
@@ -20,10 +16,7 @@ export function StoreModal() {
   const L = LOCALES[lang];
   return (
     <Modal testId="store" onClose={closeStore} width="min(94vw, 460px)">
-      <header className={styles.head}>
-        <h2 className={styles.title}>{L.storeTitle}</h2>
-        <button type="button" data-testid="store-close" className={styles.close} aria-label={L.lbClose} onClick={closeStore}>×</button>
-      </header>
+      <ModalHeader title={L.storeTitle} onClose={closeStore} closeTestId="store-close" closeLabel={L.lbClose} />
       <div className={styles.list}>
         <h3 className={styles.section}>{L.storePacks}</h3>
         {PEARL_PACKS.map((pack) => (
@@ -37,13 +30,6 @@ export function StoreModal() {
 
         <h3 className={styles.section}>{L.storeBundles}</h3>
         {BUNDLES.map((b) => <BundleCard key={b.id} bundle={b} L={L} />)}
-
-        {EXCLUSIVES.length > 0 && (
-          <>
-            <h3 className={styles.section}>{L.shopTabExclusive}</h3>
-            {EXCLUSIVES.map((item) => <ShopItemCard key={item.id} item={item} L={L} />)}
-          </>
-        )}
       </div>
     </Modal>
   );

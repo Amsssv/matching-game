@@ -25,8 +25,6 @@ describe('applyUiPalette', () => {
     expect(has()).toBe(true);
     applyUiPalette('ui.sunset');    // pearls-only (no productId) → no shimmer
     expect(has()).toBe(false);
-    applyUiPalette('ui.aurora');    // money-only (exclusive + productId) → shimmer
-    expect(has()).toBe(true);
     applyUiPalette('ui.ocean');     // free default → no shimmer
     expect(has()).toBe(false);
   });

@@ -56,7 +56,6 @@ export interface Locale {
   lbPlayer:    string;       // leaderboard column header (player)
   lbEmpty:     string;       // leaderboard empty state
   shop: string;            // menu button + modal title, e.g. "Коллекция"
-  shopBuy: string;
   shopEquip: string;
   shopEquipped: string;
   shopTabSea: string;
@@ -82,7 +81,6 @@ export interface Locale {
   iapBuy: string;       // generic money-buy button label (fallback when SDK price is unknown)
   storePacks: string;   // store section header: pearl packs
   storeBundles: string; // store section header: bundles
-  shopTabExclusive: string;   // store section header: exclusives
   bundleIncludes: string;     // "Includes:" prefix on a bundle card
   bundleOwned: string;        // bundle fully-owned state label
   levelWord: string;       // "Level" label (campaign level-start sheet title, e.g. "Level 3")
@@ -162,14 +160,14 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Загрузка...',
     lbClose:     'ЗАКРЫТЬ',
     lbPlayer: 'Игрок', lbEmpty: 'Пока нет рекордов',
-    shop: 'Коллекция', shopBuy: 'Купить', shopEquip: 'Надеть', shopEquipped: 'Активно',
+    shop: 'Коллекция', shopEquip: 'Надеть', shopEquipped: 'Активно',
     shopTabSea: 'Море', shopTabBack: 'Рубашка', shopTabPalette: 'Палитра', shopCollected: 'Собрано', comingSoon: 'Скоро',
     shopItems: { seaLagoon:'Лагуна', seaReef:'Риф', seaAbyss:'Бездна', seaArctic:'Арктика', seaLava:'Лава',
       backClassic:'Классика', backGold:'Золото', backCoral:'Коралл', backDeep:'Глубина', backSilver:'Серебро', backJade:'Нефрит', backOnyx:'Оникс',
-      uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист', uiCrimson:'Багрянец', uiSlate:'Графит', uiSand:'Песок', uiAurora:'Аврора', backPrism:'Призма', bundleFounder:'Набор основателя', bundlePremium:'Премиум-набор' },
+      uiOcean:'Океан', uiSunset:'Закат', uiEmerald:'Изумруд', uiAmethyst:'Аметист', uiCrimson:'Багрянец', uiSlate:'Графит', uiSand:'Песок', bundleFounder:'Набор основателя', bundlePremium:'Премиум-набор' },
     dailyTitle: 'Ежедневная награда', dailyClaim: 'Забрать', dailyDouble: 'Удвоить за рекламу', dailyComeBack: 'Возвращайтесь завтра!',
     storeTitle: 'Магазин', iapBuy: 'Купить', storePacks: 'Жемчуг', storeBundles: 'Наборы',
-    shopTabExclusive: 'Эксклюзив', bundleIncludes: 'В наборе:', bundleOwned: 'Получено',
+    bundleIncludes: 'В наборе:', bundleOwned: 'Получено',
     levelWord: 'Уровень', goalComplete: 'Пройти уровень', goalMoves: 'За {n} ходов', goalTime: 'За {n} сек',
     refillFor: 'Пополнить за {n}', levelCleared: 'Уровень пройден!', levelFailed: 'Не пройден',
     skinUnlocked: 'Открыт новый скин!', continue: 'Продолжить',
@@ -209,7 +207,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Ежедневная награда — заходи каждый день и забирай жемчуг.',
           'Задания — квесты и достижения с наградами.',
           'Рекорды — таблица лучших результатов.',
-          'Магазин — паки жемчуга, наборы и эксклюзивные предметы за деньги.',
+          'Магазин — паки жемчуга и наборы за деньги.',
         ] },
         { h: 'Как заработать жемчуг', lines: [
           'Базовая награда за каждую победу.',
@@ -288,14 +286,14 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Loading...',
     lbClose:     'CLOSE',
     lbPlayer: 'Player', lbEmpty: 'No records yet',
-    shop: 'Collection', shopBuy: 'Buy', shopEquip: 'Equip', shopEquipped: 'Equipped',
+    shop: 'Collection', shopEquip: 'Equip', shopEquipped: 'Equipped',
     shopTabSea: 'Sea', shopTabBack: 'Card back', shopTabPalette: 'Palette', shopCollected: 'Collected', comingSoon: 'Coming soon',
     shopItems: { seaLagoon:'Lagoon', seaReef:'Reef', seaAbyss:'Abyss', seaArctic:'Arctic', seaLava:'Lava',
       backClassic:'Classic', backGold:'Gold', backCoral:'Coral', backDeep:'Deep', backSilver:'Silver', backJade:'Jade', backOnyx:'Onyx',
-      uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst', uiCrimson:'Crimson', uiSlate:'Slate', uiSand:'Sand', uiAurora:'Aurora', backPrism:'Prism', bundleFounder:"Founder's Pack", bundlePremium:'Premium Pack' },
+      uiOcean:'Ocean', uiSunset:'Sunset', uiEmerald:'Emerald', uiAmethyst:'Amethyst', uiCrimson:'Crimson', uiSlate:'Slate', uiSand:'Sand', bundleFounder:"Founder's Pack", bundlePremium:'Premium Pack' },
     dailyTitle: 'Daily reward', dailyClaim: 'Claim', dailyDouble: 'Double via ad', dailyComeBack: 'Come back tomorrow!',
     storeTitle: 'Store', iapBuy: 'Buy', storePacks: 'Pearls', storeBundles: 'Bundles',
-    shopTabExclusive: 'Exclusive', bundleIncludes: 'Includes:', bundleOwned: 'Owned',
+    bundleIncludes: 'Includes:', bundleOwned: 'Owned',
     levelWord: 'Level', goalComplete: 'Complete the level', goalMoves: 'Within {n} moves', goalTime: 'Within {n}s',
     refillFor: 'Refill for {n}', levelCleared: 'Level cleared!', levelFailed: 'Level failed',
     skinUnlocked: 'New skin unlocked!', continue: 'Continue',
@@ -329,7 +327,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Daily reward — come back each day to claim pearls.',
           'Tasks — quests and achievements with rewards.',
           'Records — the leaderboard of best results.',
-          'Store — pearl packs, bundles and exclusive items for real money.',
+          'Store — pearl packs and bundles for real money.',
         ] },
         { h: 'Journey', lines: [
           'A map of island chapters, each with 12 levels and their own goals.',
@@ -414,14 +412,14 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Yükleniyor...',
     lbClose:     'KAPAT',
     lbPlayer: 'Oyuncu', lbEmpty: 'Henüz rekor yok',
-    shop: 'Koleksiyon', shopBuy: 'SATIN AL', shopEquip: 'TAK', shopEquipped: 'TAKILI',
+    shop: 'Koleksiyon', shopEquip: 'TAK', shopEquipped: 'TAKILI',
     shopTabSea: 'Deniz', shopTabBack: 'Kart Arkası', shopTabPalette: 'Palet', shopCollected: 'Toplandı', comingSoon: 'Yakında',
     shopItems: { seaLagoon:'Lagün', seaReef:'Resif', seaAbyss:'Uçurum', seaArctic:'Kutup', seaLava:'Lav',
       backClassic:'Klasik', backGold:'Altın', backCoral:'Mercan', backDeep:'Derinlik', backSilver:'Gümüş', backJade:'Yeşim', backOnyx:'Oniks',
-      uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist', uiCrimson:'Kızıl', uiSlate:'Arduvaz', uiSand:'Kum', uiAurora:'Aurora', backPrism:'Prizma', bundleFounder:'Kurucu Paketi', bundlePremium:'Premium Paket' },
+      uiOcean:'Okyanus', uiSunset:'Gün Batımı', uiEmerald:'Zümrüt', uiAmethyst:'Ametist', uiCrimson:'Kızıl', uiSlate:'Arduvaz', uiSand:'Kum', bundleFounder:'Kurucu Paketi', bundlePremium:'Premium Paket' },
     dailyTitle: 'Günlük ödül', dailyClaim: 'AL', dailyDouble: 'REKLAMLA İKİYE KATLA', dailyComeBack: 'Yarın tekrar gel!',
     storeTitle: 'Mağaza', iapBuy: 'Satın al', storePacks: 'İnci', storeBundles: 'Paketler',
-    shopTabExclusive: 'Özel', bundleIncludes: 'İçindekiler:', bundleOwned: 'Alındı',
+    bundleIncludes: 'İçindekiler:', bundleOwned: 'Alındı',
     levelWord: 'Seviye', goalComplete: 'Seviyeyi tamamla', goalMoves: '{n} hamlede', goalTime: '{n} sn içinde',
     refillFor: '{n} karşılığında doldur', levelCleared: 'Seviye geçildi!', levelFailed: 'Başarısız',
     skinUnlocked: 'Yeni görünüm açıldı!', continue: 'Devam',
@@ -461,7 +459,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Günlük ödül — her gün gel ve inci al.',
           'Görevler — ödüllü görevler ve başarılar.',
           'Rekorlar — en iyi sonuçların listesi.',
-          'Mağaza — inci paketleri, paketler ve özel öğeler (gerçek para).',
+          'Mağaza — inci paketleri ve paketler (gerçek para).',
         ] },
         { h: 'İnci nasıl kazanılır', lines: [
           'Her galibiyet için temel ödül.',
@@ -540,14 +538,14 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Cargando...',
     lbClose:     'CERRAR',
     lbPlayer: 'Jugador', lbEmpty: 'Aún no hay récords',
-    shop: 'Colección', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
+    shop: 'Colección', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
     shopTabSea: 'Mar', shopTabBack: 'Reverso', shopTabPalette: 'Paleta', shopCollected: 'Coleccionados', comingSoon: 'Próximamente',
     shopItems: { seaLagoon:'Laguna', seaReef:'Arrecife', seaAbyss:'Abismo', seaArctic:'Ártico', seaLava:'Lava',
       backClassic:'Clásico', backGold:'Oro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Plata', backJade:'Jade', backOnyx:'Ónix',
-      uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista', uiCrimson:'Carmesí', uiSlate:'Pizarra', uiSand:'Arena', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pack de fundador', bundlePremium:'Pack premium' },
+      uiOcean:'Océano', uiSunset:'Atardecer', uiEmerald:'Esmeralda', uiAmethyst:'Amatista', uiCrimson:'Carmesí', uiSlate:'Pizarra', uiSand:'Arena', bundleFounder:'Pack de fundador', bundlePremium:'Pack premium' },
     dailyTitle: 'Recompensa diaria', dailyClaim: 'RECLAMAR', dailyDouble: 'DUPLICAR CON ANUNCIO', dailyComeBack: '¡Vuelve mañana!',
     storeTitle: 'Tienda', iapBuy: 'Comprar', storePacks: 'Perlas', storeBundles: 'Packs',
-    shopTabExclusive: 'Exclusivo', bundleIncludes: 'Incluye:', bundleOwned: 'Obtenido',
+    bundleIncludes: 'Incluye:', bundleOwned: 'Obtenido',
     levelWord: 'Nivel', goalComplete: 'Completa el nivel', goalMoves: 'En {n} movimientos', goalTime: 'En {n}s',
     refillFor: 'Rellenar por {n}', levelCleared: '¡Nivel superado!', levelFailed: 'Nivel fallido',
     skinUnlocked: '¡Nuevo aspecto desbloqueado!', continue: 'Continuar',
@@ -587,7 +585,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Recompensa diaria — vuelve cada día para reclamar perlas.',
           'Tareas — misiones y logros con recompensas.',
           'Récords — la tabla de los mejores resultados.',
-          'Tienda — packs de perlas, lotes y objetos exclusivos por dinero real.',
+          'Tienda — packs de perlas y lotes por dinero real.',
         ] },
         { h: 'Cómo ganar perlas', lines: [
           'Una recompensa base por cada victoria.',
@@ -666,14 +664,14 @@ export const LOCALES: Record<Lang, Locale> = {
     lbLoading:   'Carregando...',
     lbClose:     'FECHAR',
     lbPlayer: 'Jogador', lbEmpty: 'Ainda não há recordes',
-    shop: 'Coleção', shopBuy: 'COMPRAR', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
+    shop: 'Coleção', shopEquip: 'EQUIPAR', shopEquipped: 'EQUIPADO',
     shopTabSea: 'Mar', shopTabBack: 'Verso', shopTabPalette: 'Paleta', shopCollected: 'Coletados', comingSoon: 'Em breve',
     shopItems: { seaLagoon:'Lagoa', seaReef:'Recife', seaAbyss:'Abismo', seaArctic:'Ártico', seaLava:'Lava',
       backClassic:'Clássico', backGold:'Ouro', backCoral:'Coral', backDeep:'Profundo', backSilver:'Prata', backJade:'Jade', backOnyx:'Ônix',
-      uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista', uiCrimson:'Carmesim', uiSlate:'Ardósia', uiSand:'Areia', uiAurora:'Aurora', backPrism:'Prisma', bundleFounder:'Pacote do fundador', bundlePremium:'Pacote premium' },
+      uiOcean:'Oceano', uiSunset:'Pôr do Sol', uiEmerald:'Esmeralda', uiAmethyst:'Ametista', uiCrimson:'Carmesim', uiSlate:'Ardósia', uiSand:'Areia', bundleFounder:'Pacote do fundador', bundlePremium:'Pacote premium' },
     dailyTitle: 'Recompensa diária', dailyClaim: 'RESGATAR', dailyDouble: 'DOBRAR COM ANÚNCIO', dailyComeBack: 'Volte amanhã!',
     storeTitle: 'Loja', iapBuy: 'Comprar', storePacks: 'Pérolas', storeBundles: 'Pacotes',
-    shopTabExclusive: 'Exclusivo', bundleIncludes: 'Inclui:', bundleOwned: 'Obtido',
+    bundleIncludes: 'Inclui:', bundleOwned: 'Obtido',
     levelWord: 'Nível', goalComplete: 'Complete o nível', goalMoves: 'Em {n} jogadas', goalTime: 'Em {n}s',
     refillFor: 'Recarregar por {n}', levelCleared: 'Nível concluído!', levelFailed: 'Nível falhou',
     skinUnlocked: 'Novo visual desbloqueado!', continue: 'Continuar',
@@ -713,7 +711,7 @@ export const LOCALES: Record<Lang, Locale> = {
           'Recompensa diária — volte todos os dias para resgatar pérolas.',
           'Tarefas — missões e conquistas com recompensas.',
           'Recordes — a tabela dos melhores resultados.',
-          'Loja — pacotes de pérolas, lotes e itens exclusivos por dinheiro real.',
+          'Loja — pacotes de pérolas e lotes por dinheiro real.',
         ] },
         { h: 'Como ganhar pérolas', lines: [
           'Uma recompensa base por cada vitória.',

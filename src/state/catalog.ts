@@ -8,7 +8,6 @@ export interface ShopItem {
   tint?: number;            // seaTheme/cardBack: Phaser tint (0xRRGGBB)
   palette?: Record<string, string>;  // uiPalette: { 'navy': '#..', 'blue': '#..', ... } (token name → hex)
   productId?: string;       // Yandex Payments product id — set only on items buyable for real money
-  exclusive?: boolean;      // money-only: never auto-unlocked, never shows a pearl price
 }
 
 export const CATALOG: ShopItem[] = [
@@ -40,10 +39,6 @@ export const CATALOG: ShopItem[] = [
     palette: { 'navy': '#141a22', 'navy-soft': '#1f2832', 'blue': '#3d566e', 'blue-mid': '#5878a0', 'gold': '#cdd8e8', 'gold-border': '#8aa0bc', 'text-muted': '#b0bccc' } },
   { id: 'ui.sand',    axis: 'uiPalette', nameKey: 'uiSand',    price: 1500,
     palette: { 'navy': '#2a2114', 'navy-soft': '#3d3020', 'blue': '#b07a32', 'blue-mid': '#d8a24e', 'gold': '#ffe6a8', 'gold-border': '#e8c878', 'text-muted': '#e0d2b0' }, productId: 'ui_sand' },
-  // exclusive (money-only — shown in the ✨ tab, bought via Yandex Payments)
-  { id: 'ui.aurora', axis: 'uiPalette', nameKey: 'uiAurora', price: 0, exclusive: true, productId: 'ui_aurora',
-    palette: { 'navy': '#0a1f2e', 'navy-soft': '#103040', 'blue': '#1aa3a3', 'blue-mid': '#3ad6c0', 'gold': '#c8a0ff', 'gold-border': '#9d6ee0', 'text-muted': '#bfe8e0' } },
-  { id: 'back.prism', axis: 'cardBack', nameKey: 'backPrism', price: 0, exclusive: true, productId: 'back_prism', tint: 0xc0b0ff },
 ];
 
 export const DEFAULT_EQUIPPED: Record<CustomAxis, string> = {
@@ -58,15 +53,11 @@ export const AXES = Object.keys(DEFAULT_EQUIPPED) as CustomAxis[];
 export const COMING_SOON_AXES: ReadonlySet<CustomAxis> = new Set<CustomAxis>();
 export const isComingSoon = (axis: CustomAxis): boolean => COMING_SOON_AXES.has(axis);
 
-// Temporarily hide the Store's exclusives section. Items stay in the catalog (so the
-// Founder bundle that grants them still works); flip to false to show the section again.
-export const EXCLUSIVES_HIDDEN = true;
-
 export const ITEM_BY_ID: Record<string, ShopItem> =
   Object.fromEntries(CATALOG.map((i) => [i.id, i]));
 
 /** Neutral Phaser tint — applied when an item has no tint (the default cosmetics). */
-export const NO_TINT = 0xffffff;
+const NO_TINT = 0xffffff;
 
 /** Phaser tint for an equipped item id, falling back to NO_TINT for unknown/tint-less items. */
 export const tintOf = (id: string): number => ITEM_BY_ID[id]?.tint ?? NO_TINT;
