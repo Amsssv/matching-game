@@ -166,14 +166,14 @@ $panel: rgba(8, 23, 44, 0.72);
 }
 .mResources { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .mResources > * { position: relative; top: auto; left: auto; right: auto; }
-// Title floats below the bar as a centered, blurred, rounded pill (not a
-// full-width slab) so its background stays within the header chrome.
+// Title sits as a full-width slab directly under the resources bar so its
+// background spans edge-to-edge and reads as one continuous header (no gap,
+// no rounded pill — it "sticks" to the bar above).
 .mTop .titleWrap {
   pointer-events: none;
-  width: fit-content; margin: 8px auto 0;
-  padding: 5px 18px 7px; border-radius: 14px;
+  width: 100%; margin: 0;
+  padding: 6px 18px 8px;
   background: $panel; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border: 1px solid $hairline;
 }
 .mFeatureRail {
   position: fixed; right: clamp(6px, 2vw, 10px); top: 50%; transform: translateY(-50%);

@@ -135,13 +135,20 @@ export async function resumePhaser(page: Page) {
 
 // ── Progress seeding ─────────────────────────────────────────────────────────
 
-/** Seed persistent progress before page load. xp: 700 unlocks all modes (level 5).
- * Idempotent (matches daily.spec/shop.spec): seeds only on first load, so a later
- * reload keeps whatever the app persisted — persistence assertions stay meaningful. */
-export async function seedProgress(page: Page, patch: { xp?: number; pearls?: number } = {}) {
-  await page.addInitScript(({ key, xp, pearls }) => {
-    if (localStorage.getItem(key)) return;
+/** Seed persistent progress before page load. xp: 1350 unlocks all modes (level 7 — noMistakes gate).
+ * Idempotent by default (matches daily.spec/shop.spec): seeds only on first load, so a later
+ * reload keeps whatever the app persisted — persistence assertions stay meaningful.
+ * Pass `{ force: true }` to overwrite on every navigation; needed when the app already
+ * persisted a fresh profile on boot (reconcilePurchases → persist) and a test reloads to
+ * install a leveled-up player (e.g. the mode-unlock menu specs). */
+export async function seedProgress(
+  page: Page,
+  patch: { xp?: number; pearls?: number } = {},
+  opts: { force?: boolean } = {},
+) {
+  await page.addInitScript(({ key, xp, pearls, force }) => {
+    if (!force && localStorage.getItem(key)) return;
     localStorage.setItem(key, JSON.stringify({ version: 4, pearls, stats: { xp } }));
-  }, { key: 'sea-pairs-progress', xp: patch.xp ?? 0, pearls: patch.pearls ?? 0 });
+  }, { key: 'sea-pairs-progress', xp: patch.xp ?? 0, pearls: patch.pearls ?? 0, force: opts.force ?? false });
 }
 

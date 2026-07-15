@@ -140,7 +140,7 @@ describe('resolveLang', () => {
   });
 
   it('falls back to localStorage when SDK getPlayer throws', async () => {
-    localStorage.setItem('sea-pairs-lang', 'ar');
+    localStorage.setItem('sea-pairs-lang', 'es');
     vi.doMock('../../ysdk', () => ({
       getYSDK: () => ({
         environment: { i18n: { lang: 'xx' } },
@@ -148,6 +148,6 @@ describe('resolveLang', () => {
       }),
     }));
     const { resolveLang } = await import('../settings');
-    expect(await resolveLang()).toBe('ar');
+    expect(await resolveLang()).toBe('es');
   });
 });

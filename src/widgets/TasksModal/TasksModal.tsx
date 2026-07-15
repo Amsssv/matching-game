@@ -20,9 +20,10 @@ export function TasksModal() {
   const stats = useProgress((s) => s.stats);
   const streakBest = useProgress((s) => s.streak.best);
   const unlocked = useProgress((s) => s.unlocked);
+  const campaign = useProgress((s) => s.campaign);
   if (!tasks) return null;
   const L = LOCALES[lang];
-  const signals = buildAchSignals(stats, streakBest, unlocked);
+  const signals = buildAchSignals(stats, streakBest, unlocked, campaign);
   // Per-tab "has something to claim" badges.
   const questClaimable = quests.active.filter((s) => { const d = QUEST_BY_ID[s.id]; return !!d && !s.claimed && s.progress >= d.target; }).length;
   const achClaimable = ACHIEVEMENTS.filter((a) => a.done(signals) && !claimed.includes(a.id)).length;

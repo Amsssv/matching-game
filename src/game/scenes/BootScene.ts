@@ -54,9 +54,9 @@ export class BootScene extends Phaser.Scene {
         this.game.registry.set('lang', lang);
         // Wait for Rubik WOFF2 to load before rendering canvas text.
         // The second argument tells the browser which unicode subsets to fetch.
-        // Without Cyrillic/Arabic sample chars, only the Latin subset is loaded
-        // and Phaser draws Russian/Arabic text with the fallback font.
-        const testChars = 'ABCабвاب'; // Latin + Cyrillic + Arabic
+        // Without Cyrillic sample chars, only the Latin subset is loaded
+        // and Phaser draws Russian text with the fallback font.
+        const testChars = 'ABCабв'; // Latin + Cyrillic
         return Promise.all([
           document.fonts.load('400 14px Rubik', testChars),
           document.fonts.load('700 14px Rubik', testChars),

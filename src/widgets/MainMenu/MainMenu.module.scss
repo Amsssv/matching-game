@@ -120,14 +120,8 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   .bottomActions { justify-content: space-between; }
 }
 
-// Very narrow phones: tighten the top-row gaps so the single row fits.
-@media (max-width: 380px) {
+// Narrow phones (≤480px): tighten the top-row gaps so the single row fits.
+@media (max-width: 480px) {
   .topBar { gap: 4px; }
   .topLeft { gap: 4px; }
-}
-
-// Smallest phones (≤340px): squeeze the top-row gaps a touch more.
-@media (max-width: 340px) {
-  .topBar { gap: 3px; }
-  .topLeft { gap: 3px; }
 }

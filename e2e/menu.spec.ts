@@ -15,9 +15,10 @@ test.describe('MenuScene', () => {
     await resumePhaser(page);
   });
 
-  test('mode picker: all modes unlocked at level 5', async ({ page }) => {
-    // beforeEach already loaded the page as a fresh player; re-seed and reload.
-    await seedProgress(page, { xp: 700 });
+  test('mode picker: all modes unlocked at level 7', async ({ page }) => {
+    // beforeEach already loaded the page as a fresh player (and boot persisted it);
+    // force-overwrite with a leveled profile, then reload.
+    await seedProgress(page, { xp: 1350 }, { force: true });
     await page.reload();
     await waitForCanvas(page);
     await page.waitForTimeout(500);
@@ -28,7 +29,7 @@ test.describe('MenuScene', () => {
   });
 
   test('mode start modal (difficulty select)', async ({ page }) => {
-    await seedProgress(page, { xp: 700 });
+    await seedProgress(page, { xp: 1350 }, { force: true });
     await page.reload();
     await waitForCanvas(page);
     await page.waitForTimeout(500);
@@ -86,9 +87,9 @@ test.describe('MenuScene — language variants', () => {
   // target language before snapshotting (lang propagation is async; a fixed wait races it).
   const MODE_TEXT: Record<string, string> = {
     ru: 'КЛАССИКА', en: 'CLASSIC', tr: 'KLASİK',
-    es: 'CLÁSICO', pt: 'CLÁSSICO', ar: 'كلاسيكي',
+    es: 'CLÁSICO', pt: 'CLÁSSICO',
   };
-  for (const lang of ['ru', 'en', 'tr', 'es', 'pt', 'ar'] as const) {
+  for (const lang of ['ru', 'en', 'tr', 'es', 'pt'] as const) {
     test(`language: ${lang}`, async ({ page }) => {
       if (lang !== 'ru') {
         // Switch language through the real UI (globe → option) so it runs the production

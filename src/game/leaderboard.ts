@@ -2,9 +2,9 @@ import { getYSDK } from '../ysdk';
 import type { Difficulty } from './layout';
 import type { GameMode } from './modes';
 
-// Stored in Yandex as (SCORE_BASE - seconds) so less time = higher rank.
-// Convert back to seconds for display: seconds = SCORE_BASE - yandexScore.
-export const SCORE_BASE = 9999;
+// The 16 mode×difficulty boards are Yandex `time` leaderboards: the score is the raw
+// completion time in MILLISECONDS, sorted ascending (less time = higher rank). We submit
+// whole-second precision (seconds × 1000) and format M:SS ourselves on read.
 
 export function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -12,11 +12,12 @@ export function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// Board names are Yandex-console resources (manual prereq: create the 12 new ones
-// with the same config as the matching* boards before release).
+// Board names are Yandex-console resources (manual prereq: every id below must exist
+// as a leaderboard in the console before release, with matching config — see
+// LEADERBOARDS.md). All 16 follow the `<mode><Difficulty>` pattern.
 export const LB_ID: Record<GameMode, Record<Difficulty, string>> = {
   classic: {
-    easy: 'matchingEasy', medium: 'matchingMedium', hard: 'matchingHard', expert: 'matchingExpert',
+    easy: 'classicEasy', medium: 'classicMedium', hard: 'classicHard', expert: 'classicExpert',
   },
   timeAttack: {
     easy: 'timeAttackEasy', medium: 'timeAttackMedium', hard: 'timeAttackHard', expert: 'timeAttackExpert',
@@ -28,6 +29,29 @@ export const LB_ID: Record<GameMode, Record<Difficulty, string>> = {
     easy: 'noMistakesEasy', medium: 'noMistakesMedium', hard: 'noMistakesHard', expert: 'noMistakesExpert',
   },
 };
+
+// Standalone aggregate boards (not mode × difficulty). The metric is a raw
+// "higher is better" number submitted as-is (no inversion). Console config:
+// numeric, 0 decimals, sort descending. See LEADERBOARDS.md §2.
+export const LB_TOTAL_SCORE = 'totalScore';       // cumulative player XP
+export const LB_JOURNEY_STARS = 'journeyStars';   // total campaign stars
+
+/**
+ * Submit a raw score to a standalone "higher is better" board, overwriting only
+ * when strictly better than the player's current entry. The metrics here are
+ * monotonic, so this also skips redundant writes. Fire-and-forget: never throws,
+ * never blocks; guests / missing SDK / network errors are ignored.
+ * Non-positive scores are skipped so we don't clutter boards with empty entries.
+ */
+export function submitBestScore(boardId: string, score: number): void {
+  if (!Number.isFinite(score) || score <= 0) return;
+  const lb = getYSDK()?.leaderboards;
+  if (!lb) return;
+  lb.getPlayerEntry(boardId)
+    .then(entry => { if (score > entry.score) return lb.setScore(boardId, score); })
+    .catch(() => lb.setScore(boardId, score))
+    .then(() => {}, () => {});
+}
 
 const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
   easy:   { rows: [
@@ -74,7 +98,7 @@ const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
 export interface LeaderboardRow {
   rank: number;
   name: string;
-  score: number;   // moves count (already converted from inverted Yandex score)
+  score: number;   // completion time in seconds (converted from the board's millisecond score)
   isPlayer: boolean;
 }
 
@@ -103,7 +127,7 @@ export async function fetchLeaderboard(mode: GameMode, difficulty: Difficulty): 
     const rows: LeaderboardRow[] = topResult.value.entries.map(entry => ({
       rank:     entry.rank,
       name:     entry.player.publicName || '—',
-      score:    Math.max(0, SCORE_BASE - entry.score),
+      score:    Math.round(entry.score / 1000),
       isPlayer: false,
     }));
 
@@ -116,7 +140,7 @@ export async function fetchLeaderboard(mode: GameMode, difficulty: Difficulty): 
         rows.push({
           rank:     playerEntry.rank,
           name:     player.getName(),
-          score:    Math.max(0, SCORE_BASE - playerEntry.score),
+          score:    Math.round(playerEntry.score / 1000),
           isPlayer: true,
         });
       }

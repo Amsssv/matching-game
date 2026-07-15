@@ -29,7 +29,7 @@ $teal: #5fe3da;
 }
 
 // ---------- header ----------
-.head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 6px; }
+.head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: clamp(8px, 3vw, 16px); margin-bottom: 6px; }
 .back {
   justify-self: start; display: inline-flex; align-items: center; gap: 6px;
   height: 34px; padding: 0 12px 0 9px;
@@ -110,10 +110,14 @@ $teal: #5fe3da;
 .mNode {
   position: absolute; transform: translate(-50%, -50%); z-index: 2; width: auto;
 }
-.mNode .disc { width: 50px; height: 50px; font-size: 18px; }
+// ~10% smaller than desktop discs so the trail nodes + their stars sit lighter
+// on the portrait island art.
+.mNode .disc { width: 45px; height: 45px; font-size: 16px; }
+.mNode .lvlstars { height: 14px; gap: 2.5px; }
+.mNode .star { width: 14px; height: 14px; }
 // Star row on a dark rounded plaque so earned stars read on the busy art.
 .plaque {
-  padding: 2px 7px; border-radius: 9px; height: auto;
+  padding: 2px 6px; border-radius: 9px; height: auto;
   background: rgba(6, 16, 30, 0.72); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 // Pulsing cyan glow on the current node — mobile only, box-shadow (not transform)
@@ -122,6 +126,11 @@ $teal: #5fe3da;
 @keyframes island-node-pulse {
   0%, 100% { box-shadow: 0 0 0 3px rgba(95, 227, 218, 0.18), 0 0 18px 3px rgba(95, 227, 218, 0.45); }
   50%      { box-shadow: 0 0 0 5px rgba(95, 227, 218, 0.10), 0 0 26px 6px rgba(95, 227, 218, 0.65); }
+}
+// Smaller header on mobile so the longest biome names (e.g. "ARRECIFE DE
+// CORAL") stay on one line inside the narrow modal.
+@media (max-width: 700px) {
+  .worldTitle { font-size: 16px; letter-spacing: 0.06em; }
 }
 // Hint line under the stage.
 .mHint {

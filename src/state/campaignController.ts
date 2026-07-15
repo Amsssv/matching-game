@@ -2,6 +2,7 @@ import { setModal } from './store';
 import { progressStore, recordCampaignResult } from './progress';
 import { spendEnergy, regenEnergy, refillEnergy } from './energy';
 import { bus } from './eventBus';
+import { syncProgressLeaderboards } from './leaderboardSync';
 import type { BiomeId, LevelResult } from './campaign';
 
 export const ENERGY_REFILL_COST = 60;
@@ -40,6 +41,7 @@ export function startLevel(levelId: string, nowTs: number): boolean {
 /** Record the result (rewards + unlocks) and open the result modal. */
 export function finishLevel(levelId: string, result: LevelResult): void {
   const r = recordCampaignResult(levelId, result);
+  syncProgressLeaderboards();   // stars + XP changed → push journeyStars / totalScore boards
   setModal({ levelResult: { levelId, won: result.won, ...r } });
 }
 

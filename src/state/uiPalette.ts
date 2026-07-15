@@ -31,7 +31,7 @@ function hexToSat(hex: string): number {
   return d / (1 - Math.abs(2 * l - 1));
 }
 
-// The ornate logo image (МОРСКИЕ ПАРЫ) can't read a CSS var — it's tinted with a
+// The ornate title-plaque image (title-bg.webp) can't read a CSS var — it's tinted with a
 // hue-rotate + saturate filter. Hue shifts it toward the palette's hue; saturation
 // scales toward the palette's (so a desaturated palette like Graphite greys the logo,
 // which a pure hue-rotate — same hue as the default — would miss). 0°/1× = unchanged.

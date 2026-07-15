@@ -3,7 +3,7 @@ import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
 import { getYSDK } from '../../ysdk';
-import { fetchLeaderboard, formatTime, SCORE_BASE, LB_ID } from '../leaderboard';
+import { fetchLeaderboard, formatTime, LB_ID } from '../leaderboard';
 import type { Difficulty } from '../layout';
 import { TIME_ATTACK, timeAttackRemaining, type GameMode, type ModeTestOverrides, type TimeAttackCfg } from '../modes';
 import { uiStore, setHud, setModal } from '../../state/store';
@@ -11,6 +11,7 @@ import { bus } from '../../state/eventBus';
 import { openLeaderboard } from '../../state/leaderboardController';
 import { computePearls, awardPearls, recordGameStart, recordGameWin, recordGameLoss, winContext } from '../../state/progress';
 import { finishLevel } from '../../state/campaignController';
+import { syncProgressLeaderboards } from '../../state/leaderboardSync';
 import { createPlayClock } from '../playClock';
 
 /**
@@ -100,15 +101,17 @@ export class UIScene extends Phaser.Scene {
       const pearlsEarned = computePearls(difficulty, this.elapsedSeconds, n, this.totalPairs, { isRecord, winIndex }, mode);
       awardPearls(pearlsEarned);
       const win = recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n, mode });
+      syncProgressLeaderboards();   // push cumulative XP (totalScore board) after this win
+
       const leaderboards = getYSDK()?.leaderboards;
-      // Fire-and-forget: don't block victory screen on the network call. Yandex
-      // setScore always overwrites — guard with getPlayerEntry so we only submit
-      // when the new score is strictly better (higher = faster).
-      const newYScore = SCORE_BASE - this.elapsedSeconds;
+      // Fire-and-forget: don't block victory screen on the network call. These are
+      // Yandex `time` boards (ms, ascending — less time = better); guard with
+      // getPlayerEntry so we only overwrite when strictly faster. No entry / error → submit.
+      const newMs = this.elapsedSeconds * 1000;
       const scoreSaved: Promise<void> = leaderboards
         ? leaderboards.getPlayerEntry(LB_ID[mode][difficulty])
-            .then(entry => { if (newYScore > entry.score) return leaderboards.setScore(LB_ID[mode][difficulty], newYScore); })
-            .catch(() => leaderboards.setScore(LB_ID[mode][difficulty], newYScore))
+            .then(entry => { if (newMs < entry.score) return leaderboards.setScore(LB_ID[mode][difficulty], newMs); })
+            .catch(() => leaderboards.setScore(LB_ID[mode][difficulty], newMs))
             .then(() => {}).catch(() => {})
         : Promise.resolve();
       this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, { isRecord, prevBest, firstWinOfDay, xpGained: win.xpGained, leveledUp: win.leveledUp, newLevel: win.newLevel });
@@ -257,7 +260,7 @@ export class UIScene extends Phaser.Scene {
         const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
         const mode = this.currentMode();
         const lastSeconds: number = this.game.registry.get('lastScore') ?? this.elapsedSeconds;
-        sdk.leaderboards?.setScore(LB_ID[mode][diff], SCORE_BASE - lastSeconds).catch(() => {});
+        sdk.leaderboards?.setScore(LB_ID[mode][diff], lastSeconds * 1000).catch(() => {});
       });
     }).catch(() => {});
   }

@@ -16,6 +16,10 @@ export interface AchSignals {
   level: number;
   winsByMode: Record<GameMode, number>;
   ownedByAxis: Record<CustomAxis, number>;
+  // Journey (campaign) progress.
+  campaignStars: number;             // total stars earned across all chapters (max 180)
+  campaignLevelsCleared: number;     // number of campaign levels cleared (max 60)
+  campaignChaptersComplete: number;  // fully-cleared chapters (max 5)
 }
 
 export interface AchievementDef {
@@ -79,6 +83,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'fast25',      nameKey: 'aFast25',      reward: 150, target: 25,   progress: (s) => s.fastWins,           done: (s) => s.fastWins >= 25 },
   { id: 'streak14',    nameKey: 'aStreak14',    reward: 200, target: 14,   progress: (s) => s.streakBest,         done: (s) => s.streakBest >= 14 },
   { id: 'rich5000',    nameKey: 'aRich5000',    reward: 400, target: 5000, progress: (s) => s.pearlsEarnedTotal,  done: (s) => s.pearlsEarnedTotal >= 5000 },
+  // Journey / campaign (5 chapters × 12 levels = 60 levels, max 180 stars)
+  { id: 'campFirst',       nameKey: 'aCampFirst',       reward: 40,  target: 1,   progress: (s) => s.campaignLevelsCleared,    done: (s) => s.campaignLevelsCleared >= 1 },
+  { id: 'campChapter',     nameKey: 'aCampChapter',     reward: 100, target: 1,   progress: (s) => s.campaignChaptersComplete, done: (s) => s.campaignChaptersComplete >= 1 },
+  { id: 'campLevels30',    nameKey: 'aCampLevels30',    reward: 200, target: 30,  progress: (s) => s.campaignLevelsCleared,    done: (s) => s.campaignLevelsCleared >= 30 },
+  { id: 'campStars50',     nameKey: 'aCampStars50',     reward: 200, target: 50,  progress: (s) => s.campaignStars,            done: (s) => s.campaignStars >= 50 },
+  { id: 'campStars120',    nameKey: 'aCampStars120',    reward: 400, target: 120, progress: (s) => s.campaignStars,            done: (s) => s.campaignStars >= 120 },
+  { id: 'campAllChapters', nameKey: 'aCampAllChapters', reward: 600, target: 5,   progress: (s) => s.campaignChaptersComplete, done: (s) => s.campaignChaptersComplete >= 5 },
   // Collection completion (targets from CATALOG)
   { id: 'seaAll',      nameKey: 'aSeaAll',      reward: 300, target: SEA_TOTAL,      progress: (s) => s.ownedByAxis.seaTheme,  done: (s) => s.ownedByAxis.seaTheme >= SEA_TOTAL },
   { id: 'backsAll',    nameKey: 'aBacksAll',    reward: 300, target: BACKS_TOTAL,    progress: (s) => s.ownedByAxis.cardBack,  done: (s) => s.ownedByAxis.cardBack >= BACKS_TOTAL },

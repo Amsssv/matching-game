@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { waitForCanvas, pausePhaser } from './helpers';
 
-const LANGS = ['ru', 'en', 'tr', 'es', 'pt', 'ar'] as const;
+const LANGS = ['ru', 'en', 'tr', 'es', 'pt'] as const;
 
 for (const lang of LANGS) {
   test.describe(`store / ${lang}`, () => {

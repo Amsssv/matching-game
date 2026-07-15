@@ -1,7 +1,7 @@
 import type { GameMode } from './modes';
 import type { BiomeId } from '../state/campaign';
 
-export type Lang = 'ru' | 'en' | 'tr' | 'es' | 'pt' | 'ar';
+export type Lang = 'ru' | 'en' | 'tr' | 'es' | 'pt';
 
 export interface Locale {
   title: string;
@@ -102,8 +102,8 @@ export interface Locale {
 
 export const LOCALES: Record<Lang, Locale> = {
   ru: {
-    title:       'МОРСКИЕ ПАРЫ',
-    description: 'Морские пары — весёлая игра на память для детей от 6 лет. Переворачивай карточки, находи совпадения и тренируй внимание вместе с морскими обитателями!',
+    title:       'КАРТОЧНЫЕ ДУЭТЫ',
+    description: 'Карточные дуэты — весёлая игра на память: открывай карточки, находи пары морских обитателей, проходи режимы и уровни, собирай коллекцию!',
     subtitle: 'Карточная игра на память',
     difficulty: 'СЛОЖНОСТЬ',
     diffLabels: { easy: 'ЛЕГКО', medium: 'СРЕДНЕ', hard: 'СЛОЖНО', expert: 'ЭКСПЕРТ' },
@@ -179,7 +179,7 @@ export const LOCALES: Record<Lang, Locale> = {
     levelHintDone: 'Мир пройден!',
     tasks:'Задания', tasksTabQuests:'Квесты', tasksTabAch:'Достижения', taskClaim:'Забрать', taskClaimed:'Получено', taskReroll:'Обновить',
     quests: { qWinGames:'Выиграй 3 игры', qMatchPairs:'Собери 20 пар', qPlayGames:'Сыграй 5 игр', qWinHard:'Победа на сложном', qPerfectWin:'Идеальная игра', qFastWin:'Быстрая победа', qWinMedium:'2 победы на среднем', qMatchPairsBig:'Собери 40 пар' },
-    achievements: { aFirstWin:'Первая победа', aWin10:'10 побед', aWin50:'50 побед', aPairs100:'100 пар', aPairs500:'500 пар', aExpertWin:'Победа на эксперте', aAllDifficulties:'Все сложности', aStreak7:'Стрик 7 дней', aCollector:'5 предметов в коллекции', aRich:'1000 жемчуга всего', aPerfectionist:'10 идеальных игр', aSpeedrunner:'10 быстрых побед', aWin25:'25 побед', aPlay25:'Сыграй 25 игр', aPlay100:'Сыграй 100 игр', aPairs1000:'1000 пар', aHardMaster:'10 побед на сложном', aExpertMaster:'10 побед на эксперте', aStreak30:'Стрик 30 дней', aCollector15:'15 предметов в коллекции', aLevel5:'Уровень 5', aLevel10:'Уровень 10', aTaWin:'Победа в режиме "На время"', aTaWin10:'10 побед в режиме "На время"', aSurvWin:'Победа в режиме "Выживание"', aSurvWin10:'10 побед в режиме "Выживание"', aNmWin:'Победа в режиме "Без ошибок"', aNmWin10:'10 побед в режиме "Без ошибок"', aAllModes:'Победа во всех режимах', aWin100:'100 побед', aPlay250:'Сыграй 250 игр', aPairs2500:'2500 пар', aPerfect25:'25 идеальных игр', aFast25:'25 быстрых побед', aStreak14:'Стрик 14 дней', aRich5000:'5000 жемчуга всего', aSeaAll:'Все морские темы', aBacksAll:'Все рубашки карт', aPalettesAll:'Все палитры интерфейса' },
+    achievements: { aFirstWin:'Первая победа', aWin10:'10 побед', aWin50:'50 побед', aPairs100:'100 пар', aPairs500:'500 пар', aExpertWin:'Победа на эксперте', aAllDifficulties:'Все сложности', aStreak7:'Стрик 7 дней', aCollector:'5 предметов в коллекции', aRich:'1000 жемчуга всего', aPerfectionist:'10 идеальных игр', aSpeedrunner:'10 быстрых побед', aWin25:'25 побед', aPlay25:'Сыграй 25 игр', aPlay100:'Сыграй 100 игр', aPairs1000:'1000 пар', aHardMaster:'10 побед на сложном', aExpertMaster:'10 побед на эксперте', aStreak30:'Стрик 30 дней', aCollector15:'15 предметов в коллекции', aLevel5:'Уровень 5', aLevel10:'Уровень 10', aTaWin:'Победа в режиме "На время"', aTaWin10:'10 побед в режиме "На время"', aSurvWin:'Победа в режиме "Выживание"', aSurvWin10:'10 побед в режиме "Выживание"', aNmWin:'Победа в режиме "Без ошибок"', aNmWin10:'10 побед в режиме "Без ошибок"', aAllModes:'Победа во всех режимах', aWin100:'100 побед', aPlay250:'Сыграй 250 игр', aPairs2500:'2500 пар', aPerfect25:'25 идеальных игр', aFast25:'25 быстрых побед', aStreak14:'Стрик 14 дней', aRich5000:'5000 жемчуга всего', aCampFirst:'Первый уровень путешествия', aCampChapter:'Пройди главу путешествия', aCampLevels30:'30 уровней путешествия', aCampStars50:'50 звёзд путешествия', aCampStars120:'120 звёзд путешествия', aCampAllChapters:'Все главы путешествия', aSeaAll:'Все морские темы', aBacksAll:'Все рубашки карт', aPalettesAll:'Все палитры интерфейса' },
     help: {
       title: 'Как играть',
       sections: [
@@ -228,8 +228,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   en: {
-    title:       'SEA PAIRS',
-    description: 'Sea Pairs — a fun memory game for kids 6+. Flip cards, find matches, and train your focus with sea creatures!',
+    title:       'CARD DUETS',
+    description: 'Card Duets — a fun memory game: flip cards, match pairs of sea creatures, play four modes, clear a journey map and collect skins. Great for all ages!',
     subtitle: 'A memory card game',
     difficulty: 'DIFFICULTY',
     diffLabels: { easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', expert: 'EXPERT' },
@@ -305,7 +305,7 @@ export const LOCALES: Record<Lang, Locale> = {
     levelHintDone: 'World complete!',
     tasks:'Tasks', tasksTabQuests:'Quests', tasksTabAch:'Achievements', taskClaim:'Claim', taskClaimed:'Claimed', taskReroll:'Reroll',
     quests: { qWinGames:'Win 3 games', qMatchPairs:'Match 20 pairs', qPlayGames:'Play 5 games', qWinHard:'Win on hard', qPerfectWin:'A perfect game', qFastWin:'A fast win', qWinMedium:'Win 2 on medium', qMatchPairsBig:'Match 40 pairs' },
-    achievements: { aFirstWin:'First win', aWin10:'10 wins', aWin50:'50 wins', aPairs100:'100 pairs', aPairs500:'500 pairs', aExpertWin:'Win on expert', aAllDifficulties:'All difficulties', aStreak7:'7-day streak', aCollector:'5 cosmetics owned', aRich:'1000 pearls earned', aPerfectionist:'10 perfect games', aSpeedrunner:'10 fast wins', aWin25:'25 wins', aPlay25:'Play 25 games', aPlay100:'Play 100 games', aPairs1000:'1000 pairs', aHardMaster:'10 wins on hard', aExpertMaster:'10 wins on expert', aStreak30:'30-day streak', aCollector15:'15 cosmetics owned', aLevel5:'Level 5', aLevel10:'Level 10', aTaWin:'Win in Time Attack', aTaWin10:'10 wins in Time Attack', aSurvWin:'Win in Survival', aSurvWin10:'10 wins in Survival', aNmWin:'Win in No Mistakes', aNmWin10:'10 wins in No Mistakes', aAllModes:'Win in every mode', aWin100:'100 wins', aPlay250:'Play 250 games', aPairs2500:'2500 pairs', aPerfect25:'25 perfect games', aFast25:'25 fast wins', aStreak14:'14-day streak', aRich5000:'5000 pearls earned', aSeaAll:'All sea themes', aBacksAll:'All card backs', aPalettesAll:'All UI palettes' },
+    achievements: { aFirstWin:'First win', aWin10:'10 wins', aWin50:'50 wins', aPairs100:'100 pairs', aPairs500:'500 pairs', aExpertWin:'Win on expert', aAllDifficulties:'All difficulties', aStreak7:'7-day streak', aCollector:'5 cosmetics owned', aRich:'1000 pearls earned', aPerfectionist:'10 perfect games', aSpeedrunner:'10 fast wins', aWin25:'25 wins', aPlay25:'Play 25 games', aPlay100:'Play 100 games', aPairs1000:'1000 pairs', aHardMaster:'10 wins on hard', aExpertMaster:'10 wins on expert', aStreak30:'30-day streak', aCollector15:'15 cosmetics owned', aLevel5:'Level 5', aLevel10:'Level 10', aTaWin:'Win in Time Attack', aTaWin10:'10 wins in Time Attack', aSurvWin:'Win in Survival', aSurvWin10:'10 wins in Survival', aNmWin:'Win in No Mistakes', aNmWin10:'10 wins in No Mistakes', aAllModes:'Win in every mode', aWin100:'100 wins', aPlay250:'Play 250 games', aPairs2500:'2500 pairs', aPerfect25:'25 perfect games', aFast25:'25 fast wins', aStreak14:'14-day streak', aRich5000:'5000 pearls earned', aCampFirst:'First journey level', aCampChapter:'Clear a journey chapter', aCampLevels30:'30 journey levels', aCampStars50:'50 journey stars', aCampStars120:'120 journey stars', aCampAllChapters:'All journey chapters', aSeaAll:'All sea themes', aBacksAll:'All card backs', aPalettesAll:'All UI palettes' },
     help: {
       title: 'How to play',
       sections: [
@@ -354,8 +354,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   tr: {
-    title:       'DENİZ ÇİFTLERİ',
-    description: 'Deniz Çiftleri — 6 yaş ve üzeri çocuklar için eğlenceli bir hafıza oyunu. Kartları çevir, eşleşmeleri bul ve deniz canlılarıyla dikkatini geliştir!',
+    title:       'KART DÜETLERİ',
+    description: 'Kart Düetleri — eğlenceli hafıza oyunu: kartları çevir, deniz canlılarının çiftlerini bul, dört modda oyna, yolculuk haritasını keşfet ve koleksiyon yap!',
     subtitle: 'Hafıza kartı oyunu',
     difficulty: 'ZORLUK',
     diffLabels: { easy: 'KOLAY', medium: 'ORTA', hard: 'ZOR', expert: 'UZMAN' },
@@ -431,7 +431,7 @@ export const LOCALES: Record<Lang, Locale> = {
     levelHintDone: 'Dünya tamamlandı!',
     tasks:'Görevler', tasksTabQuests:'Görevler', tasksTabAch:'Başarılar', taskClaim:'AL', taskClaimed:'ALINDI', taskReroll:'YENİLE',
     quests: { qWinGames:'3 oyun kazan', qMatchPairs:'20 çift eşleştir', qPlayGames:'5 oyun oyna', qWinHard:'Zorda kazan', qPerfectWin:'Kusursuz oyun', qFastWin:'Hızlı zafer', qWinMedium:'Ortada 2 kez kazan', qMatchPairsBig:'40 çift eşleştir' },
-    achievements: { aFirstWin:'İlk zafer', aWin10:'10 zafer', aWin50:'50 zafer', aPairs100:'100 çift', aPairs500:'500 çift', aExpertWin:'Uzmanda kazan', aAllDifficulties:'Tüm zorluklar', aStreak7:'7 günlük seri', aCollector:'5 kozmetik sahibi', aRich:'Toplam 1000 inci', aPerfectionist:'10 kusursuz oyun', aSpeedrunner:'10 hızlı zafer', aWin25:'25 zafer', aPlay25:'25 oyun oyna', aPlay100:'100 oyun oyna', aPairs1000:'1000 çift', aHardMaster:'Zorda 10 zafer', aExpertMaster:'Uzmanda 10 zafer', aStreak30:'30 günlük seri', aCollector15:'15 kozmetik sahibi', aLevel5:'5. seviye', aLevel10:'10. seviye', aTaWin:"Zamana Karşı'da kazan", aTaWin10:"Zamana Karşı'da 10 zafer", aSurvWin:"Hayatta Kalma'da kazan", aSurvWin10:"Hayatta Kalma'da 10 zafer", aNmWin:'Hatasız modunda kazan', aNmWin10:'Hatasız modunda 10 zafer', aAllModes:'Her modda kazan', aWin100:'100 zafer', aPlay250:'250 oyun oyna', aPairs2500:'2500 çift', aPerfect25:'25 kusursuz oyun', aFast25:'25 hızlı zafer', aStreak14:'14 günlük seri', aRich5000:'Toplam 5000 inci', aSeaAll:'Tüm deniz temaları', aBacksAll:'Tüm kart arkaları', aPalettesAll:'Tüm paletler' },
+    achievements: { aFirstWin:'İlk zafer', aWin10:'10 zafer', aWin50:'50 zafer', aPairs100:'100 çift', aPairs500:'500 çift', aExpertWin:'Uzmanda kazan', aAllDifficulties:'Tüm zorluklar', aStreak7:'7 günlük seri', aCollector:'5 kozmetik sahibi', aRich:'Toplam 1000 inci', aPerfectionist:'10 kusursuz oyun', aSpeedrunner:'10 hızlı zafer', aWin25:'25 zafer', aPlay25:'25 oyun oyna', aPlay100:'100 oyun oyna', aPairs1000:'1000 çift', aHardMaster:'Zorda 10 zafer', aExpertMaster:'Uzmanda 10 zafer', aStreak30:'30 günlük seri', aCollector15:'15 kozmetik sahibi', aLevel5:'5. seviye', aLevel10:'10. seviye', aTaWin:"Zamana Karşı'da kazan", aTaWin10:"Zamana Karşı'da 10 zafer", aSurvWin:"Hayatta Kalma'da kazan", aSurvWin10:"Hayatta Kalma'da 10 zafer", aNmWin:'Hatasız modunda kazan', aNmWin10:'Hatasız modunda 10 zafer', aAllModes:'Her modda kazan', aWin100:'100 zafer', aPlay250:'250 oyun oyna', aPairs2500:'2500 çift', aPerfect25:'25 kusursuz oyun', aFast25:'25 hızlı zafer', aStreak14:'14 günlük seri', aRich5000:'Toplam 5000 inci', aCampFirst:'İlk yolculuk seviyesi', aCampChapter:'Bir yolculuk bölümünü tamamla', aCampLevels30:'30 yolculuk seviyesi', aCampStars50:'50 yolculuk yıldızı', aCampStars120:'120 yolculuk yıldızı', aCampAllChapters:'Tüm yolculuk bölümleri', aSeaAll:'Tüm deniz temaları', aBacksAll:'Tüm kart arkaları', aPalettesAll:'Tüm paletler' },
     help: {
       title: 'Nasıl oynanır',
       sections: [
@@ -480,8 +480,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   es: {
-    title:       'PARES MARINOS',
-    description: '¡Pares Marinos — un divertido juego de memoria para niños desde 6 años. Voltea las cartas, encuentra las parejas y entrena la atención con los habitantes del mar!',
+    title:       'DÚOS DE CARTAS',
+    description: 'Dúos de Cartas — divertido juego de memoria: voltea cartas, empareja criaturas marinas, prueba cuatro modos, supera un mapa de aventura y colecciona.',
     subtitle: 'Juego de memoria con cartas',
     difficulty: 'DIFICULTAD',
     diffLabels: { easy: 'FÁCIL', medium: 'MEDIO', hard: 'DIFÍCIL', expert: 'EXPERTO' },
@@ -557,7 +557,7 @@ export const LOCALES: Record<Lang, Locale> = {
     levelHintDone: '¡Mundo completado!',
     tasks:'Tareas', tasksTabQuests:'Misiones', tasksTabAch:'Logros', taskClaim:'RECLAMAR', taskClaimed:'OBTENIDO', taskReroll:'CAMBIAR',
     quests: { qWinGames:'Gana 3 partidas', qMatchPairs:'Empareja 20 pares', qPlayGames:'Juega 5 partidas', qWinHard:'Gana en difícil', qPerfectWin:'Partida perfecta', qFastWin:'Victoria rápida', qWinMedium:'Gana 2 en medio', qMatchPairsBig:'Empareja 40 pares' },
-    achievements: { aFirstWin:'Primera victoria', aWin10:'10 victorias', aWin50:'50 victorias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Gana en experto', aAllDifficulties:'Todas las dificultades', aStreak7:'Racha de 7 días', aCollector:'5 cosméticos', aRich:'1000 perlas en total', aPerfectionist:'10 partidas perfectas', aSpeedrunner:'10 victorias rápidas', aWin25:'25 victorias', aPlay25:'Juega 25 partidas', aPlay100:'Juega 100 partidas', aPairs1000:'1000 pares', aHardMaster:'10 victorias en difícil', aExpertMaster:'10 victorias en experto', aStreak30:'Racha de 30 días', aCollector15:'15 cosméticos', aLevel5:'Nivel 5', aLevel10:'Nivel 10', aTaWin:'Gana en Contrarreloj', aTaWin10:'10 victorias en Contrarreloj', aSurvWin:'Gana en Supervivencia', aSurvWin10:'10 victorias en Supervivencia', aNmWin:'Gana en Sin Errores', aNmWin10:'10 victorias en Sin Errores', aAllModes:'Gana en todos los modos', aWin100:'100 victorias', aPlay250:'Juega 250 partidas', aPairs2500:'2500 pares', aPerfect25:'25 partidas perfectas', aFast25:'25 victorias rápidas', aStreak14:'Racha de 14 días', aRich5000:'5000 perlas en total', aSeaAll:'Todos los temas de mar', aBacksAll:'Todos los reversos', aPalettesAll:'Todas las paletas' },
+    achievements: { aFirstWin:'Primera victoria', aWin10:'10 victorias', aWin50:'50 victorias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Gana en experto', aAllDifficulties:'Todas las dificultades', aStreak7:'Racha de 7 días', aCollector:'5 cosméticos', aRich:'1000 perlas en total', aPerfectionist:'10 partidas perfectas', aSpeedrunner:'10 victorias rápidas', aWin25:'25 victorias', aPlay25:'Juega 25 partidas', aPlay100:'Juega 100 partidas', aPairs1000:'1000 pares', aHardMaster:'10 victorias en difícil', aExpertMaster:'10 victorias en experto', aStreak30:'Racha de 30 días', aCollector15:'15 cosméticos', aLevel5:'Nivel 5', aLevel10:'Nivel 10', aTaWin:'Gana en Contrarreloj', aTaWin10:'10 victorias en Contrarreloj', aSurvWin:'Gana en Supervivencia', aSurvWin10:'10 victorias en Supervivencia', aNmWin:'Gana en Sin Errores', aNmWin10:'10 victorias en Sin Errores', aAllModes:'Gana en todos los modos', aWin100:'100 victorias', aPlay250:'Juega 250 partidas', aPairs2500:'2500 pares', aPerfect25:'25 partidas perfectas', aFast25:'25 victorias rápidas', aStreak14:'Racha de 14 días', aRich5000:'5000 perlas en total', aCampFirst:'Primer nivel del viaje', aCampChapter:'Completa un capítulo del viaje', aCampLevels30:'30 niveles del viaje', aCampStars50:'50 estrellas del viaje', aCampStars120:'120 estrellas del viaje', aCampAllChapters:'Todos los capítulos del viaje', aSeaAll:'Todos los temas de mar', aBacksAll:'Todos los reversos', aPalettesAll:'Todas las paletas' },
     help: {
       title: 'Cómo jugar',
       sections: [
@@ -606,8 +606,8 @@ export const LOCALES: Record<Lang, Locale> = {
   },
 
   pt: {
-    title:       'PARES DO MAR',
-    description: 'Pares do Mar — um divertido jogo de memória para crianças a partir de 6 anos. Vire as cartas, encontre os pares e treine a atenção com os habitantes do mar!',
+    title:       'DUPLAS DE CARTAS',
+    description: 'Duplas de Cartas — divertido jogo de memória: vire cartas, combine pares de criaturas marinhas, jogue em quatro modos, explore o mapa e colecione.',
     subtitle: 'Jogo de memória com cartas',
     difficulty: 'DIFICULDADE',
     diffLabels: { easy: 'FÁCIL', medium: 'MÉDIO', hard: 'DIFÍCIL', expert: 'ESPECIALISTA' },
@@ -683,7 +683,7 @@ export const LOCALES: Record<Lang, Locale> = {
     levelHintDone: 'Mundo concluído!',
     tasks:'Tarefas', tasksTabQuests:'Missões', tasksTabAch:'Conquistas', taskClaim:'RESGATAR', taskClaimed:'RESGATADO', taskReroll:'TROCAR',
     quests: { qWinGames:'Vença 3 jogos', qMatchPairs:'Combine 20 pares', qPlayGames:'Jogue 5 jogos', qWinHard:'Vença no difícil', qPerfectWin:'Jogo perfeito', qFastWin:'Vitória rápida', qWinMedium:'Vença 2 no médio', qMatchPairsBig:'Combine 40 pares' },
-    achievements: { aFirstWin:'Primeira vitória', aWin10:'10 vitórias', aWin50:'50 vitórias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Vença no especialista', aAllDifficulties:'Todas as dificuldades', aStreak7:'Sequência de 7 dias', aCollector:'5 cosméticos', aRich:'1000 pérolas no total', aPerfectionist:'10 jogos perfeitos', aSpeedrunner:'10 vitórias rápidas', aWin25:'25 vitórias', aPlay25:'Jogue 25 jogos', aPlay100:'Jogue 100 jogos', aPairs1000:'1000 pares', aHardMaster:'10 vitórias no difícil', aExpertMaster:'10 vitórias no especialista', aStreak30:'Sequência de 30 dias', aCollector15:'15 cosméticos', aLevel5:'Nível 5', aLevel10:'Nível 10', aTaWin:'Vença em Contra o Tempo', aTaWin10:'10 vitórias em Contra o Tempo', aSurvWin:'Vença em Sobrevivência', aSurvWin10:'10 vitórias em Sobrevivência', aNmWin:'Vença em Sem Erros', aNmWin10:'10 vitórias em Sem Erros', aAllModes:'Vença em todos os modos', aWin100:'100 vitórias', aPlay250:'Jogue 250 jogos', aPairs2500:'2500 pares', aPerfect25:'25 jogos perfeitos', aFast25:'25 vitórias rápidas', aStreak14:'Sequência de 14 dias', aRich5000:'5000 pérolas no total', aSeaAll:'Todos os temas de mar', aBacksAll:'Todos os versos', aPalettesAll:'Todas as paletas' },
+    achievements: { aFirstWin:'Primeira vitória', aWin10:'10 vitórias', aWin50:'50 vitórias', aPairs100:'100 pares', aPairs500:'500 pares', aExpertWin:'Vença no especialista', aAllDifficulties:'Todas as dificuldades', aStreak7:'Sequência de 7 dias', aCollector:'5 cosméticos', aRich:'1000 pérolas no total', aPerfectionist:'10 jogos perfeitos', aSpeedrunner:'10 vitórias rápidas', aWin25:'25 vitórias', aPlay25:'Jogue 25 jogos', aPlay100:'Jogue 100 jogos', aPairs1000:'1000 pares', aHardMaster:'10 vitórias no difícil', aExpertMaster:'10 vitórias no especialista', aStreak30:'Sequência de 30 dias', aCollector15:'15 cosméticos', aLevel5:'Nível 5', aLevel10:'Nível 10', aTaWin:'Vença em Contra o Tempo', aTaWin10:'10 vitórias em Contra o Tempo', aSurvWin:'Vença em Sobrevivência', aSurvWin10:'10 vitórias em Sobrevivência', aNmWin:'Vença em Sem Erros', aNmWin10:'10 vitórias em Sem Erros', aAllModes:'Vença em todos os modos', aWin100:'100 vitórias', aPlay250:'Jogue 250 jogos', aPairs2500:'2500 pares', aPerfect25:'25 jogos perfeitos', aFast25:'25 vitórias rápidas', aStreak14:'Sequência de 14 dias', aRich5000:'5000 pérolas no total', aCampFirst:'Primeiro nível da jornada', aCampChapter:'Complete um capítulo da jornada', aCampLevels30:'30 níveis da jornada', aCampStars50:'50 estrelas da jornada', aCampStars120:'120 estrelas da jornada', aCampAllChapters:'Todos os capítulos da jornada', aSeaAll:'Todos os temas de mar', aBacksAll:'Todos os versos', aPalettesAll:'Todas as paletas' },
     help: {
       title: 'Como jogar',
       sections: [
@@ -726,135 +726,6 @@ export const LOCALES: Record<Lang, Locale> = {
           'Cada vitória concede experiência (XP).',
           'Preencha a barra de XP para subir de nível.',
           'Cada novo nível recompensa com pérolas.',
-        ] },
-      ],
-    },
-  },
-
-  // Arabic: no uppercase concept — labels are natural-case.
-  // diffDesc uses correct Arabic grammar: plural (أزواج) for counts 3–10,
-  // singular (زوج) for counts 11+ (standard Arabic number agreement).
-  ar: {
-    title:       'أزواج البحر',
-    description: 'أزواج البحر — لعبة ذاكرة ممتعة للأطفال من عمر 6 سنوات. اقلب البطاقات وابحث عن التطابقات وتدرب على التركيز مع مخلوقات البحر!',
-    subtitle: 'لعبة ذاكرة بالبطاقات',
-    difficulty: 'الصعوبة',
-    diffLabels: { easy: 'سهل', medium: 'متوسط', hard: 'صعب', expert: 'خبير' },
-    diffDesc:   {
-      easy:   '٦ أزواج · ١٢ بطاقة',
-      medium: '١٠ أزواج · ٢٠ بطاقة',
-      hard:   '١٢ زوج · ٢٤ بطاقة',
-      expert: '١٤ زوج · ٢٨ بطاقة',
-    },
-    diffHint:   {
-      easy:   'مثالي للمبتدئين',
-      medium: 'لعبة كلاسيكية',
-      hard:   'للأساتذة الحقيقيين',
-      expert: 'جميع المخلوقات الـ ١٤!',
-    },
-    modesTitle: 'وضع اللعب',
-    modeRecommended: 'موصى به',
-    modeBeginner: 'للمبتدئين', playCta: 'العب',
-    modeLabels: { classic: 'كلاسيكي', timeAttack: 'ضد الوقت', survival: 'البقاء', noMistakes: 'بدون أخطاء' },
-    modeDesc: {
-      classic:    'اعثر على الأزواج بوتيرتك — بلا حدود.',
-      timeAttack: 'اسبق الوقت! كل زوج تجده يضيف ثواني.',
-      survival:   'خطأ واحد يقلب كل الأزواج المكشوفة. أكمل اللوحة دون زلة!',
-      noMistakes: 'احفظ البطاقات أثناء العرض. خطأ واحد يعني الخسارة!',
-    },
-    modeLockedLv: (n) => `يفتح في المستوى ${n}`,
-    taParams: (start, bonus) => `${start} ث، +${bonus} لكل زوج`,
-    previewParams: (sec) => `عرض ${sec} ث`,
-    memorize: 'احفظ الأماكن!',
-    defeatTimeout: 'انتهى الوقت!',
-    defeatMistake: 'خطأ!',
-    defeatPairs: (n, total) => `الأزواج الموجودة: ${n} من ${total}`,
-    sound:   'الصوت',
-    soundOn: 'مفعّل',
-    soundOff: 'معطّل',
-    play:    'ابدأ اللعبة',
-    journeyTitle: 'رحلة',
-    journeySubtitle: 'اختر عالمًا',
-    menu:    'القائمة',
-    moves:   (n) => `الحركات: ${n}`,
-    pairs:   (n, total) => `الأزواج: ${n} / ${total}`,
-    victory: 'فوز!',
-    allPairsFound: 'تم العثور على جميع الأزواج!',
-    vRecord: 'رقم قياسي جديد!',
-    vFirstWin: 'الفوز الأول ×2',
-    profile: 'الملف', level: 'المستوى', levelUpTitle: 'مستوى جديد!', levelUpCta: 'متابعة', statGames: 'الألعاب', statWins: 'الانتصارات', statPairs: 'الأزواج',
-    movesResult: (n) => `الحركات: ${n}`,
-    timeResult:  (t) => `الوقت: ${t}`,
-    restart: 'مجدداً',
-    toMenu:  'إلى القائمة',
-    movesLabel: 'الحركات',
-    timeLabel:  'الوقت',
-    leaderboard: 'الأرقام القياسية',
-    loginToSave: 'سجّل الدخول لحفظ النتيجة',
-    lbTitle:     'لوحة المتصدرين',
-    lbLoading:   'جارٍ التحميل...',
-    lbClose:     'إغلاق',
-    lbPlayer: 'اللاعب', lbEmpty: 'لا توجد أرقام قياسية بعد',
-    shop: 'المجموعة', shopBuy: 'شراء', shopEquip: 'تجهيز', shopEquipped: 'مُجهَّز',
-    shopTabSea: 'البحر', shopTabBack: 'ظهر البطاقة', shopTabPalette: 'الألوان', shopCollected: 'تم الجمع', comingSoon: 'قريبًا',
-    shopItems: { seaLagoon:'بحيرة', seaReef:'شعاب', seaAbyss:'هاوية', seaArctic:'قطبي', seaLava:'حمم',
-      backClassic:'كلاسيكي', backGold:'ذهبي', backCoral:'مرجاني', backDeep:'عميق', backSilver:'فضي', backJade:'يشم', backOnyx:'عقيق',
-      uiOcean:'محيط', uiSunset:'غروب', uiEmerald:'زمرد', uiAmethyst:'جمشت', uiCrimson:'قرمزي', uiSlate:'أردوازي', uiSand:'رملي', uiAurora:'الشفق', backPrism:'منشور', bundleFounder:'حزمة المؤسس', bundlePremium:'الحزمة المميزة' },
-    dailyTitle: 'المكافأة اليومية', dailyClaim: 'استلام', dailyDouble: 'مضاعفة عبر إعلان', dailyComeBack: 'عُد غداً!',
-    storeTitle: 'المتجر', iapBuy: 'شراء', storePacks: 'اللؤلؤ', storeBundles: 'الحزم',
-    shopTabExclusive: 'حصري', bundleIncludes: 'يشمل:', bundleOwned: 'تم الحصول',
-    levelWord: 'المستوى', goalComplete: 'أكمل المستوى', goalMoves: 'خلال {n} حركة', goalTime: 'خلال {n} ثانية',
-    refillFor: 'أعد الملء مقابل {n}', levelCleared: 'اكتمل المستوى!', levelFailed: 'فشل المستوى',
-    skinUnlocked: 'تم فتح مظهر جديد!', continue: 'متابعة',
-    mapBack: 'الخريطة',
-    biomeNames: { lagoon: 'الخليج الرملي', volcano: 'فوهة النار', reef: 'الشعاب المرجانية', arctic: 'الشاطئ الجليدي', abyss: 'كهف الكريستال' },
-    levelHint: 'دورك — المستوى {n}. يوضح المسار الطريق.',
-    levelHintDone: 'اكتمل العالم!',
-    tasks:'المهام', tasksTabQuests:'المهام', tasksTabAch:'الإنجازات', taskClaim:'استلام', taskClaimed:'تم الاستلام', taskReroll:'تبديل',
-    quests: { qWinGames:'افز بـ ٣ مباريات', qMatchPairs:'طابق ٢٠ زوجاً', qPlayGames:'العب ٥ مباريات', qWinHard:'فز في الصعب', qPerfectWin:'مباراة مثالية', qFastWin:'فوز سريع', qWinMedium:'افز مرتين في المتوسط', qMatchPairsBig:'طابق ٤٠ زوجاً' },
-    achievements: { aFirstWin:'الفوز الأول', aWin10:'١٠ انتصارات', aWin50:'٥٠ انتصاراً', aPairs100:'١٠٠ زوج', aPairs500:'٥٠٠ زوج', aExpertWin:'فز في الخبير', aAllDifficulties:'جميع الصعوبات', aStreak7:'سلسلة ٧ أيام', aCollector:'٥ عناصر تجميلية', aRich:'١٠٠٠ لؤلؤة إجمالاً', aPerfectionist:'١٠ مباريات مثالية', aSpeedrunner:'١٠ انتصارات سريعة', aWin25:'٢٥ انتصاراً', aPlay25:'العب ٢٥ مباراة', aPlay100:'العب ١٠٠ مباراة', aPairs1000:'١٠٠٠ زوج', aHardMaster:'١٠ انتصارات في الصعب', aExpertMaster:'١٠ انتصارات في الخبير', aStreak30:'سلسلة ٣٠ يوماً', aCollector15:'١٥ عنصراً تجميلياً', aLevel5:'المستوى ٥', aLevel10:'المستوى ١٠', aTaWin:'فز في وضع ضد الوقت', aTaWin10:'١٠ انتصارات في وضع ضد الوقت', aSurvWin:'فز في وضع البقاء', aSurvWin10:'١٠ انتصارات في وضع البقاء', aNmWin:'فز في وضع بدون أخطاء', aNmWin10:'١٠ انتصارات في وضع بدون أخطاء', aAllModes:'فز في كل الأوضاع', aWin100:'١٠٠ انتصار', aPlay250:'العب ٢٥٠ مباراة', aPairs2500:'٢٥٠٠ زوج', aPerfect25:'٢٥ مباراة مثالية', aFast25:'٢٥ انتصاراً سريعاً', aStreak14:'سلسلة ١٤ يوماً', aRich5000:'٥٠٠٠ لؤلؤة إجمالاً', aSeaAll:'كل ثيمات البحر', aBacksAll:'كل ظهور البطاقات', aPalettesAll:'كل الألوان' },
-    help: {
-      title: 'كيفية اللعب',
-      sections: [
-        { h: 'الهدف', lines: [
-          'اقلب بطاقتين في كل دور.',
-          'إذا تطابقتا تبقيان مكشوفتين، وإلا تُقلب البطاقتان من جديد.',
-          'اكشف جميع الأزواج للفوز. عدد حركات أقل ووقت أسرع يعنيان نتيجة أفضل.',
-        ] },
-        { h: 'الصعوبات', lines: [
-          'سهل — ٦ أزواج، متوسط — ١٠، صعب — ١٢، خبير — ١٤.',
-          'كلما زادت الصعوبة زاد عدد البطاقات والمكافأة.',
-        ] },
-        { h: 'أوضاع اللعب', lines: [
-          'كلاسيكي — اللعبة العادية بلا حدود.',
-          'ضد الوقت (من المستوى 2) — اسبق المؤقت؛ كل زوج يضيف ثواني.',
-          'البقاء (من المستوى 3) — خطأ واحد يغلق كل الأزواج المكشوفة.',
-          'بدون أخطاء (من المستوى 5) — احفظ البطاقات أثناء العرض؛ خطأ واحد يخسر اللعبة.',
-        ] },
-        { h: 'رحلة', lines: [
-          'خريطة من الجزر-الفصول، في كل منها 12 مستوى بأهدافها الخاصة.',
-          'النجوم: نجمة للفوز ونجمة لكل هدف (نقلات قليلة، وقت سريع، بلا أخطاء) — حتى 3 لكل مستوى.',
-          'الطاقة: بدء المستوى يكلّف حياة واحدة (بحد أقصى 5)؛ تُستعاد حياة كل 25 دقيقة أو املأها باللؤلؤ.',
-          'تُفتح جزر جديدة عندما تجمع نجومًا كافية.',
-        ] },
-        { h: 'ماذا في اللعبة', lines: [
-          'المجموعة — افتح أشكال البحر وظهور البطاقات والألوان مقابل اللؤلؤ.',
-          'المكافأة اليومية — عُد كل يوم لاستلام اللؤلؤ.',
-          'المهام — مهام وإنجازات مع مكافآت.',
-          'الأرقام القياسية — جدول أفضل النتائج.',
-          'المتجر — حزم لؤلؤ وحزم وعناصر حصرية مقابل مال حقيقي.',
-        ] },
-        { h: 'كيف تكسب اللؤلؤ', lines: [
-          'مكافأة أساسية عن كل فوز.',
-          'مكافآت إضافية: مباراة مثالية بلا أخطاء، ووقت سريع، ورقم قياسي شخصي جديد.',
-          'أول فوز في اليوم يمنح ×2.',
-          'الانتصارات المتتالية المتكررة تمنح أقل (حماية من التكرار).',
-          'كذلك: سلسلة يومية، ومهام، وإنجازات، ومضاعفة عبر إعلان.',
-        ] },
-        { h: 'الخبرة والمستوى', lines: [
-          'كل فوز يمنح خبرة (XP).',
-          'املأ شريط الخبرة لرفع مستواك.',
-          'كل مستوى جديد يكافئك باللؤلؤ.',
         ] },
       ],
     },

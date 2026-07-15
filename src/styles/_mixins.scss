@@ -11,7 +11,6 @@
 }
 
 // Apply on the overlay root for Arabic
-@mixin rtl { :global([dir='rtl']) & { @content; } }
 
 // Shared section label ("РЕЖИМ ИГРЫ", "ЗВУК") used by ModePicker + SoundToggle
 @mixin section-label {

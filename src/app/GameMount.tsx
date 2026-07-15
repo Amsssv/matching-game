@@ -167,9 +167,10 @@ export function GameMount({ children }: { children?: ReactNode }) {
           top: 0,
           left: 0,
           // Keep LTR: this container is dpr*100vw wide (wider than the viewport) and the
-          // canvas is a static block inside it. Under document dir=rtl (Arabic) a static
-          // block aligns to the inline-start = right, pushing the canvas off-screen → a
-          // blank board. The canvas is graphical, so text direction must not affect it.
+          // canvas is a static block inside it. Pinning direction to ltr guarantees the
+          // block aligns to the left, so the canvas is never pushed off-screen even if the
+          // document direction changes. The canvas is graphical — text direction must not
+          // affect it.
           direction: 'ltr',
           width: `${dpr * 100}vw`,
           height: `${dpr * 100}vh`,

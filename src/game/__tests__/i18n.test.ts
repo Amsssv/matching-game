@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
 
-const LANGS: Lang[] = ['ru', 'en', 'tr', 'es', 'pt', 'ar'];
+const LANGS: Lang[] = ['ru', 'en', 'tr', 'es', 'pt'];
 const DIFFS = ['easy', 'medium', 'hard', 'expert'] as const;
 const MODES = ['classic', 'timeAttack', 'survival', 'noMistakes'] as const;
 const BIOMES = ['lagoon', 'volcano', 'reef', 'arctic', 'abyss'] as const;

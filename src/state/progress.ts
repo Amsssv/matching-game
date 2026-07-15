@@ -6,7 +6,7 @@ import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
 import { computeClaim, rewardForDay, todayStr } from './daily';
 import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './quests';
 import { ACH_BY_ID, type AchSignals } from './achievements';
-import { computeStars, levelById, isChapterComplete, type LevelResult } from './campaign';
+import { computeStars, levelById, isChapterComplete, totalStars, CHAPTERS, type LevelResult } from './campaign';
 
 const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
@@ -340,7 +340,7 @@ export function ensureTodayQuests(today: string): void {
 
 /** Build the achievement signal bag from progress slices. Single source of truth shared by
  * achSignals() (imperative) and the reactive TasksButton/TasksModal components. */
-export function buildAchSignals(stats: ProgressStats, streakBest: number, unlocked: string[]): AchSignals {
+export function buildAchSignals(stats: ProgressStats, streakBest: number, unlocked: string[], campaign: CampaignProgress): AchSignals {
   const ownedByAxis: Record<CustomAxis, number> = { seaTheme: 0, cardBack: 0, uiPalette: 0 };
   for (const id of unlocked) {
     const item = ITEM_BY_ID[id];
@@ -352,12 +352,15 @@ export function buildAchSignals(stats: ProgressStats, streakBest: number, unlock
     streakBest, unlockedCount: unlocked.length,
     gamesPlayed: stats.gamesPlayed, level: levelFromXp(stats.xp).level,
     winsByMode: stats.winsByMode, ownedByAxis,
+    campaignStars: totalStars(campaign),
+    campaignLevelsCleared: campaign.cleared.length,
+    campaignChaptersComplete: CHAPTERS.filter((c) => isChapterComplete(c.biome, campaign)).length,
   };
 }
 
 export function achSignals(): AchSignals {
   const p = progressStore.get();
-  return buildAchSignals(p.stats, p.streak.best, p.unlocked);
+  return buildAchSignals(p.stats, p.streak.best, p.unlocked, p.campaign);
 }
 
 export function awardPearls(amount: number): void { addPearls(amount); persist(); }

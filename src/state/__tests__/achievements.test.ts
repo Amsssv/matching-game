@@ -6,6 +6,7 @@ const sig = (o: Partial<import('../achievements').AchSignals> = {}) => ({
   gamesPlayed: 0, level: 1,
   winsByMode: { classic: 0, timeAttack: 0, survival: 0, noMistakes: 0 },
   ownedByAxis: { seaTheme: 0, cardBack: 0, uiPalette: 0 },
+  campaignStars: 0, campaignLevelsCleared: 0, campaignChaptersComplete: 0,
   ...o,
 });
 describe('achievement conditions', () => {
@@ -58,5 +59,24 @@ describe('mode + collection achievements', () => {
   it('collection completion uses ownedByAxis against catalog totals', () => {
     expect(ACH_BY_ID.seaAll.done(sig({ ownedByAxis: { seaTheme: ACH_BY_ID.seaAll.target, cardBack: 0, uiPalette: 0 } }))).toBe(true);
     expect(ACH_BY_ID.seaAll.done(sig({ ownedByAxis: { seaTheme: ACH_BY_ID.seaAll.target - 1, cardBack: 0, uiPalette: 0 } }))).toBe(false);
+  });
+});
+
+describe('journey (campaign) achievements', () => {
+  it('level-clear tiers gate on campaignLevelsCleared', () => {
+    expect(ACH_BY_ID.campFirst.done(sig({ campaignLevelsCleared: 0 }))).toBe(false);
+    expect(ACH_BY_ID.campFirst.done(sig({ campaignLevelsCleared: 1 }))).toBe(true);
+    expect(ACH_BY_ID.campLevels30.done(sig({ campaignLevelsCleared: 29 }))).toBe(false);
+    expect(ACH_BY_ID.campLevels30.done(sig({ campaignLevelsCleared: 30 }))).toBe(true);
+  });
+  it('star tiers gate on campaignStars', () => {
+    expect(ACH_BY_ID.campStars50.done(sig({ campaignStars: 50 }))).toBe(true);
+    expect(ACH_BY_ID.campStars120.done(sig({ campaignStars: 119 }))).toBe(false);
+    expect(ACH_BY_ID.campStars120.done(sig({ campaignStars: 120 }))).toBe(true);
+  });
+  it('chapter tiers gate on campaignChaptersComplete', () => {
+    expect(ACH_BY_ID.campChapter.done(sig({ campaignChaptersComplete: 1 }))).toBe(true);
+    expect(ACH_BY_ID.campAllChapters.done(sig({ campaignChaptersComplete: 4 }))).toBe(false);
+    expect(ACH_BY_ID.campAllChapters.done(sig({ campaignChaptersComplete: 5 }))).toBe(true);
   });
 });

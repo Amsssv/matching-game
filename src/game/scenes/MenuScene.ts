@@ -45,7 +45,7 @@ export class MenuScene extends Phaser.Scene {
 
     this.drawBackground(canvasWidth, canvasHeight);
 
-    document.documentElement.dir = this.lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = 'ltr';
     this.publish();
     setMenu({ active: true });
     setTransition(true);   // fade the menu in with the canvas
@@ -160,7 +160,7 @@ export class MenuScene extends Phaser.Scene {
     saveLang(lng);
     document.title = LOCALES[lng].title;
     document.documentElement.lang = lng;
-    document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = 'ltr';
     document.querySelector<HTMLMetaElement>('meta[name="description"]')
       ?.setAttribute('content', LOCALES[lng].description);
     this.renderActivity?.disable();   // loop must run through the restart

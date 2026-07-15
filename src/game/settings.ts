@@ -1,7 +1,7 @@
 import { getYSDK } from '../ysdk';
 import type { Lang } from './i18n';
 
-export const SUPPORTED: Lang[] = ['ru', 'en', 'tr', 'es', 'pt', 'ar'];
+export const SUPPORTED: Lang[] = ['ru', 'en', 'tr', 'es', 'pt'];
 const LANG_STORAGE_KEY  = 'sea-pairs-lang';
 const SOUND_STORAGE_KEY = 'sea-pairs-sound';
 

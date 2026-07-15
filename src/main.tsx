@@ -5,6 +5,7 @@ import { App } from './app/App'
 import { initYSDK } from './ysdk'
 import { initPayments } from './payments'
 import { reconcilePurchases } from './state/purchasesController'
+import { syncProgressLeaderboards } from './state/leaderboardSync'
 import { resolveLang } from './game/settings'
 import { LOCALES } from './game/i18n'
 import { YSDKProvider } from './YSDKContext'
@@ -31,3 +32,4 @@ createRoot(document.getElementById('root')!).render(
 )
 
 void reconcilePurchases()   // mandatory: process/restore any unprocessed purchases on load
+syncProgressLeaderboards()  // seed totalScore (XP) / journeyStars boards from existing progress

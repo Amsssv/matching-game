@@ -4,9 +4,9 @@ import type { Lang } from '../../game/i18n';
 import { cx } from '@ui/cx';
 import styles from './LanguageSelect.module.scss';
 
-// Flag per language. Arabic has no single country flag — 🇸🇦 is the conventional pick.
+// Flag per language.
 const FLAGS: Record<Lang, string> = {
-  ru: '🇷🇺', en: '🇬🇧', tr: '🇹🇷', es: '🇪🇸', pt: '🇵🇹', ar: '🇸🇦',
+  ru: '🇷🇺', en: '🇬🇧', tr: '🇹🇷', es: '🇪🇸', pt: '🇵🇹',
 };
 
 /**

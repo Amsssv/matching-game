@@ -6,8 +6,9 @@
  * be uploaded directly to the developer console.
  *
  * Yandex rule 5.1.1 requires ≥70% of promo screenshots to show gameplay. We
- * produce 5 frames per language per device: 1 menu + 4 gameplay states
- * (= 80% gameplay). Default run covers all 6 supported languages.
+ * produce 7 frames per language per device: 1 menu + 2 journey (world map +
+ * island level-select, i.e. progression/gameplay content) + 4 core board states
+ * (= 6/7 ≈ 86% game screens). Default run covers all 6 supported languages.
  *
  * Run:
  *   npm run screenshots:promo
@@ -28,7 +29,7 @@ import {
   waitForGameUnlocked,
 } from './helpers';
 
-const ALL_LANGS = ['ru', 'en', 'tr', 'es', 'pt', 'ar'] as const;
+const ALL_LANGS = ['ru', 'en', 'tr', 'es', 'pt'] as const;
 type Lang = typeof ALL_LANGS[number];
 
 // PROMO_LANG=xx limits the run to a single language; omitted = all of them.
@@ -134,18 +135,39 @@ for (const lang of LANGS) {
       const shot = (name: string) =>
         page.screenshot({ path: path.join(outDir, `${lang}_${name}.png`), animations: 'disabled' });
 
-      // 1 / 5 — Menu (non-gameplay; 20% of the set)
+      // 1 / 7 — Menu (non-gameplay; the only non-game screen)
       await pausePhaser(page);
       await shot('01_menu');
 
-      // 2 / 5 — Fresh board: all cards face-down (just started)
+      // 2 / 7 — Journey world map (chapter/island progression)
       await resumePhaser(page);
+      await page.getByTestId('journey').click();
+      await page.getByTestId('campaign-map').waitFor();
+      await page.waitForTimeout(700); // scene transition cover + map settle
+      await pausePhaser(page);
+      await shot('02_journey_map');
+
+      // 3 / 7 — Island level-select (serpentine level trail)
+      await resumePhaser(page);
+      await page.getByTestId('chapter-lagoon').click();
+      await page.getByTestId('island-lagoon').waitFor();
+      await page.waitForTimeout(600); // modal pop settle
+      await pausePhaser(page);
+      await shot('03_island');
+
+      // Return to the main menu for the core board frames.
+      await resumePhaser(page);
+      await page.getByTestId('island-back').click();
+      await page.getByTestId('campaign-map-close').click();
+      await page.waitForTimeout(700); // scene transition back to MenuScene
+
+      // 4 / 7 — Fresh board: all cards face-down (just started)
       await startGameScene(page, DIFFICULTY);
       await setClock(page, 2);
       await pausePhaser(page);
-      await shot('02_board');
+      await shot('04_board');
 
-      // 3 / 5 — Just-matched pair (shows highlight / matched state)
+      // 5 / 7 — Just-matched pair (shows highlight / matched state)
       await resumePhaser(page);
       const deck = await getActualDeck(page);
       const [a, b] = findFirstMatchingPair(deck);
@@ -156,18 +178,18 @@ for (const lang of LANGS) {
       await waitForGameUnlocked(page);
       await setClock(page, 9);
       await pausePhaser(page);
-      await shot('03_match');
+      await shot('05_match');
 
-      // 4 / 5 — Mid-game: ~40% of pairs matched
+      // 6 / 7 — Mid-game: ~40% of pairs matched
       await resumePhaser(page);
       const totalPairs = deck.length / 2;
       const midTarget = Math.max(2, Math.floor(totalPairs * 0.4));
       const midState = await matchPairs(page, deck, new Set([a, b]), midTarget);
       await setClock(page, 33);
       await pausePhaser(page);
-      await shot('04_midgame');
+      await shot('06_midgame');
 
-      // 5 / 5 — Decision moment: two non-matching cards revealed mid-flip
+      // 7 / 7 — Decision moment: two non-matching cards revealed mid-flip
       await resumePhaser(page);
       // Bump the clock BEFORE revealing the cards — setClock waits 650ms, which would
       // otherwise let the auto-flip-back (~UI.animation.cardFlipDelay) hide them.
@@ -183,7 +205,7 @@ for (const lang of LANGS) {
         await page.waitForTimeout(350);
       }
       await pausePhaser(page);
-      await shot('05_decision');
+      await shot('07_decision');
     });
   });
 }
