@@ -8,7 +8,7 @@ import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './
 import { ACH_BY_ID, type AchSignals } from './achievements';
 import { computeStars, levelById, isChapterComplete, totalStars, CHAPTERS, type LevelResult } from './campaign';
 
-const PEARL_BASE: Record<Difficulty, number> = { easy: 10, medium: 20, hard: 35, expert: 50 };
+const PEARL_BASE: Record<Difficulty, number> = { easy: 14, medium: 24, hard: 35, expert: 50 };
 const SPEED_PAR:  Record<Difficulty, number> = { easy: 30, medium: 60, hard: 90, expert: 140 };
 
 export interface WinContext {
@@ -22,7 +22,7 @@ const SPEED_BLAZING = 0.6;   // ≤ par × this = "blazing" (the higher speed ti
  * Pearls for a win: base(difficulty) × skill × first-win × anti-farm, rounded.
  *  - skill = 1 + perfect(+0.5, moves===totalPairs) + speed(blazing ≤par×0.6 → +0.5, else fast ≤par → +0.25) + record(+0.5)
  *  - first win of the day → ×2
- *  - anti-farm diminishing returns by win-of-day: wins 1-3 ×1, 4-6 ×0.5, 7+ ×0.25
+ *  - anti-farm diminishing returns by win-of-day: wins 1-4 ×1, 5-8 ×0.5, 9+ ×0.25
  */
 export function computePearls(difficulty: Difficulty, seconds: number, moves: number, totalPairs: number, ctx: WinContext, mode: GameMode = 'classic'): number {
   const base = PEARL_BASE[difficulty];
@@ -36,7 +36,7 @@ export function computePearls(difficulty: Difficulty, seconds: number, moves: nu
   }
   if (ctx.isRecord) skill += 0.5;
   const firstWin = ctx.winIndex === 1 ? 2 : 1;
-  const farm = ctx.winIndex <= 3 ? 1 : ctx.winIndex <= 6 ? 0.5 : 0.25;
+  const farm = ctx.winIndex <= 4 ? 1 : ctx.winIndex <= 8 ? 0.5 : 0.25;
   return Math.round(base * PEARL_MULT[mode][difficulty] * skill * firstWin * farm);
 }
 

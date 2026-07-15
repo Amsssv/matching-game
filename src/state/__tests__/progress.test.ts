@@ -18,31 +18,32 @@ describe('computePearls', () => {
   // Default context: a non-first, non-record win (winIndex 2 → no first-win ×2, no anti-farm).
   const ctx = (winIndex = 2, isRecord = false) => ({ winIndex, isRecord });
   it('awards base by difficulty with no bonuses', () => {
-    expect(computePearls('easy',   999, 99, 6,  ctx())).toBe(10);
-    expect(computePearls('medium', 999, 99, 10, ctx())).toBe(20);
+    expect(computePearls('easy',   999, 99, 6,  ctx())).toBe(14);
+    expect(computePearls('medium', 999, 99, 10, ctx())).toBe(24);
     expect(computePearls('hard',   999, 99, 12, ctx())).toBe(35);
     expect(computePearls('expert', 999, 99, 14, ctx())).toBe(50);
   });
   it('adds a perfect-run bonus (+50%) when moves === totalPairs', () => {
-    expect(computePearls('medium', 999, 10, 10, ctx())).toBe(30);
+    expect(computePearls('medium', 999, 10, 10, ctx())).toBe(36); // 24 × 1.5
   });
   it('adds a fast bonus (+25%) at par and a blazing bonus (+50%) under par×0.6', () => {
-    expect(computePearls('medium', 60, 99, 10, ctx())).toBe(25); // fast (60<=60), not blazing (60>36)
-    expect(computePearls('medium', 36, 99, 10, ctx())).toBe(30); // blazing (36<=36) → +0.5
+    expect(computePearls('medium', 60, 99, 10, ctx())).toBe(30); // fast (60<=60): 24 × 1.25
+    expect(computePearls('medium', 36, 99, 10, ctx())).toBe(36); // blazing (36<=36): 24 × 1.5
   });
   it('stacks perfect + speed and rounds', () => {
-    expect(computePearls('easy', 30, 6, 6, ctx())).toBe(18);      // 10 × 1.75
+    expect(computePearls('easy', 30, 6, 6, ctx())).toBe(25);      // 14 × 1.75
     expect(computePearls('expert', 140, 14, 14, ctx())).toBe(88); // 50 × 1.75
   });
   it('doubles the first win of the day', () => {
-    expect(computePearls('medium', 999, 99, 10, ctx(1))).toBe(40); // 20 × 1 × 2
+    expect(computePearls('medium', 999, 99, 10, ctx(1))).toBe(48); // 24 × 1 × 2
   });
   it('adds a personal-record bonus (+50%)', () => {
-    expect(computePearls('medium', 999, 99, 10, ctx(2, true))).toBe(30); // 20 × 1.5
+    expect(computePearls('medium', 999, 99, 10, ctx(2, true))).toBe(36); // 24 × 1.5
   });
   it('applies anti-farm diminishing returns by win-of-day', () => {
-    expect(computePearls('medium', 999, 99, 10, ctx(4))).toBe(10); // ×0.5
-    expect(computePearls('medium', 999, 99, 10, ctx(7))).toBe(5);  // ×0.25
+    expect(computePearls('medium', 999, 99, 10, ctx(4))).toBe(24); // <=4 → ×1
+    expect(computePearls('medium', 999, 99, 10, ctx(5))).toBe(12); // 5-8 → ×0.5
+    expect(computePearls('medium', 999, 99, 10, ctx(9))).toBe(6);  // 9+  → ×0.25
   });
 });
 
@@ -378,19 +379,19 @@ describe('mode-aware win economy', () => {
   const ctx = { isRecord: false, winIndex: 2 }; // no record bonus, no first-win ×2, farm ×1
 
   it('timeAttack: multiplier applies, speed bonus suppressed, perfect kept', () => {
-    // easy base 10; blazing time (5s ≤ 30×0.6) would add +0.5 in classic
-    expect(computePearls('easy', 5, 6, 6, ctx, 'classic')).toBe(Math.round(10 * (1 + 0.5 + 0.5)));      // perfect + blazing
-    expect(computePearls('easy', 5, 6, 6, ctx, 'timeAttack')).toBe(Math.round(10 * 1.5 * (1 + 0.5)));   // perfect only
+    // easy base 14; blazing time (5s ≤ 30×0.6) would add +0.5 in classic
+    expect(computePearls('easy', 5, 6, 6, ctx, 'classic')).toBe(Math.round(14 * (1 + 0.5 + 0.5)));      // perfect + blazing
+    expect(computePearls('easy', 5, 6, 6, ctx, 'timeAttack')).toBe(Math.round(14 * 1.5 * (1 + 0.5)));   // perfect only
   });
 
   it('noMistakes: perfect AND speed suppressed, per-cell multiplier applies', () => {
-    expect(computePearls('easy', 5, 6, 6, ctx, 'noMistakes')).toBe(Math.round(10 * 1.25 * 1));
+    expect(computePearls('easy', 5, 6, 6, ctx, 'noMistakes')).toBe(Math.round(14 * 1.25 * 1));
     expect(computePearls('expert', 30, 14, 14, ctx, 'noMistakes')).toBe(Math.round(50 * 2 * 1));
   });
 
   it('record bonus still applies in every mode', () => {
     const rec = { isRecord: true, winIndex: 2 };
-    expect(computePearls('easy', 5, 6, 6, rec, 'noMistakes')).toBe(Math.round(10 * 1.25 * 1.5));
+    expect(computePearls('easy', 5, 6, 6, rec, 'noMistakes')).toBe(Math.round(14 * 1.25 * 1.5));
   });
 
   it('winContext reads prevBest from modeBests for new modes and recordGameWin writes it there', () => {
