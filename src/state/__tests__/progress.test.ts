@@ -303,9 +303,9 @@ describe('quests + achievements (progress v4)', () => {
   it('claimAchievement firstWin after a win, then null on repeat', () => {
     recordGameWin({ difficulty: 'easy', seconds: 10, pairs: 6, moves: 6 });
     expect(achSignals().gamesWon).toBe(1);
-    expect(claimAchievement('firstWin')).toBe(20);
-    expect(progressStore.get().pearls).toBe(20);
-    expect(progressStore.get().stats.pearlsEarnedTotal).toBeGreaterThanOrEqual(20);
+    expect(claimAchievement('firstWin')).toBe(10);
+    expect(progressStore.get().pearls).toBe(10);
+    expect(progressStore.get().stats.pearlsEarnedTotal).toBeGreaterThanOrEqual(10);
     expect(claimAchievement('firstWin')).toBeNull();
   });
   it('perfect + fast win increments counters', () => {

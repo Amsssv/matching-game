@@ -37,6 +37,10 @@ describe('achievement conditions', () => {
     expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(ACHIEVEMENTS.length);
     ACHIEVEMENTS.forEach((a) => { expect(a.nameKey).toBeTruthy(); expect(a.reward).toBeGreaterThan(0); });
   });
+  it('total achievement pearls stay lean for IAP balance', () => {
+    const total = ACHIEVEMENTS.reduce((sum, a) => sum + a.reward, 0);
+    expect(total).toBe(4025);
+  });
 });
 
 describe('mode + collection achievements', () => {
