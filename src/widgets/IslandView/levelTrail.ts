@@ -4,7 +4,7 @@ export interface Pt { x: number; y: number }
 /** Column X centers (%) and row Y centers (%) of the 4×3 level grid, spread
  * over the tall portrait island board (rows spaced out to use the height). */
 const COLS = [20, 40, 60, 80];
-const ROWS = [17, 45, 73];
+const ROWS = [25, 45, 65];
 
 /**
  * Positions of the 12 level nodes as a serpentine (boustrophedon) 4×3 grid,

@@ -13,7 +13,8 @@ export interface LevelRewards { firstClearPearls: number; perStarPearls: number;
 export interface CampaignLevel {
   id: string;
   index: number;              // 1-based within chapter
-  difficulty: Difficulty;
+  pairs: number;              // board size for THIS level (2..14) — the campaign difficulty axis
+  difficulty: Difficulty;     // label derived from `pairs`; used for preview time / modes / win stats
   mode: GameMode;
   goals: LevelGoals;
   rewards: LevelRewards;
@@ -24,8 +25,8 @@ export interface CampaignChapter {
                               // biome (NOT granted; sea skins stay purchase-only)
   starsToUnlock: number;      // stars needed in the PREVIOUS chapter to unlock this one
   levels: CampaignLevel[];
-  worldPosition: { x: number; y: number };        // % of the island on world-map.webp (desktop)
-  mobilePosition: { x: number; y: number };        // % of the island on world-map-mobile.webp
+  worldPosition: { x: number; y: number };        // island center, % of the desktop map (journey_bg)
+  mobilePosition: { x: number; y: number };        // island center, % of the mobile map (journey_bg_mobile)
 }
 
 export interface LevelResult { won: boolean; seconds: number; moves: number; mistakes: number }
@@ -33,21 +34,22 @@ export interface LevelResult { won: boolean; seconds: number; moves: number; mis
 export const LEVELS_PER_CHAPTER = 12;
 
 /**
- * (A) Per-area difficulty ramps — each area escalates over the previous one.
- * Lagoon is the gentlest (caps at `hard`, no `expert`); Abyss is the hardest
- * (starts at `medium`, mostly `expert`). Every ramp is LEVELS_PER_CHAPTER long.
+ * (A) Pair-count curve — the campaign difficulty axis is the number of pairs N (2..14)
+ * on each level's board. Escalation-with-breather: each area starts a touch easier than
+ * the previous area's peak, then climbs higher; peak (14) only at the very end.
  */
-const AREA_RAMP: Record<BiomeId, Difficulty[]> = {
-  lagoon:  ['easy', 'easy', 'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard'],
-  volcano: ['easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'expert'],
-  reef:    ['easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert'],
-  arctic:  ['easy', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert', 'expert'],
-  abyss:   ['medium', 'medium', 'hard', 'hard', 'hard', 'hard', 'hard', 'expert', 'expert', 'expert', 'expert', 'expert'],
+const PAIR_CURVE: Record<BiomeId, readonly number[]> = {
+  lagoon:  [2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6, 6],
+  volcano: [4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8],
+  reef:    [6, 6, 7, 7, 7, 8, 8, 9, 9, 9, 10, 10],
+  arctic:  [8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12, 12],
+  abyss:   [10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14],
 };
 
-/** (B) Per-area star-goal tightness — later areas grant proportionally less time/moves. */
-const AREA_TIGHTNESS: Record<BiomeId, number> = {
-  lagoon: 1, volcano: 0.94, reef: 0.90, arctic: 0.85, abyss: 0.80,
+/** (B) Star-goal tightness by location — later areas grant proportionally less time/moves.
+ * Combined with the per-level term (−0.005·i) so the SAME board N is harder deeper in the journey. */
+const LOC_BASE: Record<BiomeId, number> = {
+  lagoon: 1.00, volcano: 0.93, reef: 0.86, arctic: 0.79, abyss: 0.72,
 };
 
 /** (C) The final area mixes game modes into a "boss" gauntlet; all other areas are classic. */
@@ -56,25 +58,30 @@ const ABYSS_MODES: GameMode[] = [
   'survival', 'timeAttack', 'noMistakes', 'survival', 'timeAttack', 'noMistakes',
 ];
 
-/** Move/time budgets by difficulty — the board-size baseline for the ⭐2/⭐3 objectives. */
-const MOVE_BUDGET: Record<Difficulty, number> = { easy: 16, medium: 28, hard: 34, expert: 40 };
-const TIME_BUDGET: Record<Difficulty, number> = { easy: 45, medium: 75, hard: 95, expert: 120 };
+/** Map a level's pair count to a difficulty label (for preview time, modes, win stats). */
+export function difficultyForPairs(pairs: number): Difficulty {
+  if (pairs <= 6) return 'easy';
+  if (pairs <= 9) return 'medium';
+  if (pairs <= 12) return 'hard';
+  return 'expert';
+}
 
 function buildLevels(biome: BiomeId): CampaignLevel[] {
-  const ramp = AREA_RAMP[biome];
-  const tight = AREA_TIGHTNESS[biome];
+  const curve = PAIR_CURVE[biome];
   const modes = biome === 'abyss' ? ABYSS_MODES : null;
-  return ramp.map((difficulty, i) => {
+  return curve.map((pairs, i) => {
     const index = i + 1;
-    // Per-level progression: each level is a touch tighter than the previous one
-    // (−1 move, −2 s) on top of the difficulty baseline × area tightness — so the
-    // goals ramp level-by-level, not in flat tier blocks (levels 1..12 all differ).
-    const maxMoves = Math.max(6, Math.round(MOVE_BUDGET[difficulty] * tight) - i);
-    const maxSeconds = Math.max(20, Math.round(TIME_BUDGET[difficulty] * tight) - i * 2);
+    // Goals scale with board size (N) and tighten by location + level index:
+    //   base moves = 3N−2, base seconds = 7.5N;  t = LOC_BASE[biome] − 0.005·i.
+    // ⭐2 stays achievable (moves ≥ N+2); ⭐3 floored at 4N.
+    const t = LOC_BASE[biome] - 0.005 * i;
+    const maxMoves = Math.max(pairs + 2, Math.round((3 * pairs - 2) * t));
+    const maxSeconds = Math.max(Math.round(4 * pairs), Math.round(7.5 * pairs * t));
     return {
       id: `${biome}-${index}`,
       index,
-      difficulty,
+      pairs,
+      difficulty: difficultyForPairs(pairs),
       mode: (modes ? modes[i] : 'classic') as GameMode,
       goals: { maxMoves, maxSeconds },
       rewards: { firstClearPearls: 20 + i * 2, perStarPearls: 5, xp: 8 + i },
@@ -83,14 +90,14 @@ function buildLevels(biome: BiomeId): CampaignLevel[] {
 }
 
 // Difficulty/story order: лагуна → лава → риф → арктика → бездна.
-// worldPosition = % coords of each island on world-map.webp (reef top-left, volcano
-// top-right, abyss centre, arctic bottom-left, lagoon bottom-right).
+// Desktop layout (worldPosition): lagoon top-left, volcano top-right, abyss centre,
+// arctic bottom-left, reef bottom-right. Mobile: stacked top→bottom in story order.
 export const CHAPTERS: CampaignChapter[] = [
-  { biome: 'lagoon',  seaSkin: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 23, y: 28 }, mobilePosition: { x: 50, y: 8 } },
-  { biome: 'volcano', seaSkin: 'sea.lava',   starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 77, y: 26 }, mobilePosition: { x: 50, y: 29 } },
+  { biome: 'lagoon',  seaSkin: 'sea.lagoon', starsToUnlock: 0,  levels: buildLevels('lagoon'),  worldPosition: { x: 23, y: 28 }, mobilePosition: { x: 50, y: 11 } },
+  { biome: 'volcano', seaSkin: 'sea.lava',   starsToUnlock: 18, levels: buildLevels('volcano'), worldPosition: { x: 79, y: 24 }, mobilePosition: { x: 50, y: 30.5 } },
   { biome: 'reef',    seaSkin: 'sea.reef',   starsToUnlock: 21, levels: buildLevels('reef'),    worldPosition: { x: 78, y: 76 }, mobilePosition: { x: 50, y: 50 } },
-  { biome: 'arctic',  seaSkin: 'sea.arctic', starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 24, y: 77 }, mobilePosition: { x: 50, y: 71 } },
-  { biome: 'abyss',   seaSkin: 'sea.abyss',  starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 51, y: 52 }, mobilePosition: { x: 50, y: 92 } },
+  { biome: 'arctic',  seaSkin: 'sea.arctic', starsToUnlock: 24, levels: buildLevels('arctic'),  worldPosition: { x: 21, y: 73 }, mobilePosition: { x: 50, y: 68 } },
+  { biome: 'abyss',   seaSkin: 'sea.abyss',  starsToUnlock: 27, levels: buildLevels('abyss'),   worldPosition: { x: 51, y: 52 }, mobilePosition: { x: 50, y: 88.5 } },
 ];
 
 /** Map a finished game to 0–3 stars: 1 for the win + 1 per met objective, capped at 3. */

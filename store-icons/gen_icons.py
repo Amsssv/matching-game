@@ -285,20 +285,22 @@ def save(img, name):
 # ---- palette colors (from catalog.ts) ----
 AMETHYST = ["#5a3da1", "#7d56c0", "#e0c0ff", "#241a44"]
 SAND = ["#b07a32", "#d8a24e", "#ffe6a8", "#3d3020"]
-AURORA = ["#1aa3a3", "#3ad6c0", "#c8a0ff", "#103040"]
 
 save(icon_pearls(3), "pearls_small")
 save(icon_pearls(4), "pearls_medium")
 save(icon_pearls(5), "pearls_large")
 save(icon_pearls(7, mega=True), "pearls_mega")
 
-save(icon_sea("#ffb38a"), "sea_ember")
+# sea themes — tint sampled from each theme's island/background art (public/assets/skins/*)
+save(icon_sea("#cd6332"), "sea_lava")     # fiery orange (Lava island)
+save(icon_sea("#00b6cd"), "sea_reef")     # turquoise (Reef art)
+save(icon_sea("#3493cc"), "sea_arctic")   # icy azure (Arctic art)
+save(icon_sea("#243d8b"), "sea_abyss")    # deep navy (Abyss)
+
 save(icon_card("#3a3f4a"), "back_onyx")
-save(icon_card("#c0b0ff", prism=True), "back_prism")
 
 save(icon_palette(AMETHYST), "ui_amethyst")
 save(icon_palette(SAND), "ui_sand")
-save(icon_palette(AURORA, aurora=True), "ui_aurora")
 
 save(icon_bundle("#1aa3a3", "#7d56c0"), "bundle_founder")
 save(icon_bundle("#d8a24e", "#b07a32", gold=True), "bundle_premium")

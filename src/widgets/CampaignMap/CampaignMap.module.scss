@@ -116,6 +116,37 @@ $panel: rgba(8, 23, 44, 0.72);
 .req { color: $gold; }
 .lockIcon { flex: none; }
 
+// ── Independent island layers (Approach B) ──────────────────────────────────
+// Island art rendered UNDER its node (z:15 < node z:20), non-interactive (the node
+// button stays the hit target). Desktop: the base map is stretched to fill the viewport,
+// so the island is sized in BOTH axes (--iw/--ih = % of the viewport) with `object-fit:fill`
+// → it distorts identically to the base and stays glued to the baked stepping-stone paths.
+.island {
+  position: absolute; transform: translate(-50%, -50%);
+  z-index: 15; pointer-events: none;
+  width: calc(var(--iw) * 1%);
+  height: calc(var(--ih) * 1%);
+  object-fit: fill;
+  transition: filter 0.18s ease;
+}
+// Locked chapter: desaturate the art so "locked" reads on the island itself.
+.islandLocked { filter: grayscale(0.9) brightness(0.72); }
+
+// ── Decoration layers (paths + decor islands), under the chapter islands ─────
+// Mirrors .island but z:8 (below islands z:15). Desktop: sized in both axes + object-fit:fill
+// so each piece distorts identically to the stretched background and stays glued to the islands.
+.decal {
+  position: absolute; transform: translate(-50%, -50%);
+  z-index: 8; pointer-events: none;
+  width: calc(var(--iw) * 1%);
+  height: calc(var(--ih) * 1%);
+  object-fit: fill;
+}
+@media (max-width: 700px) {
+  // Mobile background is a natural-aspect <img>, so decals keep their own aspect (width% + auto).
+  .mapWrap .decal { height: auto; object-fit: contain; }
+}
+
 // Pulsing ring on the player's current (in-progress) chapter — subtle hint,
 // disabled under reduced-motion.
 .current::after {
@@ -140,10 +171,10 @@ $panel: rgba(8, 23, 44, 0.72);
   position: fixed; inset: 0; z-index: 10;
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-top: 74px; padding-bottom: 66px;
-  scroll-padding-top: 74px; scroll-padding-bottom: 66px;
+  padding-top: 74px; padding-bottom: 50px;
+  scroll-padding-top: 74px; scroll-padding-bottom: 50px;
   // Opaque ocean fill (sampled from the map's top/bottom edges) so the
-  // CampaignScene canvas (the DESKTOP world-map) never shows through the
+  // CampaignScene canvas (the DESKTOP ocean background) never shows through the
   // top/bottom padding gaps behind the portrait map.
   background: linear-gradient(180deg, rgb(45, 130, 177), rgb(31, 106, 166));
 }
@@ -196,6 +227,9 @@ $panel: rgba(8, 23, 44, 0.72);
 .mName { display: none; }
 .nodeInner { display: contents; }
 @media (max-width: 700px) {
+  // The portrait base is a natural-aspect <img>, so islands keep their own aspect:
+  // width = --iw% of .mapWrap, height auto (no distortion, unlike the stretched desktop base).
+  .mapWrap .island { height: auto; object-fit: contain; }
   // Center the name+badge group on the node's point (the node box is only
   // ~84px wide, so an overflowing name must be absolutely centered — a grid
   // cell would push it right). The float keyframe preserves the centering.

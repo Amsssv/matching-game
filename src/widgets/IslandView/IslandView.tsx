@@ -59,7 +59,7 @@ type NodeState = 'passed' | 'current' | 'locked';
 /** Island / level-select modal: a dim scrim over the map with a centered dark panel
  * showing the biome's island art and the chapter's 12 level nodes. Desktop keeps the
  * 4×3 grid; mobile (≤700px) lays the nodes out along a serpentine pebble trail with
- * star plaques, a gold "PLAY" pill on the current level, an art-darkening gradient and
+ * outlined stars, a gold "PLAY" pill on the current level, an art-darkening gradient and
  * a hint line — matching the approved journey prototype (Screen 2). */
 export function IslandView() {
   const biome = useUi((s) => s.modal.island);
@@ -89,7 +89,7 @@ export function IslandView() {
   const hint = currentLevel ? L.levelHint.replace('{n}', String(currentLevel.index)) : L.levelHintDone;
 
   const stars3 = (filled: number) => (
-    <span className={cx(styles.lvlstars, isMobile && styles.plaque)}>
+    <span className={styles.lvlstars}>
       {[0, 1, 2].map((i) => (<StarIcon key={i} filled={i < filled} />))}
     </span>
   );

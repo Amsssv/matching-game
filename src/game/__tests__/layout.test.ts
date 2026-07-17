@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DIFF_ROWS, calcLayout } from '../layout';
+import { DIFF_ROWS, PAIR_ROWS, PAIR_ROWS_MOBILE, calcLayout } from '../layout';
 
 // Helper: call calcLayout with a centered card area derived from W × availH
 // so existing screen-size tests stay readable.
@@ -99,5 +99,24 @@ describe('calcLayout', () => {
       expect(y - layout.cardHeight / 2).toBeGreaterThanOrEqual(HEADER_H);
       expect(y + layout.cardHeight / 2).toBeLessThanOrEqual(HEADER_H + availH);
     }
+  });
+});
+
+describe('PAIR_ROWS (campaign board sizes)', () => {
+  it('every N from 2..14 sums to 2N cards on both desktop and mobile', () => {
+    for (let n = 2; n <= 14; n++) {
+      const desk = PAIR_ROWS[n];
+      const mob = PAIR_ROWS_MOBILE[n];
+      expect(desk, `PAIR_ROWS[${n}]`).toBeDefined();
+      expect(mob, `PAIR_ROWS_MOBILE[${n}]`).toBeDefined();
+      expect(desk.reduce((s, x) => s + x, 0), `desktop N=${n}`).toBe(2 * n);
+      expect(mob.reduce((s, x) => s + x, 0), `mobile N=${n}`).toBe(2 * n);
+    }
+  });
+  it('matches the free-play presets at the shared sizes', () => {
+    expect([...PAIR_ROWS[6]]).toEqual([...DIFF_ROWS.easy]);
+    expect([...PAIR_ROWS[10]]).toEqual([...DIFF_ROWS.medium]);
+    expect([...PAIR_ROWS[12]]).toEqual([...DIFF_ROWS.hard]);
+    expect([...PAIR_ROWS[14]]).toEqual([...DIFF_ROWS.expert]);
   });
 });

@@ -21,6 +21,41 @@ export const DIFF_ROWS_MOBILE: Record<Difficulty, readonly number[]> = {
   expert: [2, 4, 4, 4, 4, 4, 4, 2],      // 28 cards, 8 rows
 };
 
+// Campaign boards are sized by an explicit pair count N (2..14), not the 4 free-play
+// tiers — one octagon-ish grid per N (narrow end rows). Every entry sums to 2N cards.
+// Values at N=6/10/12/14 match DIFF_ROWS(_MOBILE) so the shared layout math is unchanged.
+export const PAIR_ROWS: Record<number, readonly number[]> = {
+  2:  [2, 2],
+  3:  [3, 3],
+  4:  [4, 4],
+  5:  [2, 3, 3, 2],
+  6:  [2, 4, 4, 2],
+  7:  [3, 4, 4, 3],
+  8:  [3, 5, 5, 3],
+  9:  [4, 5, 5, 4],
+  10: [4, 6, 6, 4],
+  11: [5, 6, 6, 5],
+  12: [5, 7, 7, 5],
+  13: [6, 7, 7, 6],
+  14: [6, 8, 8, 6],
+};
+// Portrait: narrow (2/3) end rows, 4-wide interior — the tall mobile board pattern.
+export const PAIR_ROWS_MOBILE: Record<number, readonly number[]> = {
+  2:  [2, 2],
+  3:  [3, 3],
+  4:  [2, 4, 2],
+  5:  [2, 3, 3, 2],
+  6:  [2, 4, 4, 2],
+  7:  [2, 3, 4, 3, 2],
+  8:  [2, 4, 4, 4, 2],
+  9:  [2, 3, 4, 4, 3, 2],
+  10: [2, 4, 4, 4, 4, 2],
+  11: [2, 3, 4, 4, 4, 3, 2],
+  12: [2, 4, 4, 4, 4, 4, 2],
+  13: [2, 3, 4, 4, 4, 4, 3, 2],
+  14: [2, 4, 4, 4, 4, 4, 4, 2],
+};
+
 export function calcLayout(
   rowWidths: readonly number[],
   areaWidth: number,

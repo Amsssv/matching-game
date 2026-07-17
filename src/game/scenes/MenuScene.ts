@@ -197,6 +197,7 @@ export class MenuScene extends Phaser.Scene {
     this.renderActivity?.disable();   // loop must run through the cover fade + scene swap
     this.game.registry.set('gameMode',     mode);
     this.game.registry.set('difficulty',   this.difficulty);
+    this.game.registry.set('campaignPairs', null);   // free play sizes the board by the difficulty tier
     this.game.registry.set('campaignLevel', campaignLevel);
     this.game.registry.set('campaignSeaSkin', null);   // free play uses the equipped sea skin
     this.game.registry.set('soundEnabled', this.soundEnabled);

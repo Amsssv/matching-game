@@ -115,11 +115,6 @@ $teal: #5fe3da;
 .mNode .disc { width: 45px; height: 45px; font-size: 16px; }
 .mNode .lvlstars { height: 14px; gap: 2.5px; }
 .mNode .star { width: 14px; height: 14px; }
-// Star row on a dark rounded plaque so earned stars read on the busy art.
-.plaque {
-  padding: 2px 6px; border-radius: 9px; height: auto;
-  background: rgba(6, 16, 30, 0.72); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
 // Pulsing cyan glow on the current node — mobile only, box-shadow (not transform)
 // so the button stays click-stable.
 .mNode.current .disc { animation: island-node-pulse 1.9s ease-in-out infinite; }

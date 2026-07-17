@@ -6,11 +6,11 @@ import { levelById } from '../../state/campaign';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 const MAP_KEY = 'campaign-map';
-const MAP_PATH = 'assets/campaign/world-map.webp';
+const MAP_PATH = 'assets/journey/journey_background/journey_bg.webp';
 
 /**
- * Thin CampaignScene («Путешествие»): draws the world-map art as a full-screen
- * canvas background (exactly like MenuScene draws the sea background), and owns
+ * Thin CampaignScene («Путешествие»): draws the ocean background (journey_bg.webp) as a
+ * full-screen canvas background (exactly like MenuScene draws the sea background), and owns
  * the campaign-scene *state*. The interactive chapter/island/level nodes are
  * rendered by React (`src/widgets/CampaignMap` / `IslandView`) as a transparent
  * overlay gated by `campaign.active` — NOT a modal. Mirrors MenuScene↔MainMenu.
@@ -83,6 +83,7 @@ export class CampaignScene extends Phaser.Scene {
     this.renderActivity?.disable();   // loop must run through the cover fade + scene swap
     this.game.registry.set('gameMode',      found.level.mode);
     this.game.registry.set('difficulty',    found.level.difficulty);
+    this.game.registry.set('campaignPairs', found.level.pairs);   // board sized by pair count (campaign curve)
     this.game.registry.set('campaignLevel', levelId);
     this.game.registry.set('campaignSeaSkin', found.chapter.seaSkin);   // biome background for the journey
     setTransition(false);   // opaque cover fades in over the canvas

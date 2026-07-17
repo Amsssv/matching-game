@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { UI } from '../ui/config';
 import { SYMBOLS } from '../assets-config';
 import { getYSDK } from '../../ysdk';
-import { DIFF_ROWS, DIFF_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
+import { DIFF_ROWS, DIFF_ROWS_MOBILE, PAIR_ROWS, PAIR_ROWS_MOBILE, calcLayout as calcLayoutFn, type Difficulty, type Layout } from '../layout';
 import { isMobileDevice, getLocalDpr } from '../device';
 import { setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
@@ -233,7 +233,14 @@ export class GameScene extends Phaser.Scene {
   // across patterns, so this is safe to re-run on resize without changing card count.
   private resolveLayout(canvasWidth: number, canvasHeight: number) {
     this.portraitMobile = this.isMobile && canvasHeight >= canvasWidth;
-    this.rowWidths = (this.portraitMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[this.difficulty];
+    // Campaign runs size the board by an explicit pair count (registry `campaignPairs`);
+    // free play falls back to the difficulty-tier presets.
+    const campaignPairs = this.game.registry.get('campaignPairs');
+    if (typeof campaignPairs === 'number') {
+      this.rowWidths = (this.portraitMobile ? PAIR_ROWS_MOBILE : PAIR_ROWS)[campaignPairs];
+    } else {
+      this.rowWidths = (this.portraitMobile ? DIFF_ROWS_MOBILE : DIFF_ROWS)[this.difficulty];
+    }
   }
 
   private calcRefCardSize(canvasWidth: number, canvasHeight: number): { cardWidth: number; cardHeight: number } {
@@ -302,7 +309,9 @@ export class GameScene extends Phaser.Scene {
     // that same band — keeps cards aligned with the stretched sand.
     const top = UI.layout.headerHeight;
     const fillH = canvasHeight - top;
-    const S = this.difficulty === 'expert' ? GameScene.MOBILE_SAND_EXPERT : GameScene.MOBILE_SAND;
+    // Big boards (many rows) use the taller sand band regardless of the difficulty label,
+    // so campaign levels with high pair counts get the same vertical room as free-play expert.
+    const S = this.rowWidths.length >= 8 ? GameScene.MOBILE_SAND_EXPERT : GameScene.MOBILE_SAND;
     const margin = Math.round(10 * getLocalDpr());
     const sx0 = Math.max(S.x0 * canvasWidth, margin);
     const sx1 = Math.min(S.x1 * canvasWidth, canvasWidth - margin);
