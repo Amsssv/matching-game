@@ -3,6 +3,7 @@ import { UI } from '../ui/config';
 import { setCampaign, setModal, setTransition } from '../../state/store';
 import { bus } from '../../state/eventBus';
 import { levelById } from '../../state/campaign';
+import { openLeaderboard } from '../../state/leaderboardController';
 import { createRenderActivity, type RenderActivity } from '../renderActivity';
 
 const MAP_KEY = 'campaign-map';
@@ -42,6 +43,10 @@ export class CampaignScene extends Phaser.Scene {
     const offBus = [
       bus.on('cmd:play-campaign-level', ({ levelId }) => this.playCampaignLevel(levelId)),
       bus.on('cmd:exit-campaign', () => this.exitToMenu()),
+      // The journey map shows the same 🏆 leaderboard button as the menu, but
+      // MenuScene (its usual handler) is shut down while CampaignScene is up —
+      // handle it here too, else the button is dead on the journey map.
+      bus.on('cmd:open-leaderboard', ({ source }) => { if (source === 'menu') openLeaderboard('menu'); }),
     ];
     this.events.once('shutdown', () => offBus.forEach((off) => off()));
 

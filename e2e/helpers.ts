@@ -39,6 +39,17 @@ export async function goToGameScene(
   mode: 'classic' | 'timeAttack' | 'survival' | 'noMistakes' = 'classic',
   overrides?: { timeAttackStartSec?: number; timeAttackBonusSec?: number; previewSec?: number },
 ) {
+  // BootScene starts MenuScene only after an async font/lang load resolves, so
+  // MenuScene may not be running yet when this helper fires. Wait for it first —
+  // otherwise `scene.stop('MenuScene')` races BootScene's `scene.start('MenuScene')`,
+  // the menu (re)launches after our stop, and the React MainMenu overlay stays
+  // mounted over the game canvas (its buttons then swallow card clicks — flaky on
+  // slower-booting mobile emulation).
+  await page.waitForFunction(() => {
+    const game = (window as any).__game;
+    return game?.scene?.getScenes(true).some((s: any) => s.sys.settings.key === 'MenuScene');
+  }, { timeout: 5000 });
+
   await page.evaluate(({ diff, mode, overrides }) => {
     const game = (window as any).__game;
     game.registry.set('difficulty', diff);
@@ -50,6 +61,13 @@ export async function goToGameScene(
     // otherwise the React menu overlay stays mounted on top of the game canvas.
     game.scene.stop('MenuScene');
   }, { diff: difficulty, mode, overrides });
+
+  // Confirm MenuScene is actually gone before proceeding (guards against the boot
+  // race above re-launching it after our stop).
+  await page.waitForFunction(() => {
+    const game = (window as any).__game;
+    return !game?.scene?.getScenes(true).some((s: any) => s.sys.settings.key === 'MenuScene');
+  }, { timeout: 5000 });
   // Wait for scene transition + fade-in
   await page.waitForTimeout(700);
 }

@@ -23,6 +23,15 @@ test.describe('Campaign', () => {
     await expect(page.getByTestId('chapter-reef')).toBeDisabled();
   });
 
+  test('leaderboard button works on the journey map', async ({ page }) => {
+    // Regression: cmd:open-leaderboard was handled only by MenuScene, which is
+    // shut down while CampaignScene is up — the 🏆 button on the map was dead.
+    await page.getByTestId('journey').click();
+    await expect(page.getByTestId('campaign-map')).toBeVisible();
+    await page.getByTestId('leaderboard-open').first().click();
+    await expect(page.getByTestId('leaderboard')).toBeVisible();
+  });
+
   test('play level 1, win, unlock level 2 and spend energy', async ({ page }) => {
     await page.getByTestId('journey').click();
     await page.getByTestId('chapter-lagoon').click();
