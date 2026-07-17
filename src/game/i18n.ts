@@ -193,12 +193,12 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'Режимы игры', lines: [
           'Классика — обычная игра без ограничений.',
           'На время (со 2 уровня) — успей до конца таймера; каждая пара добавляет секунды.',
-          'Выживание (с 3 уровня) — ошибка закрывает все найденные пары.',
-          'Без ошибок (с 5 уровня) — запомни карты за время показа; одна ошибка — поражение.',
+          'Выживание (с 4 уровня) — ошибка закрывает все найденные пары.',
+          'Без ошибок (с 7 уровня) — запомни карты за время показа; одна ошибка — поражение.',
         ] },
         { h: 'Путешествие', lines: [
           'Карта из островов-глав, в каждой 12 уровней со своими целями.',
-          'Звёзды: 1 за победу и по звезде за цели (мало ходов, быстрое время, без ошибок) — до 3 за уровень.',
+          'Звёзды: 1 за победу и по звезде за цели (мало ходов, быстрое время) — до 3 за уровень.',
           'Энергия: запуск уровня тратит 1 жизнь (макс 5); жизнь восстанавливается за 25 минут или пополни за жемчуг.',
           'Новые острова открываются, когда наберёшь достаточно звёзд.',
         ] },
@@ -319,8 +319,8 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'Game modes', lines: [
           'Classic — the regular game, no limits.',
           'Time attack (from level 2) — beat the timer; every pair adds seconds.',
-          'Survival (from level 3) — one miss flips all found pairs back.',
-          'No mistakes (from level 5) — memorize the preview; one mistake loses the game.',
+          'Survival (from level 4) — one miss flips all found pairs back.',
+          'No mistakes (from level 7) — memorize the preview; one mistake loses the game.',
         ] },
         { h: "What's in the game", lines: [
           'Collection — unlock sea themes, card backs and palettes for pearls.',
@@ -331,7 +331,7 @@ export const LOCALES: Record<Lang, Locale> = {
         ] },
         { h: 'Journey', lines: [
           'A map of island chapters, each with 12 levels and their own goals.',
-          'Stars: 1 for winning plus a star per goal met (few moves, fast time, no mistakes) — up to 3 per level.',
+          'Stars: 1 for winning plus a star per goal met (few moves, fast time) — up to 3 per level.',
           'Energy: starting a level costs 1 life (max 5); a life refills every 25 minutes, or top up with pearls.',
           'New islands unlock once you earn enough stars.',
         ] },
@@ -445,12 +445,12 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'Oyun modları', lines: [
           'Klasik — sınırsız normal oyun.',
           'Zamana karşı (2. seviyeden) — süre dolmadan bitir; her çift saniye ekler.',
-          'Hayatta kalma (3. seviyeden) — bir hata bulunan tüm çiftleri kapatır.',
-          'Hatasız (5. seviyeden) — gösterimde kartları ezberle; tek hata kaybettirir.',
+          'Hayatta kalma (4. seviyeden) — bir hata bulunan tüm çiftleri kapatır.',
+          'Hatasız (7. seviyeden) — gösterimde kartları ezberle; tek hata kaybettirir.',
         ] },
         { h: 'Yolculuk', lines: [
           'Ada-bölümlerden oluşan bir harita; her birinde kendi hedefli 12 seviye.',
-          'Yıldızlar: galibiyet için 1, her hedef için birer yıldız (az hamle, hızlı süre, hatasız) — seviye başına 3’e kadar.',
+          'Yıldızlar: galibiyet için 1, her hedef için birer yıldız (az hamle, hızlı süre) — seviye başına 3’e kadar.',
           'Enerji: bir seviyeyi başlatmak 1 can harcar (en fazla 5); bir can 25 dakikada dolar veya inciyle doldur.',
           'Yeterince yıldız topladıkça yeni adalar açılır.',
         ] },
@@ -571,12 +571,12 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'Modos de juego', lines: [
           'Clásico — el juego normal, sin límites.',
           'Contrarreloj (desde nivel 2) — gana al temporizador; cada par añade segundos.',
-          'Supervivencia (desde nivel 3) — un fallo cierra todos los pares encontrados.',
-          'Sin errores (desde nivel 5) — memoriza la vista previa; un error pierde la partida.',
+          'Supervivencia (desde nivel 4) — un fallo cierra todos los pares encontrados.',
+          'Sin errores (desde nivel 7) — memoriza la vista previa; un error pierde la partida.',
         ] },
         { h: 'Aventura', lines: [
           'Un mapa de islas-capítulos, cada una con 12 niveles y sus propios objetivos.',
-          'Estrellas: 1 por ganar y una estrella por cada objetivo (pocos movimientos, tiempo rápido, sin errores) — hasta 3 por nivel.',
+          'Estrellas: 1 por ganar y una estrella por cada objetivo (pocos movimientos, tiempo rápido) — hasta 3 por nivel.',
           'Energía: iniciar un nivel cuesta 1 vida (máx. 5); una vida se recupera cada 25 minutos o recárgala con perlas.',
           'Se desbloquean nuevas islas cuando consigues suficientes estrellas.',
         ] },
@@ -697,12 +697,12 @@ export const LOCALES: Record<Lang, Locale> = {
         { h: 'Modos de jogo', lines: [
           'Clássico — o jogo normal, sem limites.',
           'Contra o tempo (do nível 2) — vença o cronômetro; cada par adiciona segundos.',
-          'Sobrevivência (do nível 3) — um erro fecha todos os pares encontrados.',
-          'Sem erros (do nível 5) — memorize a prévia; um erro perde o jogo.',
+          'Sobrevivência (do nível 4) — um erro fecha todos os pares encontrados.',
+          'Sem erros (do nível 7) — memorize a prévia; um erro perde o jogo.',
         ] },
         { h: 'Aventura', lines: [
           'Um mapa de ilhas-capítulos, cada uma com 12 níveis e objetivos próprios.',
-          'Estrelas: 1 por vencer e uma estrela por objetivo (poucos movimentos, tempo rápido, sem erros) — até 3 por nível.',
+          'Estrelas: 1 por vencer e uma estrela por objetivo (poucos movimentos, tempo rápido) — até 3 por nível.',
           'Energia: iniciar um nível custa 1 vida (máx. 5); uma vida recupera a cada 25 minutos, ou reabasteça com pérolas.',
           'Novas ilhas são desbloqueadas quando você ganha estrelas suficientes.',
         ] },
