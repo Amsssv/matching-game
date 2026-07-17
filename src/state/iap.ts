@@ -20,6 +20,24 @@ export const BUNDLES: Bundle[] = [
   { id: 'bundle_premium', nameKey: 'bundlePremium', items: ['back.onyx', 'ui.amethyst', 'ui.sand'], pearls: 1000 },
 ];
 
+/**
+ * Reference: the money price (in YAN — equals ₽ for the RU region; Yandex maps
+ * USD/EUR per its regional tiers) each product MUST be set to in the Yandex
+ * Developer Console. NOT read at runtime — the authoritative price always comes
+ * from `getCatalog()`; this map is the single source of truth to mirror INTO the
+ * console so code and store stay in sync. Keep it aligned when prices change.
+ */
+export const CONSOLE_PRICE_YAN: Record<string, number> = {
+  // pearl packs (consumable)
+  pearls_small: 59, pearls_medium: 149, pearls_large: 349, pearls_mega: 599,
+  // sea themes (durable) — priced by pearl value; sea_reef == pearls_large (no arbitrage)
+  sea_lava: 259, sea_reef: 349, sea_arctic: 449, sea_abyss: 549,
+  // card-back + UI palettes (durable)
+  back_onyx: 99, ui_amethyst: 129, ui_sand: 149,
+  // bundles (consumable — grant pearls); premium < sum of parts, founder = hook
+  bundle_founder: 149, bundle_premium: 349,
+};
+
 const PACK_PEARLS_BY_ID: Record<string, number> =
   Object.fromEntries(PEARL_PACKS.map((p) => [p.id, p.pearls]));
 const ITEM_ID_BY_PRODUCT: Record<string, string> =
