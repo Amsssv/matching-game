@@ -8,22 +8,26 @@ import { LOCALES } from '../../game/i18n';
 import { mobileNodeLayout, pebbleDots } from './levelTrail';
 import styles from './IslandView.module.scss';
 
+// Paths are BASE_URL-relative (no leading slash): vite `base: './'` means an
+// absolute `/assets/…` resolves against the origin root, which 404s on the
+// nested Yandex Games host — mirror CampaignMap and prefix `import.meta.env.BASE_URL`.
+const B = import.meta.env.BASE_URL;
 const ART: Record<BiomeId, string> = {
-  lagoon: '/assets/iland.webp',
-  reef: '/assets/skins/Reef/Reef-iland.webp',
-  arctic: '/assets/skins/Arctic/Arctic-iland.webp',
-  volcano: '/assets/skins/Lava/Lava-iland.webp',
-  abyss: '/assets/skins/Abyss/Abyss-iland.webp',
+  lagoon: `${B}assets/iland.webp`,
+  reef: `${B}assets/skins/Reef/Reef-iland.webp`,
+  arctic: `${B}assets/skins/Arctic/Arctic-iland.webp`,
+  volcano: `${B}assets/skins/Lava/Lava-iland.webp`,
+  abyss: `${B}assets/skins/Abyss/Abyss-iland.webp`,
 };
 
 // Portrait island boards for the tall mobile modal (sandy tablets sized for a
 // vertical level trail); desktop uses the landscape art above.
 const ART_MOBILE: Record<BiomeId, string> = {
-  lagoon: '/assets/iland-mobile.webp',
-  reef: '/assets/skins/Reef/Reef-iland-mobile.webp',
-  arctic: '/assets/skins/Arctic/Arctic-iland-mobile.webp',
-  volcano: '/assets/skins/Lava/Lava-iland-mobile.webp',
-  abyss: '/assets/skins/Abyss/Abyss-iland-mobile.webp',
+  lagoon: `${B}assets/iland-mobile.webp`,
+  reef: `${B}assets/skins/Reef/Reef-iland-mobile.webp`,
+  arctic: `${B}assets/skins/Arctic/Arctic-iland-mobile.webp`,
+  volcano: `${B}assets/skins/Lava/Lava-iland-mobile.webp`,
+  abyss: `${B}assets/skins/Abyss/Abyss-iland-mobile.webp`,
 };
 
 /** Inline lock glyph shown on a locked level node's disc (mirrors CampaignMap's badge icon). */
