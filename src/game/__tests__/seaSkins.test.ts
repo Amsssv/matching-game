@@ -8,9 +8,9 @@ describe('SEA_SKINS', () => {
     expect(Object.keys(SEA_SKINS).sort()).toEqual(catalogIds);
   });
 
-  it('the default (lagoon) keeps the legacy texture keys', () => {
+  it('the default (lagoon) has sea-lagoon texture keys', () => {
     expect(SEA_SKINS['sea.lagoon']).toMatchObject({
-      bgKey: 'bg', islandKey: 'island', islandMobileKey: 'island-mobile',
+      bgKey: 'sea-lagoon-bg', islandKey: 'sea-lagoon-island', islandMobileKey: 'sea-lagoon-island-mobile',
     });
   });
 

@@ -21,13 +21,13 @@ export class BootScene extends Phaser.Scene {
     // Feed the cold-load screen's progress bar (0..1) as assets stream in.
     this.load.on('progress', (v: number) => window.__appLoader?.set(v));
 
-    this.load.audio('music', ['assets/music.mp3']);
+    this.load.audio('music', ['assets/audio/music.mp3']);
 
-    // ── SFX — раскомментируй когда добавишь файлы в public/assets/sfx/ ──────
-    this.load.audio('sfx-click', 'assets/sfx/click.mp3');   // клик по кнопкам
-    this.load.audio('sfx-flip',  'assets/sfx/flip.mp3');    // переворот карточки
-    this.load.audio('sfx-match', 'assets/sfx/match.mp3');   // найдена пара
-    this.load.audio('sfx-win',   'assets/sfx/win.wav');     // победа
+    // ── SFX ───────────────────────────────────────────────────────────────────
+    this.load.audio('sfx-click', 'assets/audio/click.mp3');   // клик по кнопкам
+    this.load.audio('sfx-flip',  'assets/audio/flip.mp3');    // переворот карточки
+    this.load.audio('sfx-match', 'assets/audio/match.mp3');   // найдена пара
+    this.load.audio('sfx-win',   'assets/audio/win.wav');     // победа
     // ─────────────────────────────────────────────────────────────────────────
 
     // Every sea skin's background + desktop island. Portrait mobile islands are only
@@ -37,7 +37,7 @@ export class BootScene extends Phaser.Scene {
       this.load.image(skin.bgKey, skin.bgPath);
       this.load.image(skin.islandKey, skin.islandPath);
       if (onMobile) {
-        this.load.image(skin.bgMobileKey, skin.bgMobilePath);
+        if (skin.bgMobileKey && skin.bgMobilePath) this.load.image(skin.bgMobileKey, skin.bgMobilePath);
         this.load.image(skin.islandMobileKey, skin.islandMobilePath);
       }
     }

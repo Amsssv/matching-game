@@ -133,7 +133,9 @@ export class MenuScene extends Phaser.Scene {
   private bgKeyFor(w: number, h: number): string {
     const skin = skinFor(progressStore.get().equipped.seaTheme);
     const portraitMobile = isMobileDevice() && h > w;
-    return portraitMobile && this.textures.exists(skin.bgMobileKey) ? skin.bgMobileKey : skin.bgKey;
+    return portraitMobile && skin.bgMobileKey && this.textures.exists(skin.bgMobileKey)
+      ? skin.bgMobileKey
+      : skin.bgKey;
   }
 
   private drawBackground(canvasWidth: number, canvasHeight: number) {

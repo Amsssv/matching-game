@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import styles from './Title.module.scss';
 
-const LOGO_SRC = `${import.meta.env.BASE_URL}assets/title-bg.webp`;
+const LOGO_SRC = `${import.meta.env.BASE_URL}assets/ui/title-bg.webp`;
 
 export function Title({ text }: { text: string }) {
   const textRef = useRef<HTMLHeadingElement>(null);

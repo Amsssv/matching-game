@@ -1,23 +1,22 @@
 /**
  * Real per-theme sea skin art (background + island), keyed by the `seaTheme`
  * catalog item id. Replaces the old single-texture + Phaser-tint approach.
- * The default 'sea.lagoon' reuses the legacy texture keys so code that
- * references 'bg'/'island'/'island-mobile' by default keeps working.
+ * The default 'sea.lagoon' now uses its own 'sea-lagoon-*' keys like every other skin.
  */
 export interface SeaSkin {
   bgKey: string;            bgPath: string;
-  /** Portrait-authored background, only fetched + used on phones/tablets. */
-  bgMobileKey: string;      bgMobilePath: string;
+  /** Portrait-authored background, only fetched + used on phones/tablets.
+   *  Optional: skins without portrait art (lagoon, lava) fall back to `bg`. */
+  bgMobileKey?: string;     bgMobilePath?: string;
   islandKey: string;        islandPath: string;
   islandMobileKey: string;  islandMobilePath: string;
 }
 
 export const SEA_SKINS: Record<string, SeaSkin> = {
   'sea.lagoon': {
-    bgKey: 'bg',                 bgPath: 'assets/bg.webp',
-    bgMobileKey: 'bg-mobile',    bgMobilePath: 'assets/bg-mobile.webp',
-    islandKey: 'island',         islandPath: 'assets/iland.webp',
-    islandMobileKey: 'island-mobile', islandMobilePath: 'assets/iland-mobile.webp',
+    bgKey: 'sea-lagoon-bg',              bgPath: 'assets/skins/Lagoon/Lagoon-bg.webp',
+    islandKey: 'sea-lagoon-island',      islandPath: 'assets/skins/Lagoon/Lagoon-iland.webp',
+    islandMobileKey: 'sea-lagoon-island-mobile', islandMobilePath: 'assets/skins/Lagoon/Lagoon-iland-mobile.webp',
   },
   'sea.reef': {
     bgKey: 'sea-reef-bg',        bgPath: 'assets/skins/Reef/Reef-bg.webp',
@@ -39,7 +38,6 @@ export const SEA_SKINS: Record<string, SeaSkin> = {
   },
   'sea.lava': {
     bgKey: 'sea-lava-bg',        bgPath: 'assets/skins/Lava/Lava-bg.webp',
-    bgMobileKey: 'sea-lava-bg-mobile', bgMobilePath: 'assets/skins/Lava/Lava-bg-mobile.webp',
     islandKey: 'sea-lava-island', islandPath: 'assets/skins/Lava/Lava-iland.webp',
     islandMobileKey: 'sea-lava-island-mobile', islandMobilePath: 'assets/skins/Lava/Lava-iland-mobile.webp',
   },

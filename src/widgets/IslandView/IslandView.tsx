@@ -13,7 +13,7 @@ import styles from './IslandView.module.scss';
 // nested Yandex Games host — mirror CampaignMap and prefix `import.meta.env.BASE_URL`.
 const B = import.meta.env.BASE_URL;
 const ART: Record<BiomeId, string> = {
-  lagoon: `${B}assets/iland.webp`,
+  lagoon: `${B}assets/skins/Lagoon/Lagoon-iland.webp`,
   reef: `${B}assets/skins/Reef/Reef-iland.webp`,
   arctic: `${B}assets/skins/Arctic/Arctic-iland.webp`,
   volcano: `${B}assets/skins/Lava/Lava-iland.webp`,
@@ -23,7 +23,7 @@ const ART: Record<BiomeId, string> = {
 // Portrait island boards for the tall mobile modal (sandy tablets sized for a
 // vertical level trail); desktop uses the landscape art above.
 const ART_MOBILE: Record<BiomeId, string> = {
-  lagoon: `${B}assets/iland-mobile.webp`,
+  lagoon: `${B}assets/skins/Lagoon/Lagoon-iland-mobile.webp`,
   reef: `${B}assets/skins/Reef/Reef-iland-mobile.webp`,
   arctic: `${B}assets/skins/Arctic/Arctic-iland-mobile.webp`,
   volcano: `${B}assets/skins/Lava/Lava-iland-mobile.webp`,
