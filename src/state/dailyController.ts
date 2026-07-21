@@ -1,5 +1,5 @@
 import { setModal, uiStore } from './store';
-import { claimDaily as claimInStore, doubleDaily as doubleInStore, progressStore } from './progress';
+import { claimDaily as claimInStore, doubleDaily as doubleInStore, markDailyAutoShown, progressStore } from './progress';
 import { computeClaim, todayStr } from './daily';
 import { bus } from './eventBus';
 import { getYSDK } from '../ysdk';
@@ -10,6 +10,23 @@ export function openDaily(): void {
   const st = progressStore.get().streak;
   const info = computeClaim(st, today);   // available=false when already claimed today (day=current, reward=rewardForDay(current))
   setModal({ daily: { day: info.day, reward: info.reward, claimed: !info.available, doubled: st.doubledDate === today } });
+}
+
+/**
+ * Auto-open the daily modal on the first menu entry of the calendar day — but only
+ * when a reward is actually claimable and it hasn't been auto-shown yet today. The
+ * `autoShownDate` stamp persists, so closing without claiming (or reloading the page)
+ * won't pop it again the same day. No-op if another modal is already open.
+ */
+export function maybeAutoOpenDaily(): void {
+  const today = todayStr();
+  const st = progressStore.get().streak;
+  if (!computeClaim(st, today).available) return;   // already claimed today
+  if (st.autoShownDate === today) return;           // already auto-shown today
+  const m = uiStore.get().modal;
+  if (Object.values(m).some(Boolean)) return;       // don't stack over an open modal
+  markDailyAutoShown(today);
+  openDaily();
 }
 
 export function closeDaily(): void { setModal({ daily: null }); }

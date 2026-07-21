@@ -1,7 +1,8 @@
 @use '../../styles/tokens' as *;
 
 // Mobile-first. Base styles target small touch screens; desktop adds only the
-// bottom-bar row layout via @media (min-width: 601px). The menu is a 3-zone CSS
+// bottom-bar row layout via @media (min-width: 768px). Single breakpoint: mobile
+// ≤767px, desktop ≥768px. The menu is a 3-zone CSS
 // grid — topBar (auto) / center (1fr) / bottomBar (auto). No scrolling: the center
 // content is compact and vertically centred (margin:auto) so spare height splits
 // evenly above/below instead of pooling into one gap. overflow:hidden guards
@@ -86,8 +87,8 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
 }
 .iconLabel { display: inline-flex; align-items: center; gap: 6px; }
 
-// ── Desktop (min-width: 601px): horizontal bottom bar ──
-@media (min-width: 601px) {
+// ── Desktop (min-width: 768px): horizontal bottom bar ──
+@media (min-width: 768px) {
   .bottomBar {
     flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
   }
@@ -114,8 +115,8 @@ $max-content: 1366px; // desktop: bars never span wider than this (centred)
   .centerInner { margin: 0; flex: 1 1 auto; min-height: 0; justify-content: flex-start; }
 }
 
-// Mobile: Records + Collection become icon-only; spread all four controls evenly.
-@media (max-width: 600px) {
+// Mobile (≤767px): Records + Collection become icon-only; spread all four controls evenly.
+@media (max-width: 767px) {
   .btnLabel { display: none; }
   .bottomActions { justify-content: space-between; }
 }

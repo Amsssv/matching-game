@@ -36,7 +36,10 @@ export class BootScene extends Phaser.Scene {
     for (const skin of Object.values(SEA_SKINS)) {
       this.load.image(skin.bgKey, skin.bgPath);
       this.load.image(skin.islandKey, skin.islandPath);
-      if (onMobile) this.load.image(skin.islandMobileKey, skin.islandMobilePath);
+      if (onMobile) {
+        this.load.image(skin.bgMobileKey, skin.bgMobilePath);
+        this.load.image(skin.islandMobileKey, skin.islandMobilePath);
+      }
     }
     this.load.image('card-back', 'assets/cards/back.webp');
     SYMBOLS.forEach((sym) => this.load.image(`card-${sym}`, `assets/cards/${sym}.webp`));

@@ -14,7 +14,7 @@
 .count { line-height: 1; }
 .timer { opacity: 0.75; font-size: 0.8em; color: $text-muted; }
 
-@media (max-width: 380px) {
+@media (max-width: 767px) {
   .meter { height: 32px; padding: 3px 8px; font-size: 12px; gap: 3px; }
   .icon { font-size: 13px; }
 }

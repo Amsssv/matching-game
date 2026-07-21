@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForCanvas, goToGameScene, getActualDeck, clickCard, waitForGameUnlocked } from './helpers';
+import { waitForCanvas, goToGameScene, getActualDeck, clickCard, waitForGameUnlocked, seedProgress } from './helpers';
 
 // Smoke test: every modal in the app opens (and the dismissible ones close).
 // Visibility-only — no screenshots/baselines. Guards against a broken open path
@@ -9,6 +9,7 @@ const PROGRESS_KEY = 'sea-pairs-progress';
 
 test.describe('modals open', () => {
   test('menu-openable modals open and close', async ({ page }) => {
+    await seedProgress(page);   // stamp daily as shown so it can't auto-pop and steal a click mid-loop
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     await expect(page.getByTestId('menu')).toBeVisible();

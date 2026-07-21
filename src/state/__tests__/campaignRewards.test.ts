@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { progressStore, INITIAL_PROGRESS, recordCampaignResult } from '../progress';
+import { progressStore, INITIAL_PROGRESS, recordCampaignResult, levelFromXp } from '../progress';
 
 beforeEach(() => progressStore.set(structuredClone(INITIAL_PROGRESS)));
 
@@ -10,6 +10,14 @@ describe('recordCampaignResult', () => {
     expect(r.pearls).toBeGreaterThan(0);
     expect(progressStore.get().campaign.stars['lagoon-1']).toBe(3);
     expect(progressStore.get().campaign.cleared).toContain('lagoon-1');
+  });
+  it('a level-up from campaign XP raises the life cap (+1) and grants the life', () => {
+    const p = progressStore.get();
+    progressStore.set({ stats: { ...p.stats, xp: 99 } });   // one 8-XP clear crosses the level-2 threshold (100)
+    recordCampaignResult('lagoon-1', { won: true, seconds: 1, moves: 1, mistakes: 0 });
+    expect(levelFromXp(progressStore.get().stats.xp).level).toBeGreaterThanOrEqual(2);
+    expect(progressStore.get().energy.max).toBe(6);
+    expect(progressStore.get().energy.current).toBe(6);
   });
   it('a replay only pays the star delta and never lowers recorded stars', () => {
     recordCampaignResult('lagoon-1', { won: true, seconds: 999, moves: 999, mistakes: 9 }); // 1 star

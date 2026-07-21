@@ -3,6 +3,9 @@ import { waitForCanvas, pausePhaser, resumePhaser, seedProgress } from './helper
 
 test.describe('MenuScene', () => {
   test.beforeEach(async ({ page }) => {
+    // Seed a stamped player so the daily reward doesn't auto-pop over the menu
+    // screenshots (the auto-open path is covered in daily.spec).
+    await seedProgress(page);
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     // Extra settle time: BootScene font-load + MenuScene 300ms fadeIn
@@ -78,6 +81,7 @@ test.describe('MenuScene', () => {
 
 test.describe('MenuScene — language variants', () => {
   test.beforeEach(async ({ page }) => {
+    await seedProgress(page);   // suppress the daily auto-popup over these screenshots
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     await page.waitForTimeout(500);

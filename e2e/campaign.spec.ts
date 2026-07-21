@@ -88,6 +88,49 @@ test.describe('Campaign', () => {
     // spent at level start (5/5 -> 4/5); the 25-min regen can't tick in-test.
     await page.getByTestId('island-back').click();
     await expect(page.getByTestId('energy-meter')).toContainText('4/5');
+
+    // Journey levels are their own progression — they must NOT count in the player's
+    // game stats (gamesPlayed stays 0 despite having played + won a level).
+    const gamesPlayed = await page.evaluate(
+      (k) => JSON.parse(localStorage.getItem(k)!).stats.gamesPlayed ?? 0, 'sea-pairs-progress');
+    expect(gamesPlayed).toBe(0);
+  });
+
+  test('a level-up in the journey shows the celebration on top — after the result modal', async ({ page }) => {
+    // xp 99 → the level-1 firstClear (8 xp) crosses the level-2 threshold (100).
+    await seedProgress(page, { xp: 99, pearls: 500 }, { force: true });
+    await page.reload();
+    await waitForCanvas(page);
+
+    await page.getByTestId('journey').click();
+    await page.getByTestId('chapter-lagoon').click();
+    await page.getByTestId('level-lagoon-1').click();
+    await page.getByTestId('level-play').click();
+    await page.waitForFunction(() => {
+      const scene = (window as any).__game?.scene?.getScene('GameScene') as any;
+      return !!scene && Array.isArray(scene.cards) && scene.cards.length > 0;
+    });
+    await waitForGameUnlocked(page);
+    const deck = await getActualDeck(page);
+    const bySymbol = new Map<string, number[]>();
+    deck.forEach((sym, i) => { const a = bySymbol.get(sym) ?? []; a.push(i); bySymbol.set(sym, a); });
+    for (const indices of bySymbol.values()) {
+      await waitForGameUnlocked(page);
+      await clickCard(page, indices[0]);
+      await page.waitForTimeout(350);
+      await clickCard(page, indices[1]);
+      await waitForGameUnlocked(page);
+    }
+
+    // The result modal shows first; the level-up is DEFERRED under it (not stacked).
+    await expect(page.getByTestId('level-result')).toBeVisible();
+    await expect(page.getByTestId('levelup')).toHaveCount(0);
+
+    // Closing the result reveals the level-up celebration, and it sits on top.
+    await page.getByTestId('level-result-close').click();
+    await expect(page.getByTestId('levelup')).toBeVisible();
+    const z = await page.getByTestId('levelup').evaluate((el) => Number(getComputedStyle(el).zIndex));
+    expect(z).toBeGreaterThan(35);   // above level-start (34) and level-result (35)
   });
 
   test('in-game Menu returns to the journey, not the main menu', async ({ page }) => {

@@ -97,7 +97,9 @@ export class MenuScene extends Phaser.Scene {
     }
     this.events.once('shutdown', () => {
       setMenu({ active: false });
-      setModal({ modeStart: null });   // defensive: never leave the modal over the game HUD
+      // Defensive: never leave a menu-context modal over the game HUD. Clears the
+      // mode-start picker and the daily reward (which can auto-open on the menu).
+      setModal({ modeStart: null, daily: null });
       getYSDK()?.adv.hideBannerAdv();
     });
 
@@ -111,7 +113,8 @@ export class MenuScene extends Phaser.Scene {
       const w = gameSize.width, h = gameSize.height;
       if (Math.abs(w - lastSeenW) < 6 && Math.abs(h - lastSeenH) < 6) return;
       lastSeenW = w; lastSeenH = h;
-      this.bgObj?.setPosition(w / 2, h / 2).setDisplaySize(w, h);
+      // Re-pick the texture too: an orientation flip swaps portrait ⇄ landscape art.
+      this.bgObj?.setTexture(this.bgKeyFor(w, h)).setPosition(w / 2, h / 2).setDisplaySize(w, h);
       this.renderActivity?.wake();
       this.renderActivity?.scheduleSleep();
     };
@@ -122,14 +125,25 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
-  private drawBackground(canvasWidth: number, canvasHeight: number) {
+  /**
+   * Background texture key for the current skin. On a portrait phone use the
+   * portrait-authored `bgMobile` art when it's loaded; fall back to the landscape
+   * `bg` everywhere else (desktop, landscape phone, or if the mobile art is absent).
+   */
+  private bgKeyFor(w: number, h: number): string {
     const skin = skinFor(progressStore.get().equipped.seaTheme);
-    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, skin.bgKey).setDisplaySize(canvasWidth, canvasHeight);
+    const portraitMobile = isMobileDevice() && h > w;
+    return portraitMobile && this.textures.exists(skin.bgMobileKey) ? skin.bgMobileKey : skin.bgKey;
+  }
+
+  private drawBackground(canvasWidth: number, canvasHeight: number) {
+    const key = this.bgKeyFor(canvasWidth, canvasHeight);
+    this.bgObj = this.add.image(canvasWidth / 2, canvasHeight / 2, key).setDisplaySize(canvasWidth, canvasHeight);
   }
 
   private applySeaSkin() {
     // Real art is already colored — swap the texture, no tint.
-    this.bgObj?.setTexture(skinFor(progressStore.get().equipped.seaTheme).bgKey)
+    this.bgObj?.setTexture(this.bgKeyFor(this.scale.width, this.scale.height))
       .clearTint()
       .setDisplaySize(this.scale.width, this.scale.height);
     this.renderActivity?.wake();          // render the new skin, then settle back to sleep

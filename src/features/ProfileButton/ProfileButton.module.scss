@@ -1,6 +1,7 @@
 @use '../../styles/tokens' as *;
 
 .btn {
+  position: relative;   // anchors the desktop progress bar / mobile progress ring
   pointer-events: auto; cursor: pointer;
   display: inline-flex; align-items: center; gap: 4px;
   height: 40px;
@@ -14,6 +15,42 @@
 }
 .lv { font-size: 11px; opacity: 0.8; }
 
-@media (max-width: 380px) {
-  .btn { height: 32px; padding: 3px 8px; font-size: 12px; gap: 3px; }
+// Level-progress bar — same style as the profile modal's XP bar: a dim rounded
+// track with a solid fill in the border colour (no gradients, no shadows).
+// Hidden by default; shown as a horizontal bar on desktop. --level-progress (0..1)
+// is set inline by the component.
+.bar { display: none; }
+
+// ── Desktop (≥768px): horizontal bar to the right of "Lv N", vertically centred ──
+@media (min-width: 768px) {
+  .bar {
+    display: block; flex: none;
+    width: 38px; height: 6px; border-radius: 999px; overflow: hidden;
+    background: rgb(var(--color-navy-rgb, 0 20 40) / 0.55);
+  }
+  .fill {
+    display: block; height: 100%; border-radius: 999px;
+    width: calc(var(--level-progress, 0) * 100%);
+    background: $gold-border;
+    transition: width 300ms ease-out;
+  }
+}
+
+// ── Mobile (≤767px): the border becomes a level-progress ring (conic fill) ──
+// Solid border-colour arc up to --level-progress, dim track for the rest.
+@media (max-width: 767px) {
+  .btn { height: 32px; padding: 3px 8px; font-size: 12px; gap: 3px; border-color: transparent; }
+  .btn::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+    background: conic-gradient(
+      from -90deg,
+      $gold-border calc(var(--level-progress, 0) * 1turn),
+      rgb(var(--color-gold-border-rgb, 212 168 83) / 0.28) calc(var(--level-progress, 0) * 1turn)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
 }

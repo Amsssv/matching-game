@@ -1,11 +1,18 @@
 import { setModal } from './store';
-import { progressStore, recordCampaignResult } from './progress';
-import { spendEnergy, regenEnergy, refillEnergy } from './energy';
+import { progressStore, recordCampaignResult, buyEnergyRefill, energyRefillCost, ENERGY_REFILL_BASE_COST } from './progress';
+import { spendEnergy, regenEnergy } from './energy';
+import { todayStr } from './daily';
 import { bus } from './eventBus';
 import { syncProgressLeaderboards } from './leaderboardSync';
 import type { BiomeId, LevelResult } from './campaign';
 
-export const ENERGY_REFILL_COST = 60;
+/** Base (first-of-day) refill price. The live price doubles per purchase — see currentRefillCost(). */
+export const ENERGY_REFILL_COST = ENERGY_REFILL_BASE_COST;
+
+/** Live refill price for the current day (base × 2^purchases-today). */
+export function currentRefillCost(): number {
+  return energyRefillCost(progressStore.get().energyRefills, todayStr());
+}
 
 /** Enter the journey (CampaignScene). Fresh energy + map view, then transition. */
 export function openCampaign(): void {
@@ -45,10 +52,7 @@ export function finishLevel(levelId: string, result: LevelResult): void {
   setModal({ levelResult: { levelId, won: result.won, ...r } });
 }
 
-/** Full refill for pearls; false when the player can't afford it. */
+/** Full refill for pearls at the current (doubling) day price; false when unaffordable. */
 export function refillEnergyWithPearls(nowTs: number): boolean {
-  const p = progressStore.get();
-  if (p.pearls < ENERGY_REFILL_COST) return false;
-  progressStore.set({ pearls: p.pearls - ENERGY_REFILL_COST, energy: refillEnergy(p.energy, nowTs) });
-  return true;
+  return buyEnergyRefill(nowTs);
 }

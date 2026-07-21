@@ -4,6 +4,7 @@ import { createStore } from './createStore';
 import { getYSDK } from '../ysdk';
 import { DEFAULT_EQUIPPED, ITEM_BY_ID, AXES, type CustomAxis } from './catalog';
 import { computeClaim, rewardForDay, todayStr } from './daily';
+import { refillEnergy, grantLevelUpEnergy, MAX_ENERGY } from './energy';
 import { QUEST_BY_ID, pickDailyQuests, rerollQuestId, type QuestEvent } from './quests';
 import { ACH_BY_ID, type AchSignals } from './achievements';
 import { computeStars, levelById, isChapterComplete, totalStars, CHAPTERS, type LevelResult } from './campaign';
@@ -85,12 +86,14 @@ export interface ProgressStats {
   lastLossDate: string | null;   // local date of the last consolation-paid loss
   lossesToday: number;           // losses on lastLossDate (anti-farm for consolation)
 }
-export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; }
+export interface StreakState { current: number; lastClaimDate: string | null; best: number; doubledDate: string | null; autoShownDate: string | null; }
 export interface QuestSlot { id: string; progress: number; claimed: boolean; }
 export interface QuestsState { date: string | null; active: QuestSlot[]; rerolls: number; }
 export interface AchievementsState { claimed: string[]; }
 export interface CampaignProgress { stars: Record<string, 0 | 1 | 2 | 3>; cleared: string[] }
 export interface EnergyState { current: number; max: number; lastRegenTs: number }
+/** Journey life-refill purchases within a calendar day (price doubles per purchase). */
+export interface EnergyRefillState { date: string | null; count: number }
 export interface ProgressState {
   version: 5;
   pearls: number;
@@ -103,6 +106,7 @@ export interface ProgressState {
   processedPurchases: string[];   // consumable purchase tokens already credited (IAP idempotency)
   campaign: CampaignProgress;
   energy: EnergyState;
+  energyRefills: EnergyRefillState;
 }
 
 export const INITIAL_PROGRESS: ProgressState = {
@@ -124,12 +128,13 @@ export const INITIAL_PROGRESS: ProgressState = {
   },
   unlocked: [],
   equipped: { ...DEFAULT_EQUIPPED },
-  streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
+  streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: null },
   quests: { date: null, active: [], rerolls: 0 },
   achievements: { claimed: [] },
   processedPurchases: [],
   campaign: { stars: {}, cleared: [] },
   energy: { current: 5, max: 5, lastRegenTs: 0 },
+  energyRefills: { date: null, count: 0 },
 };
 
 export const progressStore = createStore<ProgressState>(INITIAL_PROGRESS);
@@ -152,7 +157,8 @@ function validStreak(s: unknown): StreakState {
   const best = typeof o.best === 'number' && o.best >= 0 ? Math.floor(o.best) : 0;
   const lastClaimDate = typeof o.lastClaimDate === 'string' ? o.lastClaimDate : null;
   const doubledDate = typeof o.doubledDate === 'string' ? o.doubledDate : null;
-  return { current, lastClaimDate, best: Math.max(best, current), doubledDate };
+  const autoShownDate = typeof o.autoShownDate === 'string' ? o.autoShownDate : null;
+  return { current, lastClaimDate, best: Math.max(best, current), doubledDate, autoShownDate };
 }
 
 const bestVal = (v: unknown): number | null => (typeof v === 'number' && v >= 0 ? v : null);
@@ -181,10 +187,16 @@ function validCampaign(c: unknown): CampaignProgress {
 }
 function validEnergy(e: unknown): EnergyState {
   const o = (e && typeof e === 'object') ? e as Record<string, unknown> : {};
-  const max = typeof o.max === 'number' && o.max > 0 ? Math.floor(o.max) : 5;
+  const max = typeof o.max === 'number' && o.max > 0 ? Math.min(MAX_ENERGY, Math.floor(o.max)) : 5;
   const current = typeof o.current === 'number' && o.current >= 0 ? Math.min(Math.floor(o.current), max) : max;
   const lastRegenTs = typeof o.lastRegenTs === 'number' && o.lastRegenTs >= 0 ? o.lastRegenTs : 0;
   return { current, max, lastRegenTs };
+}
+function validEnergyRefills(v: unknown): EnergyRefillState {
+  const o = (v && typeof v === 'object') ? v as Record<string, unknown> : {};
+  const date = typeof o.date === 'string' ? o.date : null;
+  const count = typeof o.count === 'number' && o.count >= 0 ? Math.floor(o.count) : 0;
+  return { date, count };
 }
 
 function validQuests(q: unknown): QuestsState {
@@ -208,15 +220,16 @@ export function mergeProgress(raw: unknown): ProgressState {
       stats: { ...d.stats, bestSeconds: { ...d.stats.bestSeconds }, winsByDifficulty: { ...d.stats.winsByDifficulty }, winsByMode: { ...d.stats.winsByMode }, modeBests: validModeBests(null) },
       unlocked: [],
       equipped: { ...DEFAULT_EQUIPPED },
-      streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
+      streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: null },
       quests: { date: null, active: [], rerolls: 0 },
       achievements: { claimed: [] },
       processedPurchases: [],
       campaign: validCampaign(null),
       energy: validEnergy(null),
+      energyRefills: validEnergyRefills(null),
     };
   }
-  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown; campaign?: unknown; energy?: unknown };
+  const r = raw as { pearls?: unknown; stats?: Partial<ProgressStats>; unlocked?: unknown; equipped?: unknown; streak?: unknown; quests?: unknown; achievements?: unknown; processedPurchases?: unknown; campaign?: unknown; energy?: unknown; energyRefills?: unknown };
   const s = r.stats ?? {};
   return {
     version: 5,
@@ -256,6 +269,7 @@ export function mergeProgress(raw: unknown): ProgressState {
       : [],
     campaign: validCampaign(r.campaign),
     energy: validEnergy(r.energy),
+    energyRefills: validEnergyRefills(r.energyRefills),
   };
 }
 
@@ -379,10 +393,18 @@ export function claimDaily(today: string): { day: number; reward: number } | nul
   if (!info.available) return null;
   addPearls(info.reward);
   progressStore.set({
-    streak: { current: info.day, lastClaimDate: today, best: Math.max(cur.streak.best, info.day), doubledDate: null },
+    streak: { current: info.day, lastClaimDate: today, best: Math.max(cur.streak.best, info.day), doubledDate: null, autoShownDate: cur.streak.autoShownDate },
   });
   persist();
   return { day: info.day, reward: info.reward };
+}
+
+/** Record that today's daily reward was auto-shown, so it won't auto-open again today. */
+export function markDailyAutoShown(today: string): void {
+  const cur = progressStore.get();
+  if (cur.streak.autoShownDate === today) return;
+  progressStore.set({ streak: { ...cur.streak, autoShownDate: today } });
+  persist();
 }
 
 /** Add the same reward again (rewarded-video ×2). Self-guarding + idempotent: no-op (returns 0) if no claim today or already doubled. Returns the bonus added. */
@@ -398,6 +420,35 @@ export function doubleDaily(today: string): number {
 
 export function isDailyAvailable(today: string): boolean {
   return computeClaim(progressStore.get().streak, today).available;
+}
+
+/** Base price of a journey life-refill; doubles per purchase within the same day. */
+export const ENERGY_REFILL_BASE_COST = 60;
+
+/** Current refill price = base × 2^(purchases already made today). */
+export function energyRefillCost(er: EnergyRefillState, today: string): number {
+  const count = er.date === today ? er.count : 0;
+  return ENERGY_REFILL_BASE_COST * 2 ** count;
+}
+
+/**
+ * Buy a full life refill for pearls. Price doubles with each purchase made today
+ * (the counter resets on a new calendar day). Returns false when the player can't
+ * afford the current price. Persists (fixing the old refill's lost-on-reload spend).
+ */
+export function buyEnergyRefill(nowTs: number): boolean {
+  const p = progressStore.get();
+  const today = todayStr();
+  const cost = energyRefillCost(p.energyRefills, today);
+  if (p.pearls < cost) return false;
+  const count = p.energyRefills.date === today ? p.energyRefills.count : 0;
+  progressStore.set({
+    pearls: p.pearls - cost,
+    energy: refillEnergy(p.energy, nowTs),
+    energyRefills: { date: today, count: count + 1 },
+  });
+  persist();
+  return true;
 }
 
 export function isUnlocked(id: string): boolean {
@@ -455,6 +506,13 @@ export function recordCampaignResult(id: string, result: LevelResult): {
     pearls: c.pearls + pearls,
     stats: { ...c.stats, xp: c.stats.xp + xp, pearlsEarnedTotal: c.stats.pearlsEarnedTotal + pearls },
   });
+
+  // A level-up from this level's XP raises the life cap too — same as free-play wins
+  // (recordGameWin/Loss). Without this, levelling up inside the journey never added a life.
+  const levelsGained = levelFromXp(c.stats.xp + xp).level - levelFromXp(c.stats.xp).level;
+  if (levelsGained > 0) {
+    progressStore.set({ energy: grantLevelUpEnergy(progressStore.get().energy, levelsGained, Date.now()) });
+  }
 
   // Chapter completion → bonus pearls only. The biome skin is NOT granted here:
   // sea skins stay purchase-only (donate) so they can be equipped in every mode.
@@ -550,7 +608,11 @@ export function recordGameWin(r: { difficulty: Difficulty; seconds: number; pair
     },
   });
   // Level-up bonus — XP is independent of pearls, so crediting pearls can't feed back into level.
-  if (levelsGained > 0) addPearls(LEVEL_UP_REWARD * levelsGained);
+  if (levelsGained > 0) {
+    addPearls(LEVEL_UP_REWARD * levelsGained);
+    // Each level raises the life cap by 1 (capped) and grants that life immediately.
+    progressStore.set({ energy: grantLevelUpEnergy(progressStore.get().energy, levelsGained, Date.now()) });
+  }
   recordQuestEvent({ type: 'win', difficulty: r.difficulty, pairs: r.pairs, perfect, fast });   // sets quests + saveLocal
   saveCloud(progressStore.get());   // a win is significant → one cloud write, after quest progress is applied
   return { xpGained, leveledUp: levelsGained > 0, newLevel };
@@ -577,7 +639,10 @@ export function recordGameLoss(r: { mode: GameMode; difficulty: Difficulty; pair
   const levelsGained = newLevel - levelFromXp(s.xp).level;
   progressStore.set({ stats: { ...s, lastLossDate: today, lossesToday: lossIndex, xp: newXp } });
   if (pearls > 0) addPearls(pearls);
-  if (levelsGained > 0) addPearls(LEVEL_UP_REWARD * levelsGained);
+  if (levelsGained > 0) {
+    addPearls(LEVEL_UP_REWARD * levelsGained);
+    progressStore.set({ energy: grantLevelUpEnergy(progressStore.get().energy, levelsGained, Date.now()) });
+  }
   persist();
   return { pearls, xp, leveledUp: levelsGained > 0, newLevel };
 }

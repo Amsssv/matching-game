@@ -6,6 +6,8 @@ const PROGRESS_KEY = 'sea-pairs-progress';
 // Seed before the app boots so resolveProgress() reads it. Idempotent (only first load).
 function seedProgress(args: { key: string; pearls: number }) {
   if (localStorage.getItem(args.key)) return;
+  const n = new Date();
+  const today = `${n.getFullYear()}-${`${n.getMonth() + 1}`.padStart(2, '0')}-${`${n.getDate()}`.padStart(2, '0')}`;
   localStorage.setItem(args.key, JSON.stringify({
     version: 2,
     pearls: args.pearls,
@@ -16,6 +18,8 @@ function seedProgress(args: { key: string; pearls: number }) {
     },
     unlocked: [],
     equipped: { seaTheme: 'sea.lagoon', cardBack: 'back.classic', uiPalette: 'ui.ocean' },
+    // Stamp today so the daily reward doesn't auto-pop over the IAP flow.
+    streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: today },
   }));
 }
 

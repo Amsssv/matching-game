@@ -3,7 +3,9 @@ import { useUi } from '@hooks/useUiStore';
 import { useProgress } from '@hooks/useProgress';
 import { levelById } from '@state/campaign';
 import { regenEnergy } from '@state/energy';
-import { startLevel, closeLevelStart, refillEnergyWithPearls, ENERGY_REFILL_COST } from '@state/campaignController';
+import { energyRefillCost } from '@state/progress';
+import { todayStr } from '@state/daily';
+import { startLevel, closeLevelStart, refillEnergyWithPearls } from '@state/campaignController';
 import { Button } from '@ui/Button';
 import { LOCALES } from '../../game/i18n';
 import styles from './LevelStartSheet.module.scss';
@@ -11,6 +13,7 @@ import styles from './LevelStartSheet.module.scss';
 export function LevelStartSheet() {
   const levelId = useUi((s) => s.modal.levelStart);
   const energy = useProgress((p) => p.energy);
+  const refills = useProgress((p) => p.energyRefills);
   const lang = useUi((s) => s.menu.lang);
   const [now] = useState(() => Date.now());
   if (!levelId) return null;
@@ -40,7 +43,7 @@ export function LevelStartSheet() {
           </Button>
         ) : (
           <Button testId="level-refill" type="primary" size="large" onClick={() => refillEnergyWithPearls(Date.now())}>
-            {L.refillFor.replace('{n}', String(ENERGY_REFILL_COST))} 🦪
+            {L.refillFor.replace('{n}', String(energyRefillCost(refills, todayStr())))} 🦪
           </Button>
         )}
       </div>

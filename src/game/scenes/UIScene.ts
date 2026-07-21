@@ -43,13 +43,15 @@ export class UIScene extends Phaser.Scene {
 
   create() {
     this.elapsedSeconds = 0;
-    recordGameStart();
+    this.campaignLevelId = this.game.registry.get('campaignLevel') ?? null;
+    // Journey (campaign) levels are their own progression — they must NOT count in the
+    // player's game stats (gamesPlayed / quests). Only free-play games do.
+    if (!this.campaignLevelId) recordGameStart();
     this.settled = false;
     this.pairsFound = 0;
     const lang: Lang = this.game.registry.get('lang') ?? 'ru';
     this.locale = LOCALES[lang];
     this.mode = this.game.registry.get('gameMode') ?? 'classic';
-    this.campaignLevelId = this.game.registry.get('campaignLevel') ?? null;
     const difficulty: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
     const ov: ModeTestOverrides = this.game.registry.get('modeTestOverrides') ?? {};
     this.taCfg = {

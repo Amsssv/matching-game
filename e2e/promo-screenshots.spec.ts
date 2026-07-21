@@ -122,6 +122,15 @@ for (const lang of LANGS) {
     test.beforeEach(async ({ page }) => {
       await page.addInitScript((l: string) => {
         localStorage.setItem('sea-pairs-lang', l);
+        // Fresh-looking player, but stamp the daily as already auto-shown today and
+        // acknowledge the level so neither the daily-reward popup nor the level-up
+        // celebration can intercept the promo capture click-flow.
+        const n = new Date();
+        const today = `${n.getFullYear()}-${`${n.getMonth() + 1}`.padStart(2, '0')}-${`${n.getDate()}`.padStart(2, '0')}`;
+        localStorage.setItem('sea-pairs-progress', JSON.stringify({
+          version: 4, pearls: 0, stats: { xp: 0, seenLevel: 99 },
+          streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: today },
+        }));
       }, lang);
       await page.goto('/?canvas=1');
       await waitForCanvas(page);

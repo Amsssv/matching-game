@@ -2,6 +2,10 @@
 @use '../../styles/tokens' as *;
 @use '../../styles/mixins' as *;
 
+// The level-up celebration sits above every other modal (journey level-start z34,
+// level-result z35, base modal z20) so it is never buried under them.
+.topmost { z-index: 60 !important; }
+
 .badge { font-size: clamp(44px, 14vw, 64px); line-height: 1; }
 .title { @include modal-title; font-size: clamp(20px, 6vw, 28px); }
 .level {

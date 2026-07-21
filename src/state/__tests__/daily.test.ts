@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { rewardForDay, todayStr, dayBefore, computeClaim } from '../daily';
 import type { StreakState } from '../progress';
 
-const streak = (current: number, lastClaimDate: string | null, best = current): StreakState => ({ current, lastClaimDate, best, doubledDate: null });
+const streak = (current: number, lastClaimDate: string | null, best = current): StreakState => ({ current, lastClaimDate, best, doubledDate: null, autoShownDate: null });
 
 describe('daily logic', () => {
   it('rewardForDay cycles every 14 days', () => {

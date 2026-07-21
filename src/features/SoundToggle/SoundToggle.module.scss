@@ -29,6 +29,6 @@
 
 // Mobile: the toggle sits inline in the bottom-actions row (right of "?") as an
 // icon-only control — hide the text label.
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .label { display: none; }
 }

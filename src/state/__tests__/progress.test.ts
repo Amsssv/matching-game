@@ -89,6 +89,9 @@ describe('progress mutators', () => {
     expect(progressStore.get().stats.xp).toBe(100);
     expect(levelFromXp(progressStore.get().stats.xp).level).toBe(2);
     expect(progressStore.get().pearls).toBe(before + 50);
+    // Level-up also raises the life cap by 1 and grants that life immediately.
+    expect(progressStore.get().energy.max).toBe(6);
+    expect(progressStore.get().energy.current).toBe(6);
   });
   it('recordGameStart increments gamesPlayed', () => {
     recordGameStart(); recordGameStart();
@@ -249,7 +252,7 @@ describe('daily streak (progress v3)', () => {
   it('first claim awards day-1 reward and sets streak', () => {
     expect(claimDaily('2026-06-09')).toEqual({ day: 1, reward: 10 });
     expect(progressStore.get().pearls).toBe(10);
-    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-09', best: 1, doubledDate: null });
+    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-09', best: 1, doubledDate: null, autoShownDate: null });
   });
   it('second claim same day is a no-op (null)', () => {
     claimDaily('2026-06-09');
@@ -265,7 +268,7 @@ describe('daily streak (progress v3)', () => {
   it('gap resets to day 1 but keeps best', () => {
     claimDaily('2026-06-09'); claimDaily('2026-06-10');
     expect(claimDaily('2026-06-13')).toEqual({ day: 1, reward: 10 });
-    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-13', best: 2, doubledDate: null });
+    expect(progressStore.get().streak).toEqual({ current: 1, lastClaimDate: '2026-06-13', best: 2, doubledDate: null, autoShownDate: null });
   });
   it('doubleDaily adds the reward again, only once, only after a claim', () => {
     expect(doubleDaily('2026-06-09')).toBe(0);     // no claim yet → no-op
@@ -286,7 +289,7 @@ describe('daily streak (progress v3)', () => {
     const m = await import('../progress');
     const p = await m.resolveProgress();
     expect(p.version).toBe(5);
-    expect(p.streak).toEqual({ current: 0, lastClaimDate: null, best: 0, doubledDate: null });
+    expect(p.streak).toEqual({ current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: null });
     expect(p.pearls).toBe(5);
   });
 });

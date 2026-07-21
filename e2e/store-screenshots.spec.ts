@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForCanvas, pausePhaser } from './helpers';
+import { waitForCanvas, pausePhaser, seedProgress } from './helpers';
 
 const LANGS = ['ru', 'en', 'tr', 'es', 'pt'] as const;
 
@@ -9,6 +9,7 @@ for (const lang of LANGS) {
       await page.addInitScript((l: string) => {
         localStorage.setItem('sea-pairs-lang', l);
       }, lang);
+      await seedProgress(page);   // suppress the daily auto-popup over the store screenshots
       await page.goto('/?canvas=1');
       await waitForCanvas(page);
       await page.waitForTimeout(1500);

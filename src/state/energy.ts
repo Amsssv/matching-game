@@ -1,6 +1,7 @@
 import type { EnergyState } from './progress';
 
 export const REGEN_MS = 25 * 60 * 1000; // 25 minutes per life
+export const MAX_ENERGY = 10;           // hard ceiling on the life cap (grows via level-ups)
 
 /** Recompute current energy from elapsed real time. Pure; call before reading/spending. */
 export function regenEnergy(e: EnergyState, nowTs: number): EnergyState {
@@ -26,6 +27,19 @@ export function refillEnergy(e: EnergyState, nowTs: number, amount?: number): En
   const r = regenEnergy(e, nowTs);
   const current = amount === undefined ? r.max : Math.min(r.max, r.current + amount);
   return { ...r, current };
+}
+
+/**
+ * Level-up reward: regenerate, raise the cap by `levels` (never above MAX_ENERGY),
+ * and grant the same number of lives to `current` — so the new life is felt now,
+ * not only after a 25-minute regen. At the cap it's a no-op beyond the regen.
+ */
+export function grantLevelUpEnergy(e: EnergyState, levels: number, nowTs: number): EnergyState {
+  const r = regenEnergy(e, nowTs);
+  if (levels <= 0) return r;
+  const max = Math.min(MAX_ENERGY, r.max + levels);
+  const delta = max - r.max;
+  return { ...r, max, current: Math.min(max, r.current + delta) };
 }
 
 /** Milliseconds until the next life regenerates (0 when full). */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { regenEnergy, spendEnergy, refillEnergy, msToNextEnergy, REGEN_MS } from '../energy';
+import { regenEnergy, spendEnergy, refillEnergy, msToNextEnergy, grantLevelUpEnergy, REGEN_MS, MAX_ENERGY } from '../energy';
 
 const full = { current: 5, max: 5, lastRegenTs: 0 };
 
@@ -34,5 +34,25 @@ describe('energy', () => {
   it('msToNextEnergy is 0 when full, else counts down within a window', () => {
     expect(msToNextEnergy(full, 0)).toBe(0);
     expect(msToNextEnergy({ current: 1, max: 5, lastRegenTs: 0 }, 5_000)).toBe(REGEN_MS - 5_000);
+  });
+
+  it('grantLevelUpEnergy raises the cap and grants the same lives to current', () => {
+    const r = grantLevelUpEnergy({ current: 3, max: 5, lastRegenTs: 0 }, 1, 0);
+    expect(r.max).toBe(6);
+    expect(r.current).toBe(4);
+  });
+  it('grantLevelUpEnergy applies multiple levels at once', () => {
+    const r = grantLevelUpEnergy({ current: 5, max: 5, lastRegenTs: 0 }, 2, 0);
+    expect(r.max).toBe(7);
+    expect(r.current).toBe(7);
+  });
+  it('grantLevelUpEnergy never exceeds MAX_ENERGY (cap 10)', () => {
+    const r = grantLevelUpEnergy({ current: 9, max: 9, lastRegenTs: 0 }, 5, 0);
+    expect(r.max).toBe(MAX_ENERGY);
+    expect(r.current).toBe(MAX_ENERGY);
+    // Already at the cap → only the regen happens, no extra life.
+    const capped = grantLevelUpEnergy({ current: 8, max: 10, lastRegenTs: 0 }, 3, 0);
+    expect(capped.max).toBe(10);
+    expect(capped.current).toBe(8);
   });
 });

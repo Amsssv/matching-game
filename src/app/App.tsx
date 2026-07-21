@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import { GameMount } from './GameMount';
 import { useUi } from '@hooks/useUiStore';
+import { useProgress } from '@hooks/useProgress';
 import { bus } from '@state/eventBus';
+import { maybeAutoOpenDaily } from '@state/dailyController';
+import { maybeShowLevelUp } from '@state/levelUpController';
 import { MainMenu } from '@widgets/MainMenu';
 import { Header } from '@widgets/Header';
 import { VictoryModal } from '@widgets/VictoryModal';
@@ -39,6 +42,7 @@ export function App() {
   const levelStart = useUi(s => s.modal.levelStart);
   const levelResult = useUi(s => s.modal.levelResult);
   const visible = useUi(s => s.transition.visible);
+  const levelXp = useProgress(s => s.stats.xp);
 
   // Click feedback for every overlay button (menu, HUD, all modals) via one
   // delegated listener — new buttons get the sound for free. Plays through the
@@ -61,6 +65,26 @@ export function App() {
   useEffect(() => {
     if (menuActive) window.__appLoader?.hide();
   }, [menuActive]);
+
+  // Auto-open the daily reward on the first menu entry of the day (once the
+  // transition cover has lifted). maybeAutoOpenDaily is self-gating: it no-ops if
+  // the reward is already claimed, was already auto-shown today, or another modal
+  // is open — so re-firing on menu re-entry / language restart is harmless. The
+  // short delay lets the menu settle first so the popup reads as intentional.
+  useEffect(() => {
+    if (!(menuActive && visible)) return;
+    const t = window.setTimeout(maybeAutoOpenDaily, 600);
+    return () => window.clearTimeout(t);
+  }, [menuActive, visible]);
+
+  // Level-up celebration: show it as soon as a new level is reached, in any context
+  // (free play, journey, or just idling in the menu). maybeShowLevelUp self-guards on
+  // seenLevel AND defers (via a live store read) while a result screen is up, so it
+  // lands right after that closes. Re-run deps include the result modals so closing
+  // one re-fires the check.
+  useEffect(() => {
+    maybeShowLevelUp();
+  }, [levelXp, victory, defeat, levelResult]);
 
   return (
     <GameMount>

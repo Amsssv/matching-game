@@ -166,7 +166,15 @@ export async function seedProgress(
 ) {
   await page.addInitScript(({ key, xp, pearls, force }) => {
     if (!force && localStorage.getItem(key)) return;
-    localStorage.setItem(key, JSON.stringify({ version: 4, pearls, stats: { xp } }));
+    // Stamp today's date as already auto-shown so the daily reward popup doesn't
+    // auto-open over these (seeded / returning-player) specs and disturb their
+    // screenshots or clicks. The button-driven daily flow is covered in daily.spec.
+    const now = new Date();
+    const today = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}-${`${now.getDate()}`.padStart(2, '0')}`;
+    localStorage.setItem(key, JSON.stringify({
+      version: 4, pearls, stats: { xp },
+      streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: today },
+    }));
   }, { key: 'sea-pairs-progress', xp: patch.xp ?? 0, pearls: patch.pearls ?? 0, force: opts.force ?? false });
 }
 

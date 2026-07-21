@@ -8,11 +8,14 @@ const KEY = 'sea-pairs-progress';
 // ensureTodayQuests seeds today's 3 on load.
 function seed(k: string) {
   if (localStorage.getItem(k)) return;
+  const n = new Date();
+  const today = `${n.getFullYear()}-${`${n.getMonth() + 1}`.padStart(2, '0')}-${`${n.getDate()}`.padStart(2, '0')}`;
   localStorage.setItem(k, JSON.stringify({
     version: 4, pearls: 0,
     stats: { gamesPlayed: 5, gamesWon: 1, pairsMatched: 6, bestSeconds: { easy: null, medium: null, hard: null, expert: null }, winsByDifficulty: { easy: 1, medium: 0, hard: 0, expert: 0 }, perfectWins: 0, fastWins: 0, pearlsEarnedTotal: 0 },
     unlocked: [], equipped: { seaTheme: 'sea.lagoon', cardBack: 'back.classic', uiPalette: 'ui.ocean' },
-    streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null },
+    // Stamp today so the daily reward doesn't auto-pop over the tasks flow.
+    streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: today },
     quests: { date: null, active: [], rerolls: 0 },
     achievements: { claimed: [] },
   }));
@@ -35,10 +38,10 @@ test.describe('Tasks (quests + achievements)', () => {
     // Quests tab (default) shows today's 3-quest board (seeded at startup).
     expect(await page.getByTestId('tasks').locator('[data-testid^="quest-"]').count()).toBe(3);
 
-    // Achievements tab → claim the ready firstWin → +20 pearls, persisted.
+    // Achievements tab → claim the ready firstWin → +10 pearls, persisted.
     await page.getByTestId('tasks-tab-achievements').click();
     await page.getByTestId('ach-firstWin').getByRole('button').click();
-    await expect.poll(() => page.evaluate((k) => JSON.parse(localStorage.getItem(k)!).pearls, KEY)).toBe(20);
+    await expect.poll(() => page.evaluate((k) => JSON.parse(localStorage.getItem(k)!).pearls, KEY)).toBe(10);
     const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), KEY);
     expect(saved.achievements.claimed).toContain('firstWin');
 

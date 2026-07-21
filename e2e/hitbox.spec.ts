@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { waitForCanvas, goToGameScene } from './helpers';
+import { waitForCanvas, goToGameScene, seedProgress } from './helpers';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -32,6 +32,7 @@ function fireRapidResizes(page: Page, count: number, w: number, h: number) {
 
 test.describe('Card hitbox', () => {
   test.beforeEach(async ({ page }) => {
+    await seedProgress(page);   // stamp daily as shown so it can't auto-pop before navigating
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     await goToGameScene(page, 'easy');

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { seedProgress } from './helpers';
 
 // Mobile-first layout guard: on small/short viewports the menu footer
 // (bottom action pills + sound toggle) must be fully visible — never pushed
@@ -22,6 +23,7 @@ test.describe('MainMenu — small-screen layout', () => {
 
   for (const vp of SMALL) {
     test(`footer fully visible @ ${vp.name}`, async ({ page }) => {
+      await seedProgress(page);   // suppress the daily auto-popup during layout measurement
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto('/');
       await page.waitForSelector('[data-testid="menu"]', { state: 'visible' });

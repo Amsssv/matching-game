@@ -7,10 +7,12 @@ import {
   pausePhaser,
   resumePhaser,
   waitForGameUnlocked,
+  seedProgress,
 } from './helpers';
 
 test.describe('GameScene', () => {
   test.beforeEach(async ({ page }) => {
+    await seedProgress(page);   // stamp daily as shown so it can't auto-pop before/after navigating
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     await goToGameScene(page, 'easy');

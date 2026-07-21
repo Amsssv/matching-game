@@ -58,6 +58,6 @@
   .trigger { width: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; }
   .code, .chevron { display: none; }
 }
-// Match the sibling icon buttons' shrink on narrow phones.
-@media (pointer: coarse) and (max-width: 380px) { .trigger { width: 32px; height: 32px; } }
+// Match the sibling icon buttons' compact size across the mobile band.
+@media (pointer: coarse) and (max-width: 767px) { .trigger { width: 32px; height: 32px; } }
 @media (pointer: coarse) and (max-width: 340px) { .trigger { width: 30px; height: 30px; } }
