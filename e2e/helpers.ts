@@ -153,7 +153,7 @@ export async function resumePhaser(page: Page) {
 
 // ── Progress seeding ─────────────────────────────────────────────────────────
 
-/** Seed persistent progress before page load. xp: 1350 unlocks all modes (level 7 — noMistakes gate).
+/** Seed persistent progress before page load. xp: 2700 unlocks all modes (level 10 — noMistakes gate).
  * Idempotent by default (matches daily.spec/shop.spec): seeds only on first load, so a later
  * reload keeps whatever the app persisted — persistence assertions stay meaningful.
  * Pass `{ force: true }` to overwrite on every navigation; needed when the app already

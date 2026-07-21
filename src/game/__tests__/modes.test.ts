@@ -12,8 +12,8 @@ describe('modes config', () => {
     expect(MODE_ORDER).toEqual(['classic', 'timeAttack', 'survival', 'noMistakes']);
   });
 
-  it('unlock levels are 1/2/4/7', () => {
-    expect(MODE_UNLOCK).toEqual({ classic: 1, timeAttack: 2, survival: 4, noMistakes: 7 });
+  it('unlock levels are 1/3/6/10', () => {
+    expect(MODE_UNLOCK).toEqual({ classic: 1, timeAttack: 3, survival: 6, noMistakes: 10 });
   });
 
   it('every mode has an emoji and full multiplier rows', () => {

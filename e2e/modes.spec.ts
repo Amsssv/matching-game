@@ -17,7 +17,7 @@ function findFirstMismatch(deck: string[]): [number, number] {
 
 test.describe('mode start flow', () => {
   test('menu → mode card → pick difficulty → play starts the right mode', async ({ page }) => {
-    await seedProgress(page, { xp: 700 });
+    await seedProgress(page, { xp: 1000 });
     await page.goto('/?canvas=1');
     await waitForCanvas(page);
     await page.waitForTimeout(500);

@@ -18,10 +18,10 @@ test.describe('MenuScene', () => {
     await resumePhaser(page);
   });
 
-  test('mode picker: all modes unlocked at level 7', async ({ page }) => {
+  test('mode picker: all modes unlocked at level 10', async ({ page }) => {
     // beforeEach already loaded the page as a fresh player (and boot persisted it);
     // force-overwrite with a leveled profile, then reload.
-    await seedProgress(page, { xp: 1350 }, { force: true });
+    await seedProgress(page, { xp: 2700 }, { force: true });
     await page.reload();
     await waitForCanvas(page);
     await page.waitForTimeout(500);
@@ -32,7 +32,7 @@ test.describe('MenuScene', () => {
   });
 
   test('mode start modal (difficulty select)', async ({ page }) => {
-    await seedProgress(page, { xp: 1350 }, { force: true });
+    await seedProgress(page, { xp: 2700 }, { force: true });
     await page.reload();
     await waitForCanvas(page);
     await page.waitForTimeout(500);

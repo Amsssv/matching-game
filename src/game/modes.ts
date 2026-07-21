@@ -5,7 +5,7 @@ export type GameMode = 'classic' | 'timeAttack' | 'survival' | 'noMistakes';
 export const MODE_ORDER: readonly GameMode[] = ['classic', 'timeAttack', 'survival', 'noMistakes'];
 
 /** Player level required to start a mode (levelFromXp(stats.xp).level >= this). */
-export const MODE_UNLOCK: Record<GameMode, number> = { classic: 1, timeAttack: 2, survival: 4, noMistakes: 7 };
+export const MODE_UNLOCK: Record<GameMode, number> = { classic: 1, timeAttack: 3, survival: 6, noMistakes: 10 };
 
 export const MODE_EMOJI: Record<GameMode, string> = {
   classic: '🌊', timeAttack: '⏳', survival: '🛡️', noMistakes: '🎯',
