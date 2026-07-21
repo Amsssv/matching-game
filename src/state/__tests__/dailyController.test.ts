@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Stub the SDK so persist()'s cloud save and the ad helper are inert in tests.
-vi.mock('../../ysdk', () => ({ getYSDK: () => null }));
+// Mutable SDK stub: null by default (persist()'s cloud save + ad helper stay inert),
+// swapped to a fake rewarded-ad SDK in the watchDoubleAd tests below.
+type AdCallbacks = { onRewarded?: () => void; onClose?: () => void; onError?: () => void };
+const hoisted = vi.hoisted(() => ({
+  sdk: null as null | { adv: { showRewardedVideo: (o: { callbacks: AdCallbacks }) => void } },
+}));
+vi.mock('../../ysdk', () => ({ getYSDK: () => hoisted.sdk }));
 
-import { maybeAutoOpenDaily } from '../dailyController';
+import { maybeAutoOpenDaily, watchDoubleAd } from '../dailyController';
 import { progressStore, resetProgress } from '../progress';
 import type { StreakState } from '../progress';
 import { uiStore, resetUi, setModal } from '../store';
+import { bus } from '../eventBus';
+import { saveSoundEnabled } from '../../game/settings';
 import { todayStr } from '../daily';
 
 const today = todayStr();
@@ -16,7 +23,7 @@ const setStreak = (patch: Partial<StreakState>) =>
     streak: { current: 0, lastClaimDate: null, best: 0, doubledDate: null, autoShownDate: null, ...patch },
   });
 
-beforeEach(() => { localStorage.clear(); resetProgress(); resetUi(); });
+beforeEach(() => { localStorage.clear(); resetProgress(); resetUi(); hoisted.sdk = null; });
 
 describe('maybeAutoOpenDaily', () => {
   it('opens the daily modal and stamps autoShownDate when a reward is claimable', () => {
@@ -43,5 +50,40 @@ describe('maybeAutoOpenDaily', () => {
     maybeAutoOpenDaily();
     expect(uiStore.get().modal.daily).toBeNull();
     expect(progressStore.get().streak.autoShownDate).toBeNull();
+  });
+});
+
+describe('watchDoubleAd audio restore', () => {
+  // Fake rewarded-ad SDK that captures the callbacks so the test drives them.
+  const armAd = () => {
+    let cbs: AdCallbacks | null = null;
+    hoisted.sdk = { adv: { showRewardedVideo: (o) => { cbs = o.callbacks; } } };
+    return () => cbs!;
+  };
+  const armDailyClaimed = () =>
+    setModal({ daily: { day: 1, reward: 100, claimed: true, doubled: false } });
+
+  it('restores audio to the user setting — stays MUTED when sound is OFF after the ad closes', () => {
+    saveSoundEnabled(false);                                   // user has sound OFF
+    const getCbs = armAd();
+    armDailyClaimed();
+    const seen: boolean[] = [];
+    const off = bus.on('cmd:set-muted', (v) => seen.push(v));
+    watchDoubleAd();                                           // emits mute=true, shows ad
+    getCbs().onClose?.();                                      // ad closes → restore
+    off();
+    expect(seen.at(-1)).toBe(true);   // must restore to muted (sound OFF), NOT force-unmute
+  });
+
+  it('restores audio to UNMUTED when sound is ON after the reward', () => {
+    saveSoundEnabled(true);
+    const getCbs = armAd();
+    armDailyClaimed();
+    const seen: boolean[] = [];
+    const off = bus.on('cmd:set-muted', (v) => seen.push(v));
+    watchDoubleAd();
+    getCbs().onRewarded?.();
+    off();
+    expect(seen.at(-1)).toBe(false);
   });
 });

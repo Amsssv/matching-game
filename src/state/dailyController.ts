@@ -3,6 +3,7 @@ import { claimDaily as claimInStore, doubleDaily as doubleInStore, markDailyAuto
 import { computeClaim, todayStr } from './daily';
 import { bus } from './eventBus';
 import { getYSDK } from '../ysdk';
+import { readSoundEnabled } from '../game/settings';
 
 /** Force-open the daily modal, reflecting current state (claimable OR already-claimed-today). */
 export function openDaily(): void {
@@ -46,7 +47,9 @@ export function watchDoubleAd(): void {
   if (!sdk?.adv?.showRewardedVideo) return;   // no ad → no-op (button only shows when claimed)
 
   let done = false;
-  const unmute = () => bus.emit('cmd:set-muted', false);
+  // Restore audio to the user's actual setting, NOT unconditionally on — otherwise
+  // a player with sound OFF gets it turned back ON after the ad (mirror GameScene).
+  const unmute = () => bus.emit('cmd:set-muted', !readSoundEnabled());
   const fallback = window.setTimeout(() => { if (!done) { done = true; unmute(); } }, 15_000);
   try {
     sdk.adv.showRewardedVideo({

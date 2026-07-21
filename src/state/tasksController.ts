@@ -3,6 +3,7 @@ import { claimQuest as claimQuestStore, rerollQuest as rerollQuestStore, claimAc
 import { todayStr } from './daily';
 import { bus } from './eventBus';
 import { getYSDK } from '../ysdk';
+import { readSoundEnabled } from '../game/settings';
 import type { TasksTab } from './types';
 
 export function openTasks(tab: TasksTab = 'quests') { ensureTodayQuests(todayStr()); setModal({ tasks: { tab } }); }
@@ -16,7 +17,7 @@ export function rerollWithAd(index: number): void {
   const sdk = getYSDK();
   if (!sdk?.adv?.showRewardedVideo) { rerollQuestStore(index); return; }   // no SDK → reroll directly (guest/dev fallback)
   let done = false;
-  const unmute = () => bus.emit('cmd:set-muted', false);
+  const unmute = () => bus.emit('cmd:set-muted', !readSoundEnabled());
   const fallback = window.setTimeout(() => { if (!done) { done = true; unmute(); } }, 15_000);
   try {
     sdk.adv.showRewardedVideo({

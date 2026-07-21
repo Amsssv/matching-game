@@ -5,6 +5,7 @@ import { Modal } from '@ui/Modal';
 import { cx } from '@ui/cx';
 import { DAILY_REWARDS } from '@state/daily';
 import { claim, watchDoubleAd, closeDaily } from '@state/dailyController';
+import { getYSDK } from '../../ysdk';
 import styles from './DailyRewardModal.module.scss';
 
 export function DailyRewardModal() {
@@ -15,6 +16,9 @@ export function DailyRewardModal() {
   const { day, reward, claimed, doubled } = daily;
   const cyclePos = ((day - 1) % DAILY_REWARDS.length) + 1;   // 1..7 position in the cycle
   const shown = doubled ? reward * 2 : reward;
+  // Only offer ×2 when a rewarded ad is actually available (mirror VictoryModal) —
+  // otherwise the button is dead: watchDoubleAd no-ops when there's no ad to show.
+  const canDouble = !doubled && !!getYSDK()?.adv?.showRewardedVideo;
   return (
     <Modal testId="daily" onClose={closeDaily} width="min(92vw, 420px)">
       <h2 className={styles.title}>{L.dailyTitle}</h2>
@@ -42,7 +46,7 @@ export function DailyRewardModal() {
           <Button testId="daily-claim" type="primary" size="large" className={styles.claimCta} onClick={claim}>{L.dailyClaim}</Button>
         ) : (
           <>
-            {!doubled && <Button testId="daily-double" type="primary" size="large" className={styles.claimCta} onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
+            {canDouble && <Button testId="daily-double" type="primary" size="large" className={styles.claimCta} onClick={watchDoubleAd}>{`▶ ${L.dailyDouble}`}</Button>}
             {doubled && <p className={styles.comeBack}>{L.dailyComeBack}</p>}
             <Button testId="daily-close" type="secondary" size="large" onClick={closeDaily}>{L.lbClose}</Button>
           </>

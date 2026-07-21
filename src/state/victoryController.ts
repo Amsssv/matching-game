@@ -2,6 +2,7 @@ import { setModal, uiStore } from './store';
 import { awardPearls } from './progress';
 import { bus } from './eventBus';
 import { getYSDK } from '../ysdk';
+import { readSoundEnabled } from '../game/settings';
 
 /**
  * Opt-in rewarded video → double the win's pearls. Mirrors
@@ -15,7 +16,7 @@ export function doubleVictoryReward(): void {
   if (!sdk?.adv?.showRewardedVideo) return;   // no ad available → no-op (button only shows when it is)
 
   let done = false;
-  const unmute = () => bus.emit('cmd:set-muted', false);
+  const unmute = () => bus.emit('cmd:set-muted', !readSoundEnabled());
   const fallback = window.setTimeout(() => { if (!done) { done = true; unmute(); } }, 15_000);
   try {
     sdk.adv.showRewardedVideo({
