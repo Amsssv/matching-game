@@ -21,6 +21,10 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
+      // Never run the promo generator here: it writes raw PNGs to screenshots/ at
+      // THIS project's viewport (1280×720), clobbering the store-listing assets that
+      // promo-desktop authors at 1920×1080. Promo runs only on the promo-* projects.
+      testIgnore: '**/promo-screenshots.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
@@ -29,6 +33,9 @@ export default defineConfig({
     },
     {
       name: 'mobile',
+      // See desktop: keep the promo generator off this project (would emit 393×727,
+      // below Yandex's 1280px-longest-side minimum) — promo-mobile authors 1080×1920.
+      testIgnore: '**/promo-screenshots.spec.ts',
       use: {
         ...devices['Pixel 5'],
         deviceScaleFactor: 1,
