@@ -27,6 +27,22 @@
 .statValue { color: $white; font-weight: 800; font-size: clamp(18px, 5vw, 24px); font-variant-numeric: tabular-nums; }
 .statLabel { color: $text-muted; font-size: 11px; }
 
+// Mode selector for the records below (shown only when >1 mode is unlocked).
+.modeTabs { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+.modeTab {
+  flex: 1 1 auto; min-width: 0; cursor: pointer; pointer-events: auto;
+  padding: 6px 8px; border: none; border-radius: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap;
+  color: $text-muted; background: rgb(var(--color-navy-rgb, 0 20 40) / 0.45);
+  transition: color $duration-hover ease-out, background $duration-hover ease-out;
+  @include focus-ring;
+  &:hover { color: $white; }
+}
+.modeTabActive {
+  color: rgb(var(--color-navy-rgb, 0 20 40));
+  background: linear-gradient(90deg, $gold-border, $gold);
+}
+
 // Best times per difficulty.
 .bestTimes { width: 100%; display: grid; gap: 6px; }
 .bestRow {
