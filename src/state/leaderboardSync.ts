@@ -1,6 +1,6 @@
 import { progressStore } from './progress';
 import { totalStars } from './campaign';
-import { submitBestScore, LB_TOTAL_SCORE, LB_JOURNEY_STARS } from '../game/leaderboard';
+import { submitBestScore, LB_JOURNEY_STARS } from '../game/leaderboard';
 
 /**
  * Push the player's monotonic aggregate metrics to their Yandex leaderboards:
@@ -14,6 +14,10 @@ import { submitBestScore, LB_TOTAL_SCORE, LB_JOURNEY_STARS } from '../game/leade
  */
 export function syncProgressLeaderboards(): void {
   const p = progressStore.get();
-  submitBestScore(LB_TOTAL_SCORE, p.stats.xp);
+  // TEMP (2026-07-23): the `totalScore` board isn't connected in the Yandex console yet,
+  // and its setScore competed with the per-mode `time` board for Yandex's 1-request/second
+  // setScore limit — which dropped time-record updates after a restart. Disabled until the
+  // board is created; re-enable then (re-add LB_TOTAL_SCORE to the import above):
+  //   submitBestScore(LB_TOTAL_SCORE, p.stats.xp);
   submitBestScore(LB_JOURNEY_STARS, totalStars(p.campaign));
 }

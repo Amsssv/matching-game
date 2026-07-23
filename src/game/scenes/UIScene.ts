@@ -3,7 +3,7 @@ import { GameScene } from './GameScene';
 import { LOCALES } from '../i18n';
 import type { Lang, Locale } from '../i18n';
 import { getYSDK } from '../../ysdk';
-import { fetchLeaderboard, formatTime, LB_ID } from '../leaderboard';
+import { fetchLeaderboard, formatTime, submitBestTime, LB_ID } from '../leaderboard';
 import type { Difficulty } from '../layout';
 import { TIME_ATTACK, timeAttackRemaining, type GameMode, type ModeTestOverrides, type TimeAttackCfg } from '../modes';
 import { uiStore, setHud, setModal } from '../../state/store';
@@ -105,17 +105,11 @@ export class UIScene extends Phaser.Scene {
       const win = recordGameWin({ difficulty, seconds: this.elapsedSeconds, pairs: this.totalPairs, moves: n, mode });
       syncProgressLeaderboards();   // push cumulative XP (totalScore board) after this win
 
-      const leaderboards = getYSDK()?.leaderboards;
-      // Fire-and-forget: don't block victory screen on the network call. These are
-      // Yandex `time` boards (ms, ascending — less time = better); guard with
-      // getPlayerEntry so we only overwrite when strictly faster. No entry / error → submit.
-      const newMs = this.elapsedSeconds * 1000;
-      const scoreSaved: Promise<void> = leaderboards
-        ? leaderboards.getPlayerEntry(LB_ID[mode][difficulty])
-            .then(entry => { if (newMs < entry.score) return leaderboards.setScore(LB_ID[mode][difficulty], newMs); })
-            .catch(() => leaderboards.setScore(LB_ID[mode][difficulty], newMs))
-            .then(() => {}).catch(() => {})
-        : Promise.resolve();
+      // Fire-and-forget: don't block the victory screen on the network call. Submit our
+      // completion time (raw ms) to the `time`+ascending board, overwriting only when
+      // strictly faster — Yandex setScore overwrites unconditionally, so the guard lives
+      // client-side (see submitBestTime). scoreSaved settles so we can refresh the board.
+      const scoreSaved = submitBestTime(LB_ID[mode][difficulty], this.elapsedSeconds * 1000);
       this.showVictory(n, this.elapsedSeconds, scoreSaved, pearlsEarned, { isRecord, prevBest, firstWinOfDay, xpGained: win.xpGained, leveledUp: win.leveledUp, newLevel: win.newLevel });
     };
 
@@ -262,7 +256,10 @@ export class UIScene extends Phaser.Scene {
         const diff: Difficulty = this.game.registry.get('difficulty') ?? 'medium';
         const mode = this.currentMode();
         const lastSeconds: number = this.game.registry.get('lastScore') ?? this.elapsedSeconds;
-        sdk.leaderboards?.setScore(LB_ID[mode][diff], lastSeconds * 1000).catch(() => {});
+        // Same strictly-faster guard as the win path: setScore overwrites unconditionally,
+        // so an unguarded write here would clobber an existing faster record when the
+        // player authenticates after a slow run.
+        submitBestTime(LB_ID[mode][diff], lastSeconds * 1000);
       });
     }).catch(() => {});
   }

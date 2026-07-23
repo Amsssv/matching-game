@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as ysdkModule from '../../ysdk';
 
 vi.mock('../../ysdk', () => ({ getYSDK: vi.fn() }));
 
 // Import after mock so the module picks up the mock
-const { fetchLeaderboard, LB_ID, submitBestScore, LB_TOTAL_SCORE, LB_JOURNEY_STARS } = await import('../leaderboard');
+const { fetchLeaderboard, LB_ID, submitBestScore, submitBestTime, resetSetScoreThrottleForTest, LB_TOTAL_SCORE, LB_JOURNEY_STARS } = await import('../leaderboard');
 
 // Pins the Yandex board names per (mode, difficulty). These map to boards created
 // by hand in the Yandex console; a typo here silently orphans a real board and the
@@ -130,6 +130,7 @@ describe('submitBestScore', () => {
 
   beforeEach(() => {
     vi.mocked(ysdkModule.getYSDK).mockReturnValue(null);
+    resetSetScoreThrottleForTest();
   });
 
   it('does nothing (no throw) without an SDK', () => {
@@ -171,5 +172,90 @@ describe('submitBestScore', () => {
     submitBestScore(LB_JOURNEY_STARS, 7);
     await flush();
     expect(setScore).toHaveBeenCalledWith(LB_JOURNEY_STARS, 7);
+  });
+});
+
+describe('submitBestTime', () => {
+  // Time boards are lower-is-better (ms). Yandex setScore overwrites unconditionally, so
+  // the strictly-faster guard lives here — these tests pin its direction (< not >).
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+  const board = LB_ID.classic.easy;
+
+  beforeEach(() => {
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(null);
+    resetSetScoreThrottleForTest();
+  });
+
+  it('does nothing (no throw) without an SDK', async () => {
+    await expect(submitBestTime(board, 30000)).resolves.toBeUndefined();
+  });
+
+  it('skips non-positive times without touching the API', async () => {
+    const setScore = vi.fn(async () => {});
+    const getPlayerEntry = vi.fn(async () => ({ score: 0 }));
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({ leaderboards: { setScore, getPlayerEntry } }));
+    await submitBestTime(board, 0);
+    expect(getPlayerEntry).not.toHaveBeenCalled();
+    expect(setScore).not.toHaveBeenCalled();
+  });
+
+  it('submits when strictly faster (smaller ms) than the current entry', async () => {
+    const setScore = vi.fn(async () => {});
+    const getPlayerEntry = vi.fn(async () => ({ score: 50000 }));
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({ leaderboards: { setScore, getPlayerEntry } }));
+    await submitBestTime(board, 30000);
+    await flush();
+    expect(setScore).toHaveBeenCalledWith(board, 30000);
+  });
+
+  it('does not overwrite when the new time is slower or equal', async () => {
+    const setScore = vi.fn(async () => {});
+    const getPlayerEntry = vi.fn(async () => ({ score: 30000 }));
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({ leaderboards: { setScore, getPlayerEntry } }));
+    await submitBestTime(board, 50000);
+    await flush();
+    expect(setScore).not.toHaveBeenCalled();
+  });
+
+  it('submits anyway when the player has no entry yet', async () => {
+    const setScore = vi.fn(async () => {});
+    const getPlayerEntry = vi.fn(async () => { throw new Error('no entry'); });
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({ leaderboards: { setScore, getPlayerEntry } }));
+    await submitBestTime(board, 42000);
+    await flush();
+    expect(setScore).toHaveBeenCalledWith(board, 42000);
+  });
+});
+
+describe('setScore rate-limit serialization', () => {
+  // Yandex rejects setScore faster than 1/second. A single win fires several
+  // (time board + totalScore + journeyStars); they must be spaced ≥1s, not dropped.
+  beforeEach(() => {
+    resetSetScoreThrottleForTest();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('spaces rapid submits ≥1s apart instead of firing (and losing) them at once', async () => {
+    vi.useFakeTimers();
+    const setScore = vi.fn(async () => {});
+    const getPlayerEntry = vi.fn(async () => { throw new Error('no entry'); }); // force a submit each
+    vi.mocked(ysdkModule.getYSDK).mockReturnValue(makeSDK({ leaderboards: { setScore, getPlayerEntry } }));
+
+    // Three writes issued back-to-back, exactly like one win (2 aggregates + the time board).
+    submitBestTime(LB_ID.classic.easy, 6000);
+    submitBestScore(LB_TOTAL_SCORE, 100);
+    submitBestScore(LB_JOURNEY_STARS, 5);
+
+    // Only the first write goes out immediately; the rest are deferred by the throttle.
+    await vi.advanceTimersByTimeAsync(0);
+    expect(setScore).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(setScore).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(setScore).toHaveBeenCalledTimes(3);   // all landed — none dropped
   });
 });

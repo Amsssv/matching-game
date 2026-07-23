@@ -43,14 +43,62 @@ export const LB_JOURNEY_STARS = 'journeyStars';   // total campaign stars
  * never blocks; guests / missing SDK / network errors are ignored.
  * Non-positive scores are skipped so we don't clutter boards with empty entries.
  */
+// Yandex caps setScore at 1 request/second and REJECTS (does not queue) anything faster
+// — https://yandex.com/dev/games/doc/en/sdk/sdk-leaderboard. A single win fires several
+// setScores (the per-mode `time` board plus the monotonic totalScore/journeyStars
+// aggregates), so without serialization all but the first are rejected and that board
+// silently keeps the old record — the "beating my time doesn't overwrite" bug. Funnel
+// every setScore through one queue that spaces writes ≥1s apart. Never throws.
+const MIN_SET_SCORE_GAP_MS = 1000;
+type ScoreBoard = { setScore(name: string, score: number): Promise<void> };
+let setScoreChain: Promise<void> = Promise.resolve();
+let lastSetScoreAt = 0;
+
+function queuedSetScore(lb: ScoreBoard, boardId: string, score: number): Promise<void> {
+  const run = setScoreChain.then(async () => {
+    const gap = MIN_SET_SCORE_GAP_MS - (Date.now() - lastSetScoreAt);
+    if (gap > 0) await new Promise<void>(r => setTimeout(r, gap));
+    lastSetScoreAt = Date.now();
+    try { await lb.setScore(boardId, score); } catch { /* rate limit / guest / network — ignore */ }
+  });
+  setScoreChain = run;   // the next write chains after this one (and its ≥1s gap)
+  return run;
+}
+
+/** Test-only: reset the setScore throttle so each test starts un-spaced. */
+export function resetSetScoreThrottleForTest(): void {
+  setScoreChain = Promise.resolve();
+  lastSetScoreAt = 0;
+}
+
 export function submitBestScore(boardId: string, score: number): void {
   if (!Number.isFinite(score) || score <= 0) return;
   const lb = getYSDK()?.leaderboards;
   if (!lb) return;
-  lb.getPlayerEntry(boardId)
-    .then(entry => { if (score > entry.score) return lb.setScore(boardId, score); })
-    .catch(() => lb.setScore(boardId, score))
-    .then(() => {}, () => {});
+  lb.getPlayerEntry(boardId).then(
+    entry => { if (score > entry.score) return queuedSetScore(lb, boardId, score); },
+    () => queuedSetScore(lb, boardId, score),   // no entry yet / read error → submit
+  ).catch(() => {});
+}
+
+/**
+ * Submit a completion time (in MILLISECONDS) to a `time` board, overwriting only
+ * when strictly FASTER than the player's current entry. Yandex `setScore` overwrites
+ * UNCONDITIONALLY — it is not "keep best", and `invert_sort_order` only affects display
+ * ranking, never the write — so this client-side guard is what actually preserves the
+ * fastest time. No entry yet / read error → submit. Never throws; returns a promise that
+ * settles once the write attempt is done, so callers can chain a leaderboard refresh.
+ *
+ * Use this for the 16 `time` boards. Do NOT invert the value (no `9999 - seconds`): the
+ * boards are `time` + ascending and take raw ms — inversion would mis-format the time.
+ */
+export function submitBestTime(boardId: string, ms: number): Promise<void> {
+  const lb = getYSDK()?.leaderboards;
+  if (!lb || !Number.isFinite(ms) || ms <= 0) return Promise.resolve();
+  return lb.getPlayerEntry(boardId).then(
+    entry => { if (ms < entry.score) return queuedSetScore(lb, boardId, ms); },
+    () => queuedSetScore(lb, boardId, ms),   // no entry yet / read error → submit
+  ).catch(() => {});
 }
 
 const MOCK_LEADERBOARD: Record<Difficulty, LeaderboardData> = {
