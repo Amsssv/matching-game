@@ -19,7 +19,7 @@ export function Title({ text }: { text: string }) {
       range.selectNodeContents(el);
       const textWidth = range.getBoundingClientRect().width;
       if (!textWidth) return;
-      const floor = Math.min(650, window.innerWidth * 0.85);
+      const floor = Math.min(520, window.innerWidth * 0.68);
       const cap = window.innerWidth * 0.92; // mirror the .root max-width:92vw clamp
       const frame = Math.min(Math.max(textWidth * 1.5, floor), cap);
       setWidth(Math.round(frame));

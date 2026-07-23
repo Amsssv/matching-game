@@ -18,6 +18,16 @@
          JS/CSS bundle, React or Phaser. Ocean gradient + a real progress bar fed by
          Phaser's asset loader (window.__appLoader.set), removed once the menu shows. -->
     <style>
+      /* Inline the display font used by the title so the "Allegra" publisher wordmark
+         paints in the right typeface on the very first frame — before the CSS bundle's
+         @font-face parses (same URLs, so it dedupes against the preload above). */
+      @font-face {
+        font-family: 'Indira K';
+        src: url('/fonts/IndiraK.woff2') format('woff2'),
+             url('/fonts/IndiraK.ttf') format('truetype');
+        font-display: swap;
+      }
+
       /* Underwater depth: bright sunlit surface up top fading into a dark abyss. */
       #app-loader {
         position: fixed; inset: 0; z-index: 9999; overflow: hidden;
@@ -73,6 +83,17 @@
         position: relative; z-index: 1;
         display: flex; flex-direction: column; align-items: center; gap: 16px;
       }
+      /* Publisher wordmark — matches the game title: Indira K + the gold gradient
+         clipped to the text, with the same soft drop-shadow. */
+      #app-loader .app-loader__brand {
+        margin: 0 0 clamp(14px, 5vh, 44px);
+        font-family: 'Indira K', sans-serif;
+        font-size: clamp(40px, 12vw, 92px); line-height: 1; letter-spacing: 0.03em;
+        background: linear-gradient(to bottom, #f5e6b0 0%, #fff5c0 30%, #ffd84d 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; color: #ffd84d;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+      }
       #app-loader .app-loader__track {
         position: relative; width: min(80vw, 528px); height: 24px; border-radius: 999px;
         background: rgba(3, 20, 34, 0.55); overflow: hidden;
@@ -116,6 +137,7 @@
         <span></span><span></span><span></span><span></span>
       </div>
       <div class="app-loader__center">
+        <div class="app-loader__brand">Allegra</div>
         <div class="app-loader__track"><div class="app-loader__fill" id="app-loader-fill"></div></div>
         <div class="app-loader__pct" id="app-loader-pct">0%</div>
       </div>

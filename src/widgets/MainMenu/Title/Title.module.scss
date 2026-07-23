@@ -3,7 +3,7 @@
 .root {
   pointer-events: none;
   position: relative;
-  width: min(650px, 85vw);
+  width: min(520px, 68vw);
   max-width: 92vw;
   margin-top: clamp(6px, 4vh, 16px);
   display: grid; place-items: center;
@@ -37,14 +37,14 @@
 // overrides the inline width Title.tsx sets from its JS text measurement.
 @media (orientation: landscape) and (max-height: 480px) {
   .root { width: auto !important; max-width: 90vw; margin-top: 2px; }
-  .background { width: auto; height: 20vh; max-width: 90vw; }
-  .text { font-size: clamp(13px, 7vh, 26px); }
+  .background { width: auto; height: 16vh; max-width: 90vw; }
+  .text { font-size: clamp(10px, 5.6vh, 21px); }
 }
 .text {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   margin: 0; white-space: nowrap;
   font-family: #{$font-display};
-  font-size: clamp(22px, min(7.5vh, 10vw), 56px); line-height: 1; letter-spacing: 0.02em;
+  font-size: clamp(18px, min(6vh, 8vw), 45px); line-height: 1; letter-spacing: 0.02em;
   color: $gold;
   background: linear-gradient(to bottom, #f5e6b0 0%, #fff5c0 30%, #ffd84d 100%);
   -webkit-background-clip: text;
