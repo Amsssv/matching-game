@@ -29,9 +29,48 @@ export function GameMount({ children }: { children?: ReactNode }) {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [dpr, setDpr] = useState(getLocalDpr);
 
-  // Update dpr state when DevTools device switch changes devicePixelRatio
+  // Handle every window resize (fullscreen toggle, F11, OS window-maximize, mobile
+  // URL-bar show/hide, split-screen, DevTools). Two jobs:
+  //  1. If render-on-demand has put game.loop to sleep, Phaser's own windowResize
+  //     listener only sets ScaleManager.dirty=true and defers the actual refresh()
+  //     to ScaleManager.step() — which runs on PRE_STEP and is frozen while the RAF
+  //     loop sleeps. So the RESIZE event never fires and scenes never re-fit their
+  //     full-screen background (it stays at the old size — "фон не растягивается").
+  //     Calling refresh() here is RAF-independent: it resizes the canvas and emits
+  //     RESIZE synchronously, so the scene onResize re-fits the bg and wakes the loop
+  //     for one frame before it settles back to sleep. Guarded to the asleep case so
+  //     the awake path (step() consumes the dirty flag next frame) is unchanged.
+  //  2. Update dpr state when a DevTools device switch changes devicePixelRatio.
   useEffect(() => {
     const update = () => {
+      const game = gameRef.current;
+      // While render-on-demand sleeps game.loop, Phaser's RAF is stopped, so
+      // ScaleManager.step() never runs and the dirty flag its windowResize listener
+      // sets is never consumed: refresh() never fires, the RESIZE event never emits,
+      // and scenes never re-fit their full-screen background to the new viewport.
+      // That is the reported "фон не растягивается" on fullscreen — and the same for
+      // the mobile URL-bar, split-screen and DevTools resizes, all plain window
+      // 'resize's. (Device rotation self-heals: Phaser's orientationChange listener
+      // calls refresh() directly.) So drive refresh() ourselves while asleep.
+      //
+      // Pump it across several frames rather than once: reading the parent bounds in
+      // the resize handler (or the very next frame) can still return stale pre-reflow
+      // values for the vw-sized #game-container, and a fullscreen transition emits
+      // several intermediate resizes. requestAnimationFrame keeps running while the
+      // loop sleeps (Phaser only stopped its own RAF). Once a frame reads the settled
+      // size, refresh() emits RESIZE → the scene onResize re-fits the bg AND wakes the
+      // loop, which stops the pump; the scene's scheduleSleep() then settles it back
+      // to sleep. If nothing actually changed the loop is never woken, so a static
+      // scene is never kept awake — render-on-demand is preserved.
+      if (game && !game.loop.running) {
+        let frames = 0;
+        const pump = () => {
+          if (game.loop.running || frames++ > 30) return;
+          game.scale.refresh();
+          requestAnimationFrame(pump);
+        };
+        requestAnimationFrame(pump);
+      }
       const dpr = getLocalDpr();
       setDpr(prev => prev !== dpr ? dpr : prev);
     };
